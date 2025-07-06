@@ -1,5 +1,9 @@
 import { dom, gameState, updateUI, callGeminiAPI } from './utils.js';
 
+/**
+ * Starts the AI guessing game.
+ * Initializes the game state, displays the initial message, and makes the first API call to get the AI's first question.
+ */
 export async function startGameAI() {
     gameState.preGame = false;
     gameState.started = true;
@@ -28,6 +32,11 @@ export async function startGameAI() {
     }
 }
 
+/**
+ * Handles the user's answer to the AI's question.
+ * Sends the answer to the AI and gets the next question or guess.
+ * @param {string} answer - The user's answer ("yes", "no", "maybe").
+ */
 export async function handleAnswer(answer) {
     if (!gameState.started) return;
 
@@ -51,6 +60,11 @@ export async function handleAnswer(answer) {
     }
 }
 
+/**
+ * Handles the response from the Gemini API.
+ * Parses the JSON response and updates the UI with the AI's question or guess.
+ * @param {object} result - The response object from the Gemini API.
+ */
 function handleApiResponse(result) {
     if (result.candidates && result.candidates.length > 0 &&
         result.candidates[0].content && result.candidates[0].content.parts &&
@@ -82,6 +96,10 @@ function handleApiResponse(result) {
     }
 }
 
+/**
+ * Ends the game and displays a final message.
+ * @param {string} finalMessage - The message to display at the end of the game.
+ */
 function endGame(finalMessage) {
     gameState.started = false;
     gameState.loading = false;

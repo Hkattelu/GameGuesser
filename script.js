@@ -2,11 +2,18 @@ import { dom, gameState, updateUI } from './utils.js';
 import { startGameAI, handleAnswer } from './aiGuessesGame.js';
 import { startGamePlayerGuesses, handlePlayerGuess } from './playerGuessesGame.js';
 
+/**
+ * Switches the game mode and resets the game.
+ * @param {string} mode - The game mode to switch to ('ai-guesses' or 'player-guesses').
+ */
 function switchGameMode(mode) {
     gameState.gameMode = mode;
     resetGame();
 }
 
+/**
+ * Resets the game state to its initial values.
+ */
 function resetGame() {
     Object.assign(gameState, {
         gameMode: 'ai-guesses',
