@@ -1,0 +1,17 @@
+        /* Custom font for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+            padding: 20px; /* Padding around the content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+        /* Ensure the main container grows to fit content but stays centered */
+        .game-container {
+            max-width: 600px; /* Max width for readability */
+            width: 100%; /* Full width on smaller screens */
+        }

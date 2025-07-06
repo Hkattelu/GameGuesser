@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Game Guesser</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">AI Game Guesser</h1>
+
+        <!-- Game State / Question Display -->
+        <div id="game-area" class="space-y-6">
+            <p id="game-message" class="text-lg text-gray-600 mb-4">Let's play! Think of a video game, and I'll try to guess it. Click "Start Game" when you're ready!</p>
+
+            <!-- User Input for their secret game (optional, depending on game variant) -->
+            <div id="user-game-input-section" class="mb-6">
+                <label for="user-game-title" class="block text-gray-700 text-sm font-semibold mb-2">Your Secret Game Title (Optional):</label>
+                <input type="text" id="user-game-title" placeholder="e.g., The Legend of Zelda: Breath of the Wild" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+            </div>
+
+            <!-- AI's Question Display -->
+            <div id="question-display" class="hidden">
+                <p class="text-xl font-semibold text-gray-800 mb-4">AI's Question:</p>
+                <p id="ai-question" class="text-2xl font-bold text-blue-700 bg-blue-50 p-4 rounded-lg shadow-inner mb-6">Is your game an RPG?</p>
+            </div>
+
+            <!-- User Response Buttons -->
+            <div id="response-buttons" class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <button id="btn-yes" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Yes</button>
+                <button id="btn-no" class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">No</button>
+                <button id="btn-unsure" class="px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Unsure</button>
+            </div>
+
+            <!-- Start Game Button -->
+            <button id="btn-start-game" class="mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Start Game</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
