@@ -29,6 +29,7 @@ export let gameState = {
   maxQuestions: 20,
   chatHistory: [],
   loading: false,
+  highlightedResponse: null, // 'Yes', 'No', or 'Unsure'
 };
 
 // The GEMINI_API_KEY is loaded from config.js, which is not checked into git.
@@ -45,8 +46,20 @@ export function updateUI() {
   const isPlayerGuesses = gameState.gameMode === 'player-guesses';
 
   // AI Guesses Mode UI
-  dom.responseButtons.classList.toggle('hidden', gameState.loading || !gameState.started || !isAiGuesses);
+  dom.responseButtons.classList.toggle('hidden', gameState.loading || !isAiGuesses);
   dom.questionDisplay.classList.toggle('hidden', !gameState.started || !isAiGuesses);
+
+  // Handle highlighting of response buttons
+  clearHighlights();
+  if (gameState.highlightedResponse) {
+    if (gameState.highlightedResponse === 'Yes') {
+      dom.btnYes.classList.add('highlight-yes');
+    } else if (gameState.highlightedResponse === 'No') {
+      dom.btnNo.classList.add('highlight-no');
+    } else if (gameState.highlightedResponse === 'Unsure') {
+      dom.btnUnsure.classList.add('highlight-unsure');
+    }
+  }
 
   // Player Guesses Mode UI
   dom.playerGuessesGame.classList.toggle('hidden', !isPlayerGuesses);
@@ -81,6 +94,15 @@ export function updateUI() {
   dom.playerGuessesGame.classList.toggle('hidden', !isPlayerGuesses);
   dom.tabAiGuesses.classList.toggle('active', isAiGuesses);
   dom.tabPlayerGuesses.classList.toggle('active', isPlayerGuesses);
+}
+
+/**
+ * Removes all highlighting from the response buttons.
+ */
+export function clearHighlights() {
+  dom.btnYes.classList.remove('highlight-yes');
+  dom.btnNo.classList.remove('highlight-no');
+  dom.btnUnsure.classList.remove('highlight-unsure');
 }
 
 /**

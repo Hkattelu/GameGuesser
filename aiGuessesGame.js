@@ -41,6 +41,7 @@ export async function handleAnswer(answer) {
   if (!gameState.started) return;
 
   gameState.loading = true;
+  gameState.highlightedResponse = null; // Clear highlight when user answers
   dom.gameMessage.textContent = `You answered "${answer}". Thinking...`;
   updateUI();
 
@@ -66,6 +67,8 @@ export async function handleAnswer(answer) {
  * @param {object} result - The response object from the Gemini API.
  */
 function handleApiResponse(result) {
+  gameState.highlightedResponse = null; // Clear any previous highlight
+
   if (result.candidates && result.candidates.length > 0 &&
         result.candidates[0].content && result.candidates[0].content.parts &&
         result.candidates[0].content.parts.length > 0) {
@@ -84,7 +87,7 @@ function handleApiResponse(result) {
       dom.aiQuestion.textContent = `(${gameState.questionCount}/${gameState.maxQuestions}) ${content}`;
       dom.gameMessage.textContent = "Your turn to answer!";
     } else if (type === "guess") {
-      endGame(`My guess is: ${content}. Am I right?`);
+      endGame(`My guess is: ${content}. Am I right?`, 'guess');
     } else {
       dom.aiQuestion.textContent = "Error: Unexpected response type from Bot Boy.";
       dom.gameMessage.textContent = "Please try again.";
@@ -100,9 +103,10 @@ function handleApiResponse(result) {
  * Ends the game and displays a final message.
  * @param {string} finalMessage - The message to display at the end of the game.
  */
-function endGame(finalMessage) {
+function endGame(finalMessage, highlight = null) {
   gameState.started = false;
   gameState.loading = false;
+  gameState.highlightedResponse = highlight; // Set the highlight for the final message
   dom.aiQuestion.textContent = finalMessage;
   updateUI();
 }

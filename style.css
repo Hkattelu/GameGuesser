@@ -158,3 +158,25 @@ body {
     color: #854d0e;
     border: 1px solid #fde047;
 }
+
+/* New highlighting classes */
+.highlight-yes {
+    background-color: #4CAF50; /* Darker green */
+    color: white;
+    border: 2px solid #388E3C;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.highlight-no {
+    background-color: #F44336; /* Darker red */
+    color: white;
+    border: 2px solid #D32F2F;
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+}
+
+.highlight-unsure {
+    background-color: #FFC107; /* Darker yellow */
+    color: white;
+    border: 2px solid #FFA000;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}

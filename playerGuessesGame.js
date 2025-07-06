@@ -1,33 +1,33 @@
-import { dom, gameState, updateUI, callGeminiAPI } from './utils.js';
+import { dom, gameState, updateUI, callGeminiAPI, clearHighlights } from './utils.js';
 
 const suggestionQuestions = [
-    "Is the game a single-player game?",
-    "Is the game a multi-player game?",
-    "Is the game a console exclusive?",
-    "Was the game released in the last 5 years?",
-    "Is the main character male?",
-    "Is the main character female?",
-    "Is it an indie game?",
-    "Is it a AAA game?",
+  "Is the game a single-player game?",
+  "Is the game a multi-player game?",
+  "Is the game a console exclusive?",
+  "Was the game released in the last 5 years?",
+  "Is the main character male?",
+  "Is the main character female?",
+  "Is it an indie game?",
+  "Is it a AAA game?",
 ];
 
 /**
  * Creates and displays a random selection of 3 suggestion chips.
  */
 function createSuggestionChips() {
-    dom.suggestionChips.innerHTML = '';
-    const shuffledQuestions = suggestionQuestions.sort(() => 0.5 - Math.random());
-    const selectedQuestions = shuffledQuestions.slice(0, 3);
+  dom.suggestionChips.innerHTML = '';
+  const shuffledQuestions = suggestionQuestions.sort(() => 0.5 - Math.random());
+  const selectedQuestions = shuffledQuestions.slice(0, 3);
 
-    selectedQuestions.forEach(question => {
-        const chip = document.createElement('button');
-        chip.textContent = question;
-        chip.classList.add('suggestion-chip');
-        chip.addEventListener('click', () => {
-            dom.playerGuessInput.value = question;
-        });
-        dom.suggestionChips.appendChild(chip);
+  selectedQuestions.forEach(question => {
+    const chip = document.createElement('button');
+    chip.textContent = question;
+    chip.classList.add('suggestion-chip');
+    chip.addEventListener('click', () => {
+      dom.playerGuessInput.value = question;
     });
+    dom.suggestionChips.appendChild(chip);
+  });
 }
 
 /**
@@ -72,6 +72,7 @@ export async function handlePlayerQuestion() {
 
   gameState.loading = true;
   gameState.questionCount++;
+  gameState.highlightedResponse = null; // Clear previous highlight
   updateUI();
 
   const prompt = `The user asked: "${userInput}". The secret game is "${gameState.secretGame}".
@@ -91,14 +92,8 @@ export async function handlePlayerQuestion() {
 
     if (jsonResponse.type === 'answer') {
       dom.modelResponse.textContent = `My answer: ${jsonResponse.content}`;
-      dom.modelResponse.classList.remove('hidden', 'response-yes', 'response-no', 'response-unsure');
-      if (jsonResponse.content.toLowerCase() === 'yes') {
-        dom.modelResponse.classList.add('response-yes');
-      } else if (jsonResponse.content.toLowerCase() === 'no') {
-        dom.modelResponse.classList.add('response-no');
-      } else {
-        dom.modelResponse.classList.add('response-unsure');
-      }
+      dom.modelResponse.classList.remove('hidden');
+      gameState.highlightedResponse = jsonResponse.content;
 
       if (gameState.questionCount >= gameState.maxQuestions) {
         endGame(`You're out of questions! The game was ${gameState.secretGame}.`);

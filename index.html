@@ -19,13 +19,12 @@
       <div id="stripe-pattern"></div>
     </div>
     <div class="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Game Boy's Game Guesser</h1>
         <div class="tabs flex justify-center border-b mb-4">
-            <button id="tab-ai-guesses" class="tab-btn active">AI Guesses</button>
-            <button id="tab-player-guesses" class="tab-btn">Player Guesses</button>
+            <button id="tab-ai-guesses" class="tab-btn active">Game boy guesses</button>
+            <button id="tab-player-guesses" class="tab-btn">You guess</button>
         </div>
-
         <img src="bot_boy/guy.png" alt="AI Mascot" id="mascot-image" class="mx-auto mb-4">
-        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Bot Boy's Game Guesser ✨</h1>
 
         <div id="ai-guesses-game">
             <!-- Game State / Question Display -->
@@ -51,7 +50,7 @@
                 </div>
 
                 <!-- User Response Buttons -->
-                <div id="response-buttons" class="hidden flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <div id="response-buttons" class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                     <button id="btn-yes" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Yes</button>
                     <button id="btn-no" class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">No</button>
                     <button id="btn-unsure" class="px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Unsure</button>
@@ -63,16 +62,16 @@
         </div>
 
         <div id="player-guesses-game" class="hidden">
-            <p class="text-lg text-gray-600 mb-4">I'm thinking of a game. Can you guess it?</p>
+            <p class="text-lg text-gray-600">I'm thinking of a game. Can you guess it?</p>
             <div class="mb-6">
-                <label for="player-guess-input" class="block text-gray-700 text-sm font-semibold mb-2">Your Question or Guess:</label>
+                <label for="player-guess-input" class="block text-gray-700 text-sm font-semibold mb-2" aria-hidden="true"></label>
                 <input type="text" id="player-guess-input" placeholder="e.g., Is the game a first-person shooter?" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
             </div>
             <div id="suggestion-chips" class="flex flex-wrap justify-center gap-2 mb-4">
                 </div>
             <div id="model-response" class="hidden text-lg font-semibold p-4 rounded-lg my-4"></div>
             <button id="btn-submit-guess" class="px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Submit</button>
-            <button id="btn-start-player-game" class="mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Start Game</button>
+            <button id="btn-start-player-game" class="mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Start Game</button>
         </div>
     </div>
     <div class="disclaimer">

@@ -1,4 +1,4 @@
-import { dom, gameState, updateUI } from './utils.js';
+import { dom, gameState, updateUI, clearHighlights } from './utils.js';
 import { startGameAI, handleAnswer } from './aiGuessesGame.js';
 import { startGamePlayerGuesses, handlePlayerQuestion } from './playerGuessesGame.js';
 
@@ -22,7 +22,9 @@ function resetGame() {
     questionCount: 0,
     chatHistory: [],
     loading: false,
+    highlightedResponse: null, // Clear highlighted response on reset
   });
+  clearHighlights();
   gameState.gameMode = currentMode;
   updateUI();
 }
