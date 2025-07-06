@@ -31,8 +31,8 @@ export let gameState = {
   loading: false,
 };
 
-// The API_KEY is loaded from config.js, which is not checked into git.
-export const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+// The GEMINI_API_KEY is loaded from config.js, which is not checked into git.
+export const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 /**
  * Updates the UI based on the current game state.

@@ -43,7 +43,7 @@ export async function startGamePlayerGuesses() {
   updateUI();
   createSuggestionChips();
 
-  const initialPrompt = `You are an AI thinking of a secret video game. The user will ask yes/no questions to guess it.
+  const initialPrompt = `You are Bot Boy, a friendly robot thinking of a secret video game. The user will ask yes/no questions to guess it.
             Your response MUST be a JSON object with a 'secretGame' field.
             Example: {"secretGame": "The Witcher 3: Wild Hunt"}`;
 
