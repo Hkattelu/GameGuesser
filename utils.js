@@ -16,6 +16,9 @@ export const dom = {
   playerGuessesGame: document.getElementById('player-guesses-game'),
   playerGuessInput: document.getElementById('player-guess-input'),
   btnSubmitGuess: document.getElementById('btn-submit-guess'),
+  suggestionChips: document.getElementById('suggestion-chips'),
+  btnStartPlayerGame: document.getElementById('btn-start-player-game'),
+  modelResponse: document.getElementById('model-response'),
 };
 
 export let gameState = {
@@ -37,18 +40,34 @@ export const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/g
  */
 export function updateUI() {
   dom.loadingIndicator.classList.toggle('hidden', !gameState.loading);
-  dom.responseButtons.classList.toggle('hidden', gameState.loading || !gameState.started || gameState.gameMode !== 'ai-guesses');
-  dom.questionDisplay.classList.toggle('hidden', !gameState.started || gameState.gameMode !== 'ai-guesses');
 
-  dom.userGameInputSection.classList.toggle('hidden', gameState.started);
-  dom.btnStartGame.classList.toggle('hidden', gameState.started);
+  const isAiGuesses = gameState.gameMode === 'ai-guesses';
+  const isPlayerGuesses = gameState.gameMode === 'player-guesses';
+
+  // AI Guesses Mode UI
+  dom.responseButtons.classList.toggle('hidden', gameState.loading || !gameState.started || !isAiGuesses);
+  dom.questionDisplay.classList.toggle('hidden', !gameState.started || !isAiGuesses);
+
+  // Player Guesses Mode UI
+  dom.playerGuessesGame.classList.toggle('hidden', !isPlayerGuesses);
+  dom.playerGuessInput.classList.toggle('hidden', gameState.loading || !gameState.started || !isPlayerGuesses);
+  dom.btnSubmitGuess.classList.toggle('hidden', gameState.loading || !gameState.started || !isPlayerGuesses);
+
+  // General UI
+  dom.userGameInputSection.classList.toggle('hidden', gameState.started && gameState.gameMode === 'ai-guesses');
+  dom.btnStartGame.classList.toggle('hidden', gameState.gameMode !== 'ai-guesses');
+  dom.btnStartPlayerGame.classList.toggle('hidden', gameState.started || gameState.gameMode !== 'player-guesses');
 
   if (gameState.loading) {
     dom.mascotImage.src = 'bot_boy/thinking.png';
   } else if (gameState.preGame) {
     dom.mascotImage.src = 'bot_boy/guy.png';
     dom.btnStartGame.textContent = "Start Game";
-    dom.gameMessage.textContent = "Let's play! Think of a video game, and I'll try to guess it. Click \"Start Game\" when you're ready!";
+    if (isAiGuesses) {
+      dom.gameMessage.textContent = "Let's play! Think of a video game, and I'll try to guess it. Click \"Start Game\" when you're ready!";
+    } else {
+      dom.gameMessage.textContent = "I'm thinking of a game. You have 20 questions to guess it. Click \"Start Game\" to begin!";
+    }
   } else if (!gameState.started) {
     dom.mascotImage.src = 'bot_boy/sadge.png';
     dom.btnStartGame.textContent = "Play Again?";
@@ -58,10 +77,10 @@ export function updateUI() {
   }
 
   // Tab switching
-  dom.aiGuessesGame.classList.toggle('hidden', gameState.gameMode !== 'ai-guesses');
-  dom.playerGuessesGame.classList.toggle('hidden', gameState.gameMode !== 'player-guesses');
-  dom.tabAiGuesses.classList.toggle('active', gameState.gameMode === 'ai-guesses');
-  dom.tabPlayerGuesses.classList.toggle('active', gameState.gameMode === 'player-guesses');
+  dom.aiGuessesGame.classList.toggle('hidden', !isAiGuesses);
+  dom.playerGuessesGame.classList.toggle('hidden', !isPlayerGuesses);
+  dom.tabAiGuesses.classList.toggle('active', isAiGuesses);
+  dom.tabPlayerGuesses.classList.toggle('active', isPlayerGuesses);
 }
 
 /**
