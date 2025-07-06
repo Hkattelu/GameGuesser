@@ -1,118 +1,177 @@
-        // Get references to DOM elements
-        const gameMessage = document.getElementById('game-message');
-        const userGameInputSection = document.getElementById('user-game-input-section');
-        const userGameTitleInput = document.getElementById('user-game-title');
-        const questionDisplay = document.getElementById('question-display');
-        const aiQuestion = document.getElementById('ai-question');
-        const responseButtons = document.getElementById('response-buttons');
-        const btnYes = document.getElementById('btn-yes');
-        const btnNo = document.getElementById('btn-no');
-        const btnUnsure = document.getElementById('btn-unsure');
-        const btnStartGame = document.getElementById('btn-start-game');
+// Get references to DOM elements
+const gameMessage = document.getElementById('game-message');
+const userGameInputSection = document.getElementById('user-game-input-section');
+const questionDisplay = document.getElementById('question-display');
+const aiQuestion = document.getElementById('ai-question');
+const responseButtons = document.getElementById('response-buttons');
+const btnYes = document.getElementById('btn-yes');
+const btnNo = document.getElementById('btn-no');
+const btnUnsure = document.getElementById('btn-unsure');
+const btnStartGame = document.getElementById('btn-start-game');
+const loadingIndicator = document.getElementById('loading-indicator');
 
-        // Game state variables
-        let gameStarted = false;
-        let questionCount = 0;
-        const maxQuestions = 20; // For a 20 Questions style game
+// Game state variables
+let gameStarted = false;
+let questionCount = 0;
+const maxQuestions = 20; // For a 20 Questions style game
+let chatHistory = []; // To store conversation history for the LLM
 
-        // Function to start the game
-        function startGame() {
-            gameStarted = true;
-            questionCount = 0;
-            gameMessage.textContent = "Okay, let's begin! I'll ask my first question.";
-            userGameInputSection.classList.add('hidden'); // Hide input after starting
-            btnStartGame.classList.add('hidden'); // Hide start button
+// Gemini API configuration
+// The API_KEY is loaded from config.js, which is not checked into git.
+const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
-            questionDisplay.classList.remove('hidden'); // Show question area
-            responseButtons.classList.remove('hidden'); // Show response buttons
+// Function to show/hide loading indicator
+function showLoading(show) {
+  if (show) {
+    loadingIndicator.classList.remove('hidden');
+    responseButtons.classList.add('hidden'); // Hide buttons while thinking
+  } else {
+    loadingIndicator.classList.add('hidden');
+    responseButtons.classList.remove('hidden'); // Show buttons after thinking
+  }
+}
 
-            // Simulate AI asking the first question
-            askQuestion("Is your game a role-playing game (RPG)?");
+
+// Function to start the game
+async function startGame() {
+  gameStarted = true;
+  questionCount = 0;
+  chatHistory = []; // Clear history for a new game
+
+  gameMessage.textContent = "Okay, let's begin! I'll ask my first question.";
+  userGameInputSection.classList.add('hidden'); // Hide input after starting
+  btnStartGame.classList.add('hidden'); // Hide start button
+
+  questionDisplay.classList.remove('hidden'); // Show question area
+  // responseButtons will be shown by showLoading(false) after first question
+
+  // Initial prompt for the LLM to start the game
+  const initialPrompt = `You are an AI playing a "20 Questions" game to guess a video game the user is thinking of.
+            You will ask yes/no questions. If you are very confident, you can make a guess.
+            You have ${maxQuestions} questions in total. This is question 1.
+            Your response MUST be a JSON object with a 'type' field ("question" or "guess") and a 'content' field (the question text or the game guess).
+            Example: {"type": "question", "content": "Is your game an RPG?"}
+            Example: {"type": "guess", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
+            Start by asking your first question.`;
+
+  chatHistory.push({ role: "user", parts: [{ text: initialPrompt }] });
+
+  await callGeminiAPI();
+}
+
+// Function to simulate AI asking a question
+function askQuestion(questionText) {
+  questionCount++;
+  if (questionCount > maxQuestions) {
+    endGame("I couldn't guess your game in 20 questions! You win!");
+    return;
+  }
+  aiQuestion.textContent = `(${questionCount}/${maxQuestions}) ${questionText}`;
+}
+
+
+async function callGeminiAPI() {
+  showLoading(true); // Show loading indicator
+
+  try {
+    const payload = {
+      contents: chatHistory,
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            "type": { "type": "STRING", "enum": ["question", "guess"] },
+            "content": { "type": "STRING" }
+          },
+          required: ["type", "content"]
         }
+      }
+    };
 
-        // Function to simulate AI asking a question
-        function askQuestion(questionText) {
-            questionCount++;
-            if (questionCount > maxQuestions) {
-                endGame("I couldn't guess your game in 20 questions! You win!");
-                return;
-            }
-            aiQuestion.textContent = `(${questionCount}/${maxQuestions}) ${questionText}`;
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
+            result.candidates[0].content.parts.length > 0) {
+
+      const jsonResponse = JSON.parse(result.candidates[0].content.parts[0].text);
+      const responseType = jsonResponse.type;
+      const responseContent = jsonResponse.content;
+
+      // Add AI's response to chat history
+      chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(jsonResponse) }] });
+
+      if (responseType === "question") {
+        questionCount++;
+        if (questionCount > maxQuestions) {
+          endGame("I couldn't guess your game in 20 questions! You win!");
+          return;
         }
+        aiQuestion.textContent = `(${questionCount}/${maxQuestions}) ${responseContent}`;
+        gameMessage.textContent = "Your turn to answer!";
+      } else if (responseType === "guess") {
+        endGame(`My guess is: ${responseContent}. Am I right?`);
+      } else {
+        aiQuestion.textContent = "Error: Unexpected response type from AI.";
+        gameMessage.textContent = "Please try again.";
+      }
+    } else {
+      console.error("Unexpected API response structure:", result);
+      aiQuestion.textContent = "AI encountered an error. Please try again.";
+      gameMessage.textContent = "Error communicating with AI.";
+    }
+  } catch (error) {
+    console.error("Error calling Gemini API:", error);
+    aiQuestion.textContent = "Failed to get a response from AI. Please check console for errors.";
+    gameMessage.textContent = "Network or API error.";
+  } finally {
+    showLoading(false); // Hide loading indicator
+  }
+}
 
-        // Function to handle user's answer
-        function handleAnswer(answer) {
-            if (!gameStarted) return;
+// Function to handle user's answer
+async function handleAnswer(answer) {
+  if (!gameStarted) return;
 
-            console.log(`User answered: ${answer}`);
-            // In a real game, this is where you'd send the answer to your LLM agent.
-            // The LLM agent would then process the answer, filter its internal list
-            // of possible games, and generate the next question or a guess.
+  gameMessage.textContent = `You answered "${answer}". Thinking...`;
 
-            gameMessage.textContent = `You answered "${answer}". Thinking...`;
+  // Add user's answer to chat history
+  chatHistory.push({ role: "user", parts: [{ text: `User answered "${answer}".` }] });
 
-            // Simulate AI's next turn after a short delay
-            setTimeout(() => {
-                // Placeholder for next question or guess
-                const nextQuestion = getNextSimulatedQuestion();
-                if (nextQuestion) {
-                    askQuestion(nextQuestion);
-                    gameMessage.textContent = "Your turn to answer!";
-                } else {
-                    // Simulate AI making a guess or ending the game
-                    endGame("I think your game is... [AI's Guess]! Am I right?");
-                }
-            }, 1500); // Simulate processing time
-        }
+  // Prompt the LLM for the next turn
+  const nextTurnPrompt = `The user just answered "${answer}". You have ${maxQuestions - questionCount} questions left.
+            Based on this, ask your next yes/no question or make a guess if you are confident.
+            Remember, your response MUST be a JSON object with 'type' and 'content'.`;
 
-        // Placeholder function to simulate AI's next question
-        function getNextSimulatedQuestion() {
-            const questions = [
-                "Was this game released on a Nintendo console?",
-                "Does your game feature a significant online multiplayer component?",
-                "Is the main character a human?",
-                "Does this game have an open world?",
-                "Is your game primarily a single-player experience?",
-                "Was this game released before 2010?",
-                "Is it a first-person shooter?",
-                "Does the game involve building or crafting?",
-                "Is it a popular indie game?",
-                "Does it have a strong narrative focus?",
-                "Is the game played from a top-down perspective?",
-                "Does it involve fantasy creatures or magic?",
-                "Is it a platformer?",
-                "Was it part of a well-known franchise?",
-                "Is the game known for its challenging difficulty?",
-                "Does it have a cartoonish or stylized art style?",
-                "Is it a racing game?",
-                "Does it involve space exploration?",
-                "Is it a puzzle game?",
-                "Is it a horror game?"
-            ];
-            // Cycle through questions for demonstration
-            if (questionCount < questions.length) {
-                return questions[questionCount];
-            }
-            return null; // No more questions
-        }
+  chatHistory.push({ role: "user", parts: [{ text: nextTurnPrompt }] });
 
-        // Function to end the game
-        function endGame(finalMessage) {
-            gameStarted = false;
-            aiQuestion.textContent = finalMessage;
-            responseButtons.classList.add('hidden'); // Hide response buttons
-            btnStartGame.textContent = "Play Again?";
-            btnStartGame.classList.remove('hidden'); // Show play again button
-            gameMessage.textContent = "Game Over!";
-            userGameInputSection.classList.remove('hidden'); // Show input again for next round
-        }
+  await callGeminiAPI();
+}
 
-        // Event Listeners
-        btnStartGame.addEventListener('click', startGame);
-        btnYes.addEventListener('click', () => handleAnswer('Yes'));
-        btnNo.addEventListener('click', () => handleAnswer('No'));
-        btnUnsure.addEventListener('click', () => handleAnswer('Unsure'));
+// Function to end the game
+function endGame(finalMessage) {
+  gameStarted = false;
+  aiQuestion.textContent = finalMessage;
+  responseButtons.classList.add('hidden'); // Hide response buttons
+  btnStartGame.textContent = "Play Again?";
+  btnStartGame.classList.remove('hidden'); // Show play again button
+  gameMessage.textContent = "Game Over!";
+  userGameInputSection.classList.remove('hidden'); // Show input again for next round
+}
 
-        // Initially hide question and response buttons
-        questionDisplay.classList.add('hidden');
-        responseButtons.classList.add('hidden');
+// Event Listeners
+btnStartGame.addEventListener('click', startGame);
+btnYes.addEventListener('click', () => handleAnswer('Yes'));
+btnNo.addEventListener('click', () => handleAnswer('No'));
+btnUnsure.addEventListener('click', () => handleAnswer('Unsure'));
+
+// Initially hide question and response buttons
+questionDisplay.classList.add('hidden');
+responseButtons.classList.add('hidden');
