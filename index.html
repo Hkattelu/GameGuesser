@@ -8,7 +8,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
     <script src="config.js"></script>
-    <script src="script.js" defer></script>
+    <script src="utils.js" type="module"></script>
+    <script src="aiGuessesGame.js" type="module"></script>
+    <script src="playerGuessesGame.js" type="module"></script>
+    <script src="script.js" type="module" defer></script>
 </head>
 <body>
     <div class="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
@@ -34,7 +37,7 @@
                 <!-- AI's Question Display -->
                 <div id="question-display" class="hidden">
                     <p class="text-xl font-semibold text-gray-800 mb-4">AI's Question:</p>
-                    <p id="ai-question" class="text-2xl font-bold text-blue-700 bg-blue-50 p-4 rounded-lg shadow-inner mb-6">Is your game an RPG?</p>
+                    <p id="ai-question" class="text-2xl font-bold text-blue-700 bg-blue-50 p-4 rounded-lg shadow-inner mb-6"></p>
                 </div>
 
                 <!-- Loading Indicator -->
@@ -44,7 +47,7 @@
                 </div>
 
                 <!-- User Response Buttons -->
-                <div id="response-buttons" class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <div id="response-buttons" class="hidden flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                     <button id="btn-yes" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Yes</button>
                     <button id="btn-no" class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">No</button>
                     <button id="btn-unsure" class="px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Unsure</button>
