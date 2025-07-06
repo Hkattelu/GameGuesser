@@ -19,12 +19,14 @@ export const dom = {
   suggestionChips: document.getElementById('suggestion-chips'),
   btnStartPlayerGame: document.getElementById('btn-start-player-game'),
   modelResponse: document.getElementById('model-response'),
+  playerQuestionCount: document.getElementById('player-question-count'),
 };
 
 export let gameState = {
   gameMode: 'ai-guesses', // 'ai-guesses' or 'player-guesses'
   preGame: true,
   started: false,
+  victory: false,
   questionCount: 0,
   maxQuestions: 20,
   chatHistory: [],
@@ -46,7 +48,7 @@ export function updateUI() {
   const isPlayerGuesses = gameState.gameMode === 'player-guesses';
 
   // AI Guesses Mode UI
-  dom.responseButtons.classList.toggle('hidden', gameState.loading || !isAiGuesses);
+  dom.responseButtons.classList.toggle('hidden', !gameState.started || gameState.loading || isAiGuesses);
   dom.questionDisplay.classList.toggle('hidden', !gameState.started || !isAiGuesses);
 
   // Handle highlighting of response buttons
@@ -65,6 +67,10 @@ export function updateUI() {
   dom.playerGuessesGame.classList.toggle('hidden', !isPlayerGuesses);
   dom.playerGuessInput.classList.toggle('hidden', gameState.loading || !gameState.started || !isPlayerGuesses);
   dom.btnSubmitGuess.classList.toggle('hidden', gameState.loading || !gameState.started || !isPlayerGuesses);
+  dom.playerQuestionCount.classList.toggle('hidden', !gameState.started || !isPlayerGuesses);
+  if (isPlayerGuesses && gameState.started) {
+    dom.playerQuestionCount.textContent = `Questions left: ${gameState.maxQuestions - gameState.questionCount}/${gameState.maxQuestions}`;
+  }
 
   // General UI
   dom.userGameInputSection.classList.toggle('hidden', gameState.started && gameState.gameMode === 'ai-guesses');
@@ -82,9 +88,9 @@ export function updateUI() {
       dom.gameMessage.textContent = "I'm thinking of a game. You have 20 questions to guess it. Click \"Start Game\" to begin!";
     }
   } else if (!gameState.started) {
-    dom.mascotImage.src = 'bot_boy/sadge.png';
+    dom.mascotImage.src = `bot_boy/${gameState.victory ? 'guy' : 'sadge'}.png`;
     dom.btnStartGame.textContent = "Play Again?";
-    dom.gameMessage.textContent = "Game Over!";
+    dom.gameMessage.textContent = gameState.victory ? "You Win!" : "Game Over!";
   } else {
     dom.mascotImage.src = 'bot_boy/guy.png';
   }

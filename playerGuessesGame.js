@@ -1,14 +1,36 @@
-import { dom, gameState, updateUI, callGeminiAPI, clearHighlights } from './utils.js';
+import { dom, gameState, updateUI, callGeminiAPI } from './utils.js';
 
 const suggestionQuestions = [
-  "Is the game a single-player game?",
-  "Is the game a multi-player game?",
-  "Is the game a console exclusive?",
-  "Was the game released in the last 5 years?",
-  "Is the main character male?",
-  "Is the main character female?",
-  "Is it an indie game?",
-  "Is it a AAA game?",
+  "Does the game feature an open world?",
+  "Is the game known for its strong narrative or story?",
+  "Does the game belong to the RPG genre?",
+  "Is it a first-person shooter (FPS)?",
+  "Does the game involve building or crafting mechanics?",
+  "Is the game set in a fantasy world?",
+  "Does the game take place in space or involve sci-fi themes?",
+  "Is it a platformer?",
+  "Is the game primarily played from a top-down perspective?",
+  "Does the game have a cartoonish or stylized art style?",
+  "Is it a horror game?",
+  "Does the game involve vehicles or racing?",
+  "Is it a puzzle game?",
+  "Does the game feature turn-based combat?",
+  "Is the game known for its challenging difficulty?",
+  "Is the game part of a well-known franchise?",
+  "Was the game originally released on a PlayStation console?",
+  "Was the game originally released on an Xbox console?",
+  "Was the game originally released on a Nintendo console?",
+  "Is the game available on PC?",
+  "Does the game involve magic or supernatural elements?",
+  "Is the game rated 'Mature' (17+) by ESRB or equivalent?",
+  "Does the game have a post-apocalyptic setting?",
+  "Is the game played from a third-person perspective?",
+  "Does the game feature a silent protagonist?",
+  "Is the game primarily focused on exploration?",
+  "Does the game have a significant emphasis on stealth?",
+  "Was the game released before the year 2000?",
+  "Does the game involve a large number of unique characters?",
+  "Is the game known for its emotional impact?"
 ];
 
 /**
@@ -43,7 +65,7 @@ export async function startGamePlayerGuesses() {
   updateUI();
   createSuggestionChips();
 
-  const initialPrompt = `You are Bot Boy, a friendly robot thinking of a secret video game. The user will ask yes/no questions to guess it.
+  const initialPrompt = `You are Game Boy, a friendly robot thinking of a secret video game. The user will ask yes/no questions to guess it.
             Your response MUST be a JSON object with a 'secretGame' field.
             Example: {"secretGame": "The Witcher 3: Wild Hunt"}`;
 
@@ -92,17 +114,16 @@ export async function handlePlayerQuestion() {
 
     if (jsonResponse.type === 'answer') {
       dom.modelResponse.textContent = `My answer: ${jsonResponse.content}`;
-      dom.modelResponse.classList.remove('hidden');
       gameState.highlightedResponse = jsonResponse.content;
 
       if (gameState.questionCount >= gameState.maxQuestions) {
-        endGame(`You're out of questions! The game was ${gameState.secretGame}.`);
+        endGame(`You're out of questions! The game was ${gameState.secretGame}.`, false);
       } else {
         createSuggestionChips();
       }
     } else if (jsonResponse.type === 'guessResult') {
       if (jsonResponse.content.correct) {
-        endGame(`You guessed it! The game was ${gameState.secretGame}.`);
+        endGame(`You guessed it! The game was ${gameState.secretGame}.`, true);
       } else {
         dom.gameMessage.textContent = jsonResponse.content.response;
       }
@@ -120,10 +141,12 @@ export async function handlePlayerQuestion() {
 /**
  * Ends the game and displays a final message.
  * @param {string} finalMessage - The message to display at the end of the game.
+ * @param {boolean} victory - Whether the user won the game.
  */
-function endGame(finalMessage) {
+function endGame(finalMessage, victory) {
   gameState.started = false;
   gameState.loading = false;
+  gameState.victory = victory;
   dom.gameMessage.textContent = finalMessage;
   updateUI();
 }
