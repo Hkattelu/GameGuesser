@@ -89,7 +89,7 @@ export function updateUI() {
     }
   } else if (!gameState.started) {
     dom.mascotImage.src = `bot_boy/${gameState.victory ? 'guy' : 'sadge'}.png`;
-    dom.btnStartGame.textContent = "Play Again?";
+    dom.btnStartPlayerGame.textContent = "Play Again?";
     dom.gameMessage.textContent = gameState.victory ? "You Win!" : "Game Over!";
   } else {
     dom.mascotImage.src = 'bot_boy/guy.png';

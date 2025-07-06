@@ -1,5 +1,5 @@
 import { dom, gameState, updateUI, clearHighlights } from './utils.js';
-import { startGameAI, handleAnswer } from './aiGuessesGame.js';
+import { startGameAI } from './aiGuessesGame.js';
 import { startGamePlayerGuesses, handlePlayerQuestion } from './playerGuessesGame.js';
 
 /**
@@ -38,11 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
       startGamePlayerGuesses();
     }
   });
-  dom.btnYes.addEventListener('click', () => handleAnswer('Yes'));
-  dom.btnNo.addEventListener('click', () => handleAnswer('No'));
-  dom.btnUnsure.addEventListener('click', () => handleAnswer('Unsure'));
   dom.tabAiGuesses.addEventListener('click', () => switchGameMode('ai-guesses'));
   dom.tabPlayerGuesses.addEventListener('click', () => switchGameMode('player-guesses'));
+  dom.playerGuessInput.addEventListener('submit', handlePlayerQuestion);
   dom.btnSubmitGuess.addEventListener('click', handlePlayerQuestion);
   dom.btnStartPlayerGame.addEventListener('click', startGamePlayerGuesses);
 

@@ -148,5 +148,6 @@ function endGame(finalMessage, victory) {
   gameState.loading = false;
   gameState.victory = victory;
   dom.gameMessage.textContent = finalMessage;
+  dom.suggestionChips.innerHTML = '';
   updateUI();
 }
