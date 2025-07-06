@@ -85,13 +85,13 @@ export function updateUI() {
 
 /**
  * Calls the Gemini API with the provided prompt or the current chat history.
- * @param {string} [prompt] - An optional prompt to send to the API. If not provided, the existing chat history is used.
+ * @param {string|object[]} [prompt] - An optional prompt or chat history to send to the API.
  * @returns {Promise<object|null>} A promise that resolves to the JSON response from the API, or null if an error occurs.
  */
 export async function callGeminiAPI(prompt) {
   try {
     const payload = {
-      contents: prompt ? [{ role: "user", parts: [{ text: prompt }] }] : gameState.chatHistory,
+      contents: typeof prompt === 'string' ? [{ role: "user", parts: [{ text: prompt }] }] : prompt,
       generationConfig: {
         responseMimeType: "application/json",
       }
