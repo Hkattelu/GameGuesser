@@ -19,17 +19,25 @@ function App() {
   const [gameMessage, setGameMessage] = useState("");
   const [aiQuestion, setAiQuestion] = useState("");
 
-  // Mascot image state
+  /**
+   * Gets the mascot image for the current game state.
+   * 
+   * This must be constructed with a static string to work with parcel.
+   * 
+   * @returns a URL with the correct image source
+   */
   const getMascotImage = () => {
     if (loading) {
-      return '/public/bot_boy/thinking.png';
+      return new URL('bot_boy/thinking.png', import.meta.url);
     } else if (preGame) {
-      return '/public/bot_boy/guy.png';
+      return new URL('bot_boy/guy.png', import.meta.url);
     } else if (!started) {
-      return `/public/bot_boy/${victory ? 'guy' : 'sadge'}.png`;
-    } else {
-      return '/public/bot_boy/guy.png';
+      if (victory) {
+        return new URL('bot_boy/sadge.png', import.meta.url);
+      }
+      return new URL('bot_boy/guy.png', import.meta.url);
     }
+    return new URL('bot_boy/guy.png', import.meta.url);
   };
 
   // Function to clear highlights

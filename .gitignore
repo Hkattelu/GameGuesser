@@ -6,4 +6,5 @@ backend/package-lock.json
 frontend/node_modules
 frontend/package-lock.json
 frontend/.parcel-cache
-dist
+frontend/dist
+frontend/dist/*
