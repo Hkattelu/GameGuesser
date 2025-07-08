@@ -20,6 +20,8 @@ export const dom = {
   btnStartPlayerGame: document.getElementById('btn-start-player-game'),
   modelResponse: document.getElementById('model-response'),
   playerQuestionCount: document.getElementById('player-question-count'),
+  conversationHistory: document.getElementById('conversation-history'),
+  conversationHistoryPlayer: document.getElementById('conversation-history-player'),
 };
 
 export let gameState = {
@@ -36,7 +38,7 @@ export let gameState = {
 
 // The GEMINI_API_KEY is loaded from config.js, which is not checked into git.
 // export const apiUrl = `https://game-guesser-backend-772569913717.us-east1.run.app/gemini-proxy`;
-export const apiUrl = `http://127.0.0.1:8080/gemini-proxy`;
+export const apiUrl = `http://127.0.0.1:8080`;
 
 /**
  * Updates the UI based on the current game state.
@@ -101,7 +103,48 @@ export function updateUI() {
   dom.playerGuessesGame.classList.toggle('hidden', !isPlayerGuesses);
   dom.tabAiGuesses.classList.toggle('active', isAiGuesses);
   dom.tabPlayerGuesses.classList.toggle('active', isPlayerGuesses);
-}
+
+  // Render conversation history
+  dom.conversationHistory.innerHTML = '';
+  dom.conversationHistoryPlayer.innerHTML = '';
+
+  if (gameState.chatHistory && gameState.chatHistory.length > 0) {
+    gameState.chatHistory.forEach(entry => {
+      const p = document.createElement('p');
+      p.classList.add('mb-1');
+      if (entry.role === 'user') {
+        p.classList.add('text-blue-800', 'font-semibold');
+        p.textContent = `You: ${entry.parts[0].text}`;
+      } else if (entry.role === 'model') {
+        p.classList.add('text-green-800');
+        try {
+          const jsonContent = JSON.parse(entry.parts[0].text);
+          if (jsonContent.type === 'question') {
+            p.textContent = `Bot Boy: ${jsonContent.content}`;
+          } else if (jsonContent.type === 'guess') {
+            p.textContent = `Bot Boy (Guess): ${jsonContent.content}`;
+          } else if (jsonContent.type === 'answer') {
+            p.textContent = `Bot Boy: ${jsonContent.content}`;
+          } else if (jsonContent.type === 'guessResult') {
+            p.textContent = `Bot Boy: ${jsonContent.content.response}`;
+          }
+        } catch (e) {
+          p.textContent = `Bot Boy: ${entry.parts[0].text}`;
+        }
+      }
+      if (isAiGuesses) {
+        dom.conversationHistory.appendChild(p);
+      } else if (isPlayerGuesses) {
+        dom.conversationHistoryPlayer.appendChild(p);
+      }
+    });
+    // Scroll to bottom of history
+    if (isAiGuesses) {
+      dom.conversationHistory.scrollTop = dom.conversationHistory.scrollHeight;
+    } else if (isPlayerGuesses) {
+      dom.conversationHistoryPlayer.scrollTop = dom.conversationHistoryPlayer.scrollHeight;
+    }
+  }
 
 /**
  * Removes all highlighting from the response buttons.

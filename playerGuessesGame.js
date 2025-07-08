@@ -103,6 +103,7 @@ export async function handlePlayerQuestion() {
 
   gameState.loading = true;
   gameState.highlightedResponse = null; // Clear previous highlight
+  gameState.chatHistory.push({ role: "user", parts: [{ text: userInput }] }); // Add user's question to history
   updateUI();
 
   try {
@@ -127,6 +128,7 @@ export async function handlePlayerQuestion() {
     if (type === 'answer') {
       dom.modelResponse.textContent = `My answer: ${content}`;
       gameState.highlightedResponse = content; // 'Yes', 'No', or 'I don't know'
+      gameState.chatHistory.push({ role: "model", parts: [{ text: content }] }); // Add AI's answer to history
 
       if (gameState.questionCount >= gameState.maxQuestions) {
         endGame(`You're out of questions! The game was ${content}.`, false); // Backend will provide the game title in the final answer
@@ -136,8 +138,10 @@ export async function handlePlayerQuestion() {
     } else if (type === 'guessResult') {
       if (content.correct) {
         endGame(`You guessed it! The game was ${content.response}.`, true); // Backend provides the game title in content.response
+        gameState.chatHistory.push({ role: "model", parts: [{ text: `You guessed it! The game was ${content.response}.` }] }); // Add AI's guess result to history
       } else {
         dom.gameMessage.textContent = content.response;
+        gameState.chatHistory.push({ role: "model", parts: [{ text: content.response }] }); // Add AI's guess result to history
       }
     }
   } catch (error) {
