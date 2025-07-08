@@ -1,4 +1,4 @@
-import { dom, gameState, updateUI, callGeminiAPI } from './utils.js';
+import { dom, gameState, updateUI, callGeminiAPI, apiUrl } from './utils.js';
 
 const suggestionQuestions = [
   "Does the game feature an open world?",
@@ -61,23 +61,32 @@ export async function startGamePlayerGuesses() {
   gameState.started = true;
   gameState.loading = true;
   gameState.questionCount = 0;
-  gameState.chatHistory = [];
+  gameState.chatHistory = []; // Chat history will now be managed on the backend
+  gameState.sessionId = null; // Store session ID from backend
   updateUI();
   createSuggestionChips();
 
-  const initialPrompt = `You are Game Boy, a friendly robot thinking of a secret video game. The user will ask yes/no questions to guess it.
-            Your response MUST be a JSON object with a 'secretGame' field.
-            Example: {"secretGame": "The Witcher 3: Wild Hunt"}`;
+  dom.gameMessage.textContent = "I'm thinking of a game. Please wait...";
 
   try {
-    const result = await callGeminiAPI(initialPrompt);
-    const jsonResponse = JSON.parse(result.candidates[0].content.parts[0].text);
-    gameState.secretGame = jsonResponse.secretGame;
-    gameState.chatHistory.push({ role: "user", parts: [{ text: `The secret game is ${gameState.secretGame}. The user will now ask questions.` }] });
+    const response = await fetch(`${apiUrl}/player-guesses/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to start game on backend.');
+    }
+
+    const data = await response.json();
+    gameState.sessionId = data.sessionId;
     dom.gameMessage.textContent = "I'm thinking of a game. Ask me a yes/no question, or try to guess the game!";
   } catch (error) {
     console.error("Error starting player guesses game:", error);
-    dom.gameMessage.textContent = "Error starting the game. Please try again.";
+    dom.gameMessage.textContent = `Error starting the game: ${error.message}. Please try again.`;
   } finally {
     gameState.loading = false;
     updateUI();
@@ -90,47 +99,50 @@ export async function startGamePlayerGuesses() {
  */
 export async function handlePlayerQuestion() {
   const userInput = dom.playerGuessInput.value;
-  if (!userInput) return;
+  if (!userInput || !gameState.sessionId) return; // Ensure session ID exists
 
   gameState.loading = true;
-  gameState.questionCount++;
   gameState.highlightedResponse = null; // Clear previous highlight
   updateUI();
 
-  const prompt = `The user asked: "${userInput}". The secret game is "${gameState.secretGame}".
-            Is it a guess or a question? If it's a guess, is it correct?
-            Your response MUST be a JSON object with a 'type' field ('answer' or 'guessResult') and a 'content' field.
-            If it's a question, content should be "Yes", "No", or "I don't know".
-            If it's a guess, content should be an object with 'correct' (true/false) and a 'response' string.
-            Example (question): {"type": "answer", "content": "Yes"}
-            Example (guess): {"type": "guessResult", "content": {"correct": false, "response": "That's not it. Keep trying!"}}`;
-
-  gameState.chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
   try {
-    const result = await callGeminiAPI(gameState.chatHistory);
-    const jsonResponse = JSON.parse(result.candidates[0].content.parts[0].text);
-    gameState.chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(jsonResponse) }] });
+    const response = await fetch(`${apiUrl}/player-guesses/question`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sessionId: gameState.sessionId, userInput: userInput }),
+    });
 
-    if (jsonResponse.type === 'answer') {
-      dom.modelResponse.textContent = `My answer: ${jsonResponse.content}`;
-      gameState.highlightedResponse = jsonResponse.content;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to get AI response from backend.');
+    }
+
+    const data = await response.json();
+    const { type, content, questionCount } = data;
+
+    gameState.questionCount = questionCount; // Update question count from backend
+
+    if (type === 'answer') {
+      dom.modelResponse.textContent = `My answer: ${content}`;
+      gameState.highlightedResponse = content; // 'Yes', 'No', or 'I don't know'
 
       if (gameState.questionCount >= gameState.maxQuestions) {
-        endGame(`You're out of questions! The game was ${gameState.secretGame}.`, false);
+        endGame(`You're out of questions! The game was ${content}.`, false); // Backend will provide the game title in the final answer
       } else {
         createSuggestionChips();
       }
-    } else if (jsonResponse.type === 'guessResult') {
-      if (jsonResponse.content.correct) {
-        endGame(`You guessed it! The game was ${gameState.secretGame}.`, true);
+    } else if (type === 'guessResult') {
+      if (content.correct) {
+        endGame(`You guessed it! The game was ${content.response}.`, true); // Backend provides the game title in content.response
       } else {
-        dom.gameMessage.textContent = jsonResponse.content.response;
+        dom.gameMessage.textContent = content.response;
       }
     }
   } catch (error) {
     console.error("Error handling player question:", error);
-    dom.gameMessage.textContent = "Error processing your question. Please try again.";
+    dom.gameMessage.textContent = `Error processing your question: ${error.message}. Please try again.`;
   } finally {
     dom.playerGuessInput.value = '';
     gameState.loading = false;

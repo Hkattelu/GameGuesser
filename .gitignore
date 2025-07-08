@@ -1,1 +1,5 @@
 config.js
+backend/Dockerfile
+backend/node_modules
+backend/node_modules/*
+backend/package-lock.json

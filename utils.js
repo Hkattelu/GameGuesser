@@ -35,7 +35,8 @@ export let gameState = {
 };
 
 // The GEMINI_API_KEY is loaded from config.js, which is not checked into git.
-export const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+// export const apiUrl = `https://game-guesser-backend-772569913717.us-east1.run.app/gemini-proxy`;
+export const apiUrl = `http://127.0.0.1:8080/gemini-proxy`;
 
 /**
  * Updates the UI based on the current game state.
@@ -119,7 +120,7 @@ export function clearHighlights() {
 export async function callGeminiAPI(prompt) {
   try {
     const payload = {
-      contents: typeof prompt === 'string' ? [{ role: "user", parts: [{ text: prompt }] }] : prompt,
+      prompt,
       generationConfig: {
         responseMimeType: "application/json",
       }

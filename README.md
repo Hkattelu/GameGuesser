@@ -4,16 +4,10 @@ This is a simple web-based game where an AI tries to guess a video game you're t
 
 ## Setup
 
-To run this project, you need to provide your own Gemini API key. Follow these steps:
+To run this project, you need to spin up an instance of a backend service which proxies requests to Gemini. I use pack CLI:
 
-1.  **Create a `config.js` file:** In the root of the project, create a new file named `config.js`.
+1. pack build gcr.io/${PROJECT_ID}/${SERVICE_ID} --path backend --publish
 
-2.  **Add your API key:** Inside `config.js`, add the following line of code, replacing `"YOUR_API_KEY_HERE"` with your actual Gemini API key:
+2. gcloud run deploy game-guesser-backend --image gcr.io/${PROJECT_ID}/${SERVICE_ID} --platform managed --region us-east1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=${YOUR_GEMINI_API_KEY}
 
-    ```javascript
-    const API_KEY = "YOUR_API_KEY_HERE";
-    ```
-
-3.  **Open `index.html`:** Open the `index.html` file in your web browser to play the game.
-
-**Important:** The `config.js` file is included in the `.gitignore` file, so it will not be committed to the repository. This is to ensure that your API key remains private.
+3. Serve the FE using firebase or a simple webserver. 
