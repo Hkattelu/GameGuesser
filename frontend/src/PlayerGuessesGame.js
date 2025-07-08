@@ -130,7 +130,7 @@ function PlayerGuessesGame({
     setLoading(false);
     setVictory(victoryStatus);
     setGameMessage(finalMessage);
-    setModelResponseText(''); // Clear model response text
+    setModelResponseText('');
   };
 
   const handleSelectSuggestion = (question) => {
@@ -139,8 +139,6 @@ function PlayerGuessesGame({
 
   return (
     <div id="player-guesses-game">
-      <p className="text-lg text-gray-600">I'm thinking of a game. Can you guess it?</p>
-
       {/* Model Response Buttons (for AI's answer to player's question) */}
       {started && !loading && (
         <div id="response-buttons" className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-3 mb-3">

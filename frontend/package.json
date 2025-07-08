@@ -3,26 +3,29 @@
   "version": "1.0.0",
   "description": "Frontend for Game Guesser using React",
   "scripts": {
-    "start": "parcel public/index.html",
-    "build": "parcel build public/index.html"
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
   },
   "keywords": [],
-  "author": "",
+  "author": "hkattelu",
+  "type": "module",
   "license": "ISC",
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@parcel/packager-raw-url": "^2.15.4",
-    "@parcel/transformer-webmanifest": "^2.15.4",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
-    "parcel": "^2.8.3",
     "postcss": "^8.5.6",
     "postcss-import": "^16.1.1",
     "postcss-load-config": "^6.0.1",
     "postcss-loader": "^8.1.1",
     "postcss-preset-env": "^10.2.4",
-    "tailwindcss": "^4.1.11"
+    "tailwindcss": "^4.1.11",
+    "vite": "^7.0.2"
   }
 }

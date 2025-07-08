@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
-
-const apiUrl = 'http://localhost:8080'; // This will be updated to Cloud Run URL for deployment
 
 function App() {
   const [gameMode, setGameMode] = useState('ai-guesses'); // 'ai-guesses' or 'player-guesses'
