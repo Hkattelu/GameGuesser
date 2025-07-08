@@ -5,80 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bot Boy's Game Guesser</title>
     <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
-    
-    
 </head>
 <body>
     <div id="root"></div>
     <div id="stripe-container">
       <div id="stripe-pattern"></div>
-    </div>
-    <div class="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
-        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Game Boy's Game Guesser</h1>
-        <div class="tabs flex justify-center border-b mb-4">
-            <button id="tab-ai-guesses" class="tab-btn active">Game boy guesses</button>
-            <button id="tab-player-guesses" class="tab-btn">You guess</button>
-        </div>
-        <img src="bot_boy/guy.png" alt="AI Mascot" id="mascot-image" class="mx-auto mb-4">
-
-        <div id="ai-guesses-game">
-            <!-- Game State / Question Display -->
-            <div id="game-area" class="space-y-6">
-                <p id="game-message" class="text-lg text-gray-600 mb-4">Let's play! Think of a video game, and I'll try to guess it. Click "Start Game" when you're ready!</p>
-
-                <!-- User Input for their secret game (optional, depending on game variant) -->
-                <div id="user-game-input-section" class="mb-6">
-                    <label for="user-game-title" class="block text-gray-700 text-sm font-semibold mb-2">Your Secret Game Title (Optional):</label>
-                    <input type="text" id="user-game-title" placeholder="e.g., The Legend of Zelda: Breath of the Wild" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
-                </div>
-
-                <!-- AI's Question Display -->
-                <div id="conversation-history" class="text-left mb-6 p-4 bg-gray-50 rounded-lg max-h-60 overflow-y-auto">
-                    <p class="text-lg text-gray-600">Conversation History:</p>
-                </div>
-
-                <!-- AI's Question Display -->
-                <div id="question-display" class="hidden">
-                    <p class="text-xl font-semibold text-gray-800 mb-4">AI's Question:</p>
-                    <p id="ai-question" class="text-2xl font-bold text-blue-700 bg-blue-50 p-4 rounded-lg shadow-inner mb-6"></p>
-                </div>
-
-                <!-- Loading Indicator -->
-                <div id="loading-indicator" class="hidden mt-4">
-                    <div class="loading-spinner"></div>
-                    <p class="text-gray-500 text-sm mt-2">AI is thinking...</p>
-                </div>
-            </div>
-            <!-- Start Game Button -->
-            <button id="btn-start-game" class="mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Start Game</button>
-        </div>
-
-        <div id="player-guesses-game" class="hidden">
-            <p class="text-lg text-gray-600">I'm thinking of a game. Can you guess it?</p>
-            <!-- Model Response Buttons -->
-            <div id="response-buttons" class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-3 mb-3">
-                <div id="btn-yes" class="response-yes px-6 py-3 font-bold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Yes</div>
-                <div id="btn-unsure" class="response-unsure px-6 py-3 font-bold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Unsure</div>
-                <div id="btn-no" class="response-no px-6 py-3 font-bold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">No</div>
-            </div>
-            <div id="conversation-history-player" class="text-left mb-6 p-4 bg-gray-50 rounded-lg max-h-60 overflow-y-auto">
-                <p class="text-lg text-gray-600">Conversation History:</p>
-            </div>
-            <div id="player-question-count" class="text-lg font-semibold text-gray-700 mb-4 hidden"></div>
-            <div class="mb-6">
-                <label for="player-guess-input" class="block text-gray-700 text-sm font-semibold mb-2" aria-hidden="true"></label>
-                <input type="text" id="player-guess-input" placeholder="e.g., Is the game a first-person shooter?" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
-            </div>
-            <div id="suggestion-chips" class="flex flex-wrap justify-center gap-2 mb-4">
-                </div>
-            <div id="model-response" class="hidden text-lg font-semibold p-4 rounded-lg my-4">
-            </div>
-            <button id="btn-submit-guess" class="px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Submit</button>
-            <button id="btn-start-player-game" class="mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105">Start Game</button>
-        </div>
     </div>
     <div class="disclaimer">
         Made by <a href="https://hkattelu.com" target="_blank">Himanshu</a>
