@@ -25,7 +25,12 @@ app.options('*', (req, res) => {
     res.sendStatus(200);
 });
 
-// New endpoint for Player Guesses Game: Start a new game
+/**
+ * @route POST /player-guesses/start
+ * @description Starts a new "Player Guesses" game session.
+ * @returns {object} 200 - JSON object containing the new session ID.
+ * @returns {object} 500 - Internal Server Error.
+ */
 app.post('/player-guesses/start', async (req, res) => {
     try {
         const result = await startPlayerGuessesGame();
@@ -36,7 +41,17 @@ app.post('/player-guesses/start', async (req, res) => {
     }
 });
 
-// New endpoint for Player Guesses Game: Handle player questions
+/**
+ * @route POST /player-guesses/question
+ * @description Submits a player's question or guess for the secret game.
+ * @param {object} req.body - JSON object containing the session ID and user input.
+ * @param {string} req.body.sessionId - The ID of the game session.
+ * @param {string} req.body.userInput - The player's question or guess.
+ * @returns {object} 200 - JSON object with the AI's response.
+ * @returns {object} 400 - If session ID or user input is missing.
+ * @returns {object} 404 - If the session is not found.
+ * @returns {object} 500 - Internal Server Error.
+ */
 app.post('/player-guesses/question', async (req, res) => {
     const { sessionId, userInput } = req.body;
     try {
@@ -54,7 +69,12 @@ app.post('/player-guesses/question', async (req, res) => {
     }
 });
 
-// New endpoint for AI Guesses Game: Start a new game
+/**
+ * @route POST /ai-guesses/start
+ * @description Starts a new "AI Guesses" game session.
+ * @returns {object} 200 - JSON object containing the new session ID and the AI's first question.
+ * @returns {object} 500 - Internal Server Error.
+ */
 app.post('/ai-guesses/start', async (req, res) => {
     try {
         const result = await startAIGuessesGame();
@@ -65,7 +85,17 @@ app.post('/ai-guesses/start', async (req, res) => {
     }
 });
 
-// New endpoint for AI Guesses Game: Handle user answers
+/**
+ * @route POST /ai-guesses/answer
+ * @description Submits a user's answer to the AI's question.
+ * @param {object} req.body - JSON object containing the session ID and user's answer.
+ * @param {string} req.body.sessionId - The ID of the game session.
+ * @param {string} req.body.userAnswer - The user's answer ("Yes", "No", etc.).
+ * @returns {object} 200 - JSON object with the AI's next question or guess.
+ * @returns {object} 400 - If session ID or user answer is missing.
+ * @returns {object} 404 - If the session is not found.
+ * @returns {object} 500 - Internal Server Error.
+ */
 app.post('/ai-guesses/answer', async (req, res) => {
     const { sessionId, userAnswer } = req.body;
     try {
