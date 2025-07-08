@@ -145,6 +145,7 @@ export function updateUI() {
       dom.conversationHistoryPlayer.scrollTop = dom.conversationHistoryPlayer.scrollHeight;
     }
   }
+}
 
 /**
  * Removes all highlighting from the response buttons.

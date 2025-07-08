@@ -137,10 +137,12 @@ export async function handlePlayerQuestion() {
       }
     } else if (type === 'guessResult') {
       if (content.correct) {
-        endGame(`You guessed it! The game was ${content.response}.`, true); // Backend provides the game title in content.response
-        gameState.chatHistory.push({ role: "model", parts: [{ text: `You guessed it! The game was ${content.response}.` }] }); // Add AI's guess result to history
+        endGame(content.response, true); // Backend provides the game title in content.response
+        gameState.highlightedResponse = 'Yes';
+        gameState.chatHistory.push({ role: "model", parts: [{ text: content.response }] }); // Add AI's guess result to history
       } else {
         dom.gameMessage.textContent = content.response;
+        gameState.highlightedResponse = 'No';
         gameState.chatHistory.push({ role: "model", parts: [{ text: content.response }] }); // Add AI's guess result to history
       }
     }
