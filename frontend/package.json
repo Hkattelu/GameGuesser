@@ -1,0 +1,20 @@
+{
+  "name": "game-guessr-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Game Guesser using React",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "parcel public/index.html",
+    "build": "parcel build public/index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "parcel": "^2.8.3"
+  }
+}

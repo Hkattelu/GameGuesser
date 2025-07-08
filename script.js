@@ -23,6 +23,7 @@ function resetGame() {
     chatHistory: [],
     loading: false,
     highlightedResponse: null, // Clear highlighted response on reset
+    sessionId: null, // Clear session ID on reset
   });
   clearHighlights();
   gameState.gameMode = currentMode;

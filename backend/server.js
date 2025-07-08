@@ -188,6 +188,129 @@ app.post('/player-guesses/question', async (req, res) => {
   }
 });
 
+// New endpoint for AI Guesses Game: Start a new game
+app.post('/ai-guesses/start', async (req, res) => {
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  const sessionId = uuidv4();
+  const maxQuestions = 20; // Assuming max questions for AI game is 20
+
+  const initialPrompt = `You are Bot Boy, a friendly robot playing a "20 Questions" game to guess a video game the user is thinking of.
+            You will ask yes/no questions. If you are very confident, you can make a guess.
+            You have ${maxQuestions} questions in total. This is question 1.
+            Your response MUST be a JSON object with a 'type' field ("question" or "guess") and a 'content' field (the question text or the game guess).
+            Example: {"type": "question", "content": "Is your game an RPG?"}
+            Example: {"type": "guess", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
+            Start by asking your first question.`;
+
+  const chatHistory = [{ role: "user", parts: [{ text: initialPrompt }] }];
+
+  const geminiRequestBody = {
+    contents: chatHistory,
+    generationConfig: {
+      responseMimeType: "application/json",
+    }
+  };
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(geminiRequestBody),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error from Gemini API (AI game start):', errorData);
+      return res.status(response.status).json({ error: 'Gemini API Error', details: errorData });
+    }
+
+    const data = await response.json();
+    const jsonResponse = JSON.parse(data.candidates[0].content.parts[0].text);
+
+    chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(jsonResponse) }] });
+
+    gameSessions.set(sessionId, {
+      chatHistory: chatHistory,
+      questionCount: 1, // First question asked
+      maxQuestions: maxQuestions,
+    });
+
+    res.json({ sessionId: sessionId, aiResponse: jsonResponse, questionCount: 1 });
+
+  } catch (error) {
+    console.error('Error starting AI guesses game:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
+// New endpoint for AI Guesses Game: Handle user answers
+app.post('/ai-guesses/answer', async (req, res) => {
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  const { sessionId, userAnswer } = req.body;
+
+  if (!sessionId || !userAnswer) {
+    return res.status(400).json({ error: 'Session ID and user answer are required.' });
+  }
+
+  const session = gameSessions.get(sessionId);
+  if (!session) {
+    return res.status(404).json({ error: 'Session not found.' });
+  }
+
+  session.chatHistory.push({ role: "user", parts: [{ text: `User answered "${userAnswer}".` }] });
+
+  const nextTurnPrompt = `The user just answered "${userAnswer}". You have ${session.maxQuestions - session.questionCount} questions left.
+            Based on this, ask your next yes/no question or make a guess if you are confident.
+            Remember, your response MUST be a JSON object with 'type' and 'content'.`;
+
+  session.chatHistory.push({ role: "user", parts: [{ text: nextTurnPrompt }] });
+
+  const geminiRequestBody = {
+    contents: session.chatHistory,
+    generationConfig: {
+      responseMimeType: "application/json",
+    }
+  };
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(geminiRequestBody),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error from Gemini API (AI answer handling):', errorData);
+      return res.status(response.status).json({ error: 'Gemini API Error', details: errorData });
+    }
+
+    const data = await response.json();
+    const jsonResponse = JSON.parse(data.candidates[0].content.parts[0].text);
+
+    session.chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(jsonResponse) }] });
+
+    // Increment question count only if it's a new question, not a guess
+    if (jsonResponse.type === "question") {
+      session.questionCount++;
+    }
+
+    res.json({ aiResponse: jsonResponse, questionCount: session.questionCount });
+
+  } catch (error) {
+    console.error('Error handling AI answer:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Backend server listening on port ${port}`);
 });
