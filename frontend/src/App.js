@@ -22,13 +22,13 @@ function App() {
   // Mascot image state
   const getMascotImage = () => {
     if (loading) {
-      return 'bot_boy/thinking.png';
+      return '/public/bot_boy/thinking.png';
     } else if (preGame) {
-      return 'bot_boy/guy.png';
+      return '/public/bot_boy/guy.png';
     } else if (!started) {
-      return `bot_boy/${victory ? 'guy' : 'sadge'}.png`;
+      return `/public/bot_boy/${victory ? 'guy' : 'sadge'}.png`;
     } else {
-      return 'bot_boy/guy.png';
+      return '/public/bot_boy/guy.png';
     }
   };
 

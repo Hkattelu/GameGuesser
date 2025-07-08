@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import SuggestionChips from './components/SuggestionChips';
-import LoadingIndicator from './components/LoadingIndicator';
 import ConversationHistory from './components/ConversationHistory';
 
 const apiUrl = 'http://localhost:8080'; // This will be passed as a prop from App.js later

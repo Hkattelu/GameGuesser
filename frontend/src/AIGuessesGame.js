@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import ResponseButtons from './components/ResponseButtons';
 import LoadingIndicator from './components/LoadingIndicator';
 import ConversationHistory from './components/ConversationHistory';

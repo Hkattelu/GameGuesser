@@ -1,10 +1,188 @@
+@import "tailwindcss";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Add any custom CSS here */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
-/* Loading spinner styles */
+@keyframes background-pan {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes pan {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 0%;
+  }
+}
+
+:root {
+  --glow-rgb: 245 245 245;
+  
+  --light-gold-rgb: 249 181 51;
+  --dark-gold-rgb: 215 147 23;
+  
+  --primary-stripe-rgb: 230 230 230;
+  --secondary-stripe-rgb: 240 240 240;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(90deg, #f0f2f5, #e6e9ee, #f0f2f5);
+    background-size: 200% 200%;
+    animation: background-pan 30s ease-in-out infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full viewport height */
+    margin: 0;
+    padding: 20px; /* Padding around the content */
+    box-sizing: border-box; /* Include padding in element's total width and height */
+}
+
+.disclaimer {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    font-size: 0.8rem;
+    color: #111621;
+}
+
+.disclaimer a {
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.disclaimer a:hover {
+    text-decoration: underline;
+}
+
+#stripe-container {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  bottom: 0px;
+  translate: -50% 0%;
+  height: 100%;
+  width: 100%;
+  background-color: rgb(var(--stripe-primary-rgb));
+}
+
+#stripe-pattern {
+  height: 100%;
+  width: 100%;
+  background-size: 18px 18px;
+  background-image: linear-gradient(
+    -45deg,
+    rgb(var(--primary-stripe-rgb)) 25%,
+    rgb(var(--secondary-stripe-rgb)) 25%,
+    rgb(var(--secondary-stripe-rgb)) 50%,
+    rgb(var(--primary-stripe-rgb)) 50%,
+    rgb(var(--primary-stripe-rgb)) 75%,
+    rgb(var(--secondary-stripe-rgb)) 75%,
+    rgb(var(--secondary-stripe-rgb)) 100%
+  );
+  box-shadow: inset 0rem 0.5rem 2rem 0.25rem rgb(0 0 0 / 40%);
+  animation: pan 240s linear infinite;
+  will-change: background-position;
+}
+
+
+/* Ensure the main container grows to fit content but stays centered */
+.game-container {
+    max-width: 600px; /* Max width for readability */
+    width: 100%; /* Full width on smaller screens */
+}
+
+#mascot-image {
+    width: 150px;
+    height: 150px;
+}
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #6b7280;
+    transition: color 0.2s, border-bottom 0.2s;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+    color: #1d4ed8;
+    border-bottom: 2px solid #1d4ed8;
+}
+
+.suggestion-chip {
+    background-color: #e5e7eb;
+    color: #4b5563;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.suggestion-chip:hover {
+    background-color: #d1d5db;
+    color: #1f2937;
+}
+
+.response-yes {
+    border: 2px solid #388E3C;
+}
+
+.response-no {
+    border: 2px solid #D32F2F;
+}
+
+.response-unsure {
+    border: 2px solid #FFA000;
+}
+
+/* New highlighting classes */
+.highlight-yes {
+    background-color: #4CAF50; /* Darker green */
+    color: white;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.highlight-no {
+    background-color: #F44336; /* Darker red */
+    color: white;
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+}
+
+.highlight-unsure {
+    background-color: #FFC107; /* Darker yellow */
+    color: white;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}
+
 .loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-left-color: #3498db;
@@ -13,9 +191,4 @@
   height: 40px;
   animation: spin 1s linear infinite;
   margin: 0 auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
