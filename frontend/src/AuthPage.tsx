@@ -1,14 +1,19 @@
 import { useState } from 'react';
 
-const apiUrl = 'http://localhost:8080';
+// Frontend builds inject VITE_BACKEND_URL; default to localhost for dev.
+const apiUrl = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
 
-export default function AuthPage({ onAuth }) {
-  const [mode, setMode] = useState('login'); // 'login' or 'register'
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
+export interface AuthPageProps {
+  onAuth: (payload: { token: string; username: string }) => void;
+}
 
-  const handleSubmit = async (e) => {
+function AuthPage({ onAuth }: AuthPageProps) {
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     setError(null);
 
@@ -21,24 +26,27 @@ export default function AuthPage({ onAuth }) {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
-      if (!response.ok) {
+      const data: { token?: string; error?: string } = await response.json();
+      if (!response.ok || !data.token) {
         throw new Error(data.error || 'Unknown error');
       }
 
       const { token } = data;
-      // Persist token in localStorage so page reloads stay logged in.
+      // Persist credentials locally so refresh keeps the user logged-in.
       localStorage.setItem('token', token);
       localStorage.setItem('username', username);
-      onAuth(token, username);
+
+      onAuth({ token, username });
     } catch (err) {
-      setError(err.message);
+      setError((err as Error).message);
     }
   };
 
   return (
     <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg border-gray-200 mt-12">
-      <h2 className="text-3xl font-bold text-center mb-6">{mode === 'login' ? 'Login' : 'Register'}</h2>
+      <h2 className="text-3xl font-bold text-center mb-6">
+        {mode === 'login' ? 'Login' : 'Register'}
+      </h2>
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
@@ -81,13 +89,15 @@ export default function AuthPage({ onAuth }) {
 
       <p className="mt-4 text-center text-sm">
         {mode === 'login' ? (
-          <>Don't have an account?{' '}
+          <>
+            Don't have an account?{' '}
             <button className="text-blue-600 hover:underline" onClick={() => setMode('register')}>
               Register here
             </button>
           </>
         ) : (
-          <>Already have an account?{' '}
+          <>
+            Already have an account?{' '}
             <button className="text-blue-600 hover:underline" onClick={() => setMode('login')}>
               Login here
             </button>
@@ -97,3 +107,5 @@ export default function AuthPage({ onAuth }) {
     </div>
   );
 }
+
+export default AuthPage;

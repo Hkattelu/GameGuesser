@@ -1,0 +1,24 @@
+import React from 'react';
+import { SUGGESTIONS } from '../constants';
+
+export interface SuggestionChipsProps {
+  onSelectSuggestion: (question: string) => void;
+}
+
+function SuggestionChips({ onSelectSuggestion }: SuggestionChipsProps) {
+  return (
+    <div className="flex flex-wrap gap-2 mb-4">
+      {SUGGESTIONS.map((q) => (
+        <button
+          key={q}
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-2 px-4 rounded-full"
+          onClick={() => onSelectSuggestion(q)}
+        >
+          {q}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default SuggestionChips;
