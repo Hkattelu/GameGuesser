@@ -15,11 +15,14 @@ const {
     clearSessions
 } = await import('./game.js');
 
+const { clearDailyGameStore } = await import('./dailyGameStore.js');
+
 
 describe('Game Logic', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         clearSessions();
         jest.clearAllMocks();
+        await clearDailyGameStore();
     });
 
     describe('Player Guesses Game', () => {
@@ -41,6 +44,21 @@ describe('Game Logic', () => {
             expect(result.type).toBe('answer');
             expect(result.content).toBe('Yes');
             expect(result.questionCount).toBe(1);
+        });
+
+        it('should reuse daily game across sessions', async () => {
+            // First session of the day – Gemini selects the secret game.
+            callGeminiAPI.mockResolvedValueOnce({ secretGame: 'Daily Game' });
+            const { sessionId: firstSession } = await startPlayerGuessesGame();
+            expect(getSession(firstSession).secretGame).toBe('Daily Game');
+
+            // Clear mocks so we can assert no further Gemini calls
+            jest.clearAllMocks();
+
+            // Second session on the same day should not call Gemini again.
+            const { sessionId: secondSession } = await startPlayerGuessesGame();
+            expect(callGeminiAPI).not.toHaveBeenCalled();
+            expect(getSession(secondSession).secretGame).toBe('Daily Game');
         });
     });
 

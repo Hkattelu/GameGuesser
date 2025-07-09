@@ -1,22 +1,36 @@
 // C:\Users\himan\code\game-guessr\backend\game.js
 import { v4 as uuidv4 } from 'uuid';
 import { callGeminiAPI } from './gemini.js';
+import {
+    getDailyGameForToday,
+    setDailyGameForToday,
+} from './dailyGameStore.js';
 
 // In-memory store for game sessions
 const gameSessions = new Map();
 
 async function startPlayerGuessesGame() {
-    const initialPrompt = `You are Game Boy, a friendly robot thinking of a secret video game. The user will ask yes/no questions to guess it.
-        Your response MUST be a JSON object with a 'secretGame' field.
-        Example: {"secretGame": "The Witcher 3: Wild Hunt"}`;
-
-    const jsonResponse = await callGeminiAPI(initialPrompt);
-    const secretGame = jsonResponse.secretGame;
+    // 1. Determine today's game, initialising it if necessary.
+    let secretGame = await getDailyGameForToday();
 
     if (!secretGame) {
-        throw new Error("Gemini did not return a secret game.");
+        // No game persisted for today – ask Gemini for a new one and persist it.
+        const initialPrompt = `You are Game Boy, a friendly robot thinking of a secret video game. The user will ask yes/no questions to guess it.
+            Your response MUST be a JSON object with a 'secretGame' field.
+            Example: {"secretGame": "The Witcher 3: Wild Hunt"}`;
+
+        const jsonResponse = await callGeminiAPI(initialPrompt);
+        secretGame = jsonResponse.secretGame;
+
+        if (!secretGame) {
+            throw new Error("Gemini did not return a secret game.");
+        }
+
+        // Persist so all players get the same game for the rest of the day.
+        await setDailyGameForToday(secretGame);
     }
 
+    // 2. Create a fresh session for the caller using the (possibly newly) selected game.
     const sessionId = uuidv4();
     gameSessions.set(sessionId, {
         secretGame: secretGame,
