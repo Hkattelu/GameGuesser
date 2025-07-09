@@ -5,7 +5,7 @@ import {
     handlePlayerQuestion,
     startAIGuessesGame,
     handleAIAnswer
-} from './game.js';
+} from './game.ts';
 
 const app = express();
 const port = process.env.PORT || 8080;

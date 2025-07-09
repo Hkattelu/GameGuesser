@@ -1,6 +1,6 @@
 // C:\Users\himan\code\game-guessr\backend\game.js
 import { v4 as uuidv4 } from 'uuid';
-import { callGeminiAPI } from './gemini.js';
+import { callGeminiAPI } from './gemini.ts';
 
 // In-memory store for game sessions
 const gameSessions = new Map();

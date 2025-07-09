@@ -31,7 +31,7 @@ async function callGeminiAPI(prompt, chatHistory = []) {
         throw new Error(`Gemini API Error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return JSON.parse(data.candidates[0].content.parts[0].text);
 }
 

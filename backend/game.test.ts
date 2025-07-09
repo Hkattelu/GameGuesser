@@ -1,11 +1,14 @@
+// @ts-nocheck
 // C:\Users\himan\code\game-guessr\backend\game.test.js
 import {jest} from '@jest/globals';
 
-jest.unstable_mockModule('./gemini.js', () => ({
+jest.unstable_mockModule('./gemini.ts', () => ({
     callGeminiAPI: jest.fn(),
 }));
 
-const { callGeminiAPI } = await import('./gemini.js');
+const { callGeminiAPI } = await import('./gemini.ts');
+// Cast to jest.Mock for TypeScript
+const mockCallGeminiAPI = callGeminiAPI as jest.Mock;
 const {
     startPlayerGuessesGame,
     handlePlayerQuestion,
@@ -13,7 +16,7 @@ const {
     handleAIAnswer,
     getSession,
     clearSessions
-} = await import('./game.js');
+} = await import('./game.ts');
 
 
 describe('Game Logic', () => {
@@ -24,7 +27,7 @@ describe('Game Logic', () => {
 
     describe('Player Guesses Game', () => {
         it('should start a new game', async () => {
-            callGeminiAPI.mockResolvedValue({ secretGame: 'Test Game' });
+            mockCallGeminiAPI.mockResolvedValue({ secretGame: 'Test Game' });
             const { sessionId } = await startPlayerGuessesGame();
             expect(sessionId).toBeDefined();
             const session = getSession(sessionId);
@@ -32,10 +35,10 @@ describe('Game Logic', () => {
         });
 
         it('should handle a player question', async () => {
-            callGeminiAPI.mockResolvedValueOnce({ secretGame: 'Test Game' });
+            mockCallGeminiAPI.mockResolvedValueOnce({ secretGame: 'Test Game' });
             const { sessionId } = await startPlayerGuessesGame();
 
-            callGeminiAPI.mockResolvedValueOnce({ type: 'answer', content: 'Yes' });
+            mockCallGeminiAPI.mockResolvedValueOnce({ type: 'answer', content: 'Yes' });
             const result = await handlePlayerQuestion(sessionId, 'Is it a test game?');
 
             expect(result.type).toBe('answer');
@@ -47,7 +50,7 @@ describe('Game Logic', () => {
     describe('AI Guesses Game', () => {
         it('should start a new AI game', async () => {
             const aiResponse = { type: 'question', content: 'Is it a test game?' };
-            callGeminiAPI.mockResolvedValue(aiResponse);
+            mockCallGeminiAPI.mockResolvedValue(aiResponse);
             const { sessionId, aiResponse: initialResponse, questionCount } = await startAIGuessesGame();
 
             expect(sessionId).toBeDefined();
@@ -59,11 +62,11 @@ describe('Game Logic', () => {
 
         it('should handle a user answer', async () => {
             const startResponse = { type: 'question', content: 'Is it a test game?' };
-            callGeminiAPI.mockResolvedValueOnce(startResponse);
+            mockCallGeminiAPI.mockResolvedValueOnce(startResponse);
             const { sessionId } = await startAIGuessesGame();
 
             const nextResponse = { type: 'question', content: 'Is it a new game?' };
-            callGeminiAPI.mockResolvedValueOnce(nextResponse);
+            mockCallGeminiAPI.mockResolvedValueOnce(nextResponse);
             const result = await handleAIAnswer(sessionId, 'Yes');
 
             expect(result.aiResponse).toEqual(nextResponse);

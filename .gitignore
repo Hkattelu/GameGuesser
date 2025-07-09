@@ -3,6 +3,7 @@ backend/Dockerfile
 backend/node_modules
 backend/node_modules/*
 backend/package-lock.json
+backend/coverage
 frontend/node_modules
 frontend/package-lock.json
 frontend/.parcel-cache
