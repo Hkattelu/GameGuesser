@@ -14,6 +14,7 @@ function PlayerGuessesGame({
   chatHistory,
   highlightedResponse,
   sessionId,
+  token,
   setPreGame,
   setStarted,
   setQuestionCount,
@@ -42,6 +43,7 @@ function PlayerGuessesGame({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
 
@@ -76,6 +78,7 @@ function PlayerGuessesGame({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ sessionId: sessionId, userInput: playerGuessInput }),
       });

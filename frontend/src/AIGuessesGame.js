@@ -14,6 +14,7 @@ function AIGuessesGame({
   chatHistory,
   highlightedResponse,
   sessionId,
+  token,
   setPreGame,
   setStarted,
   setQuestionCount,
@@ -40,6 +41,7 @@ function AIGuessesGame({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
 
@@ -88,6 +90,7 @@ function AIGuessesGame({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ sessionId: sessionId, userAnswer: answer }),
       });

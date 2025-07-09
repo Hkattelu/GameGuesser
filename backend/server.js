@@ -4,19 +4,62 @@ import {
     startPlayerGuessesGame,
     handlePlayerQuestion,
     startAIGuessesGame,
-    handleAIAnswer
+    handleAIAnswer,
+    getSession
 } from './game.js';
+
+// Auth & persistence helpers
+import { authenticateToken, register, login } from './auth.js';
+import { saveConversationMessage, getConversationHistory } from './db.js';
 
 const app = express();
 const port = process.env.PORT || 8080;
 
 app.use(express.json());
 
+// ---------- Auth routes ----------
+app.post('/auth/register', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+    }
+    try {
+        const token = register(username, password);
+        res.json({ token });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+app.post('/auth/login', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+    }
+    try {
+        const token = login(username, password);
+        res.json({ token });
+    } catch (err) {
+        res.status(401).json({ error: err.message });
+    }
+});
+
+// Protected route to fetch full conversation history for the authenticated user.
+app.get('/conversations/history', authenticateToken, (req, res) => {
+    try {
+        const rows = getConversationHistory(req.user.id);
+        res.json(rows);
+    } catch (err) {
+        console.error('Error fetching history', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 // Allow CORS from your frontend origin
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // Replace with your frontend URL in production
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     next();
 });
 
@@ -26,9 +69,11 @@ app.options('*', (req, res) => {
 });
 
 // New endpoint for Player Guesses Game: Start a new game
-app.post('/player-guesses/start', async (req, res) => {
+app.post('/player-guesses/start', authenticateToken, async (req, res) => {
     try {
         const result = await startPlayerGuessesGame();
+        // Persist system message indicating new session creation
+        saveConversationMessage(req.user.id, result.sessionId, 'system', 'Player-guesses game started');
         res.json(result);
     } catch (error) {
         console.error('Error starting player guesses game:', error);
@@ -37,10 +82,17 @@ app.post('/player-guesses/start', async (req, res) => {
 });
 
 // New endpoint for Player Guesses Game: Handle player questions
-app.post('/player-guesses/question', async (req, res) => {
+app.post('/player-guesses/question', authenticateToken, async (req, res) => {
     const { sessionId, userInput } = req.body;
     try {
+        // Persist user question
+        saveConversationMessage(req.user.id, sessionId, 'user', userInput);
+
         const result = await handlePlayerQuestion(sessionId, userInput);
+
+        // Persist model response (stringify to keep same format as frontend displays)
+        saveConversationMessage(req.user.id, sessionId, 'model', JSON.stringify(result));
+
         res.json(result);
     } catch (error) {
         console.error('Error handling player question:', error);
@@ -55,9 +107,14 @@ app.post('/player-guesses/question', async (req, res) => {
 });
 
 // New endpoint for AI Guesses Game: Start a new game
-app.post('/ai-guesses/start', async (req, res) => {
+app.post('/ai-guesses/start', authenticateToken, async (req, res) => {
     try {
         const result = await startAIGuessesGame();
+
+        // Persist a system message and the first AI question
+        saveConversationMessage(req.user.id, result.sessionId, 'system', 'AI-guesses game started');
+        saveConversationMessage(req.user.id, result.sessionId, 'model', JSON.stringify(result.aiResponse));
+
         res.json(result);
     } catch (error) {
         console.error('Error starting AI guesses game:', error);
@@ -66,10 +123,17 @@ app.post('/ai-guesses/start', async (req, res) => {
 });
 
 // New endpoint for AI Guesses Game: Handle user answers
-app.post('/ai-guesses/answer', async (req, res) => {
+app.post('/ai-guesses/answer', authenticateToken, async (req, res) => {
     const { sessionId, userAnswer } = req.body;
     try {
+        // Persist user answer
+        saveConversationMessage(req.user.id, sessionId, 'user', userAnswer);
+
         const result = await handleAIAnswer(sessionId, userAnswer);
+
+        // Persist model response
+        saveConversationMessage(req.user.id, sessionId, 'model', JSON.stringify(result.aiResponse));
+
         res.json(result);
     } catch (error) {
         console.error('Error handling AI answer:', error);
