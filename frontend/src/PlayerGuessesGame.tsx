@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from 'react';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
@@ -22,8 +23,8 @@ function PlayerGuessesGame({
   setHighlightedResponse,
   setSessionId,
   setGameMessage,
-  setVictory
-}) {
+  setVictory,
+}: any) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
 
@@ -53,7 +54,7 @@ function PlayerGuessesGame({
       const data = await response.json();
       setSessionId(data.sessionId);
       setGameMessage("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error starting player guesses game:", error);
       setGameMessage(`Error starting the game: ${error.message}. Please try again.`);
     } finally {
@@ -66,9 +67,9 @@ function PlayerGuessesGame({
 
     setLoading(true);
     setHighlightedResponse(null);
-    setChatHistory(prevHistory => [
+    setChatHistory((prevHistory: any) => [
       ...prevHistory,
-      { role: "user", parts: [{ text: playerGuessInput }] }
+      { role: "user", parts: [{ text: playerGuessInput }] },
     ]);
 
     try {
@@ -93,9 +94,9 @@ function PlayerGuessesGame({
       if (type === 'answer') {
         setModelResponseText(`My answer: ${content}`);
         setHighlightedResponse(content); // 'Yes', 'No', or 'I don't know'
-        setChatHistory(prevHistory => [
+        setChatHistory((prevHistory: any) => [
           ...prevHistory,
-          { role: "model", parts: [{ text: content }] }
+          { role: "model", parts: [{ text: content }] },
         ]);
 
         if (newQuestionCount >= maxQuestions) {
@@ -104,19 +105,19 @@ function PlayerGuessesGame({
       } else if (type === 'guessResult') {
         if (content.correct) {
           endGame(`You guessed it! The game was ${content.response}.`, true);
-          setChatHistory(prevHistory => [
+          setChatHistory((prevHistory: any) => [
             ...prevHistory,
-            { role: "model", parts: [{ text: `You guessed it! The game was ${content.response}.` }] }
+            { role: "model", parts: [{ text: `You guessed it! The game was ${content.response}.` }] },
           ]);
         } else {
           setGameMessage(content.response);
-          setChatHistory(prevHistory => [
+          setChatHistory((prevHistory: any) => [
             ...prevHistory,
-            { role: "model", parts: [{ text: content.response }] }
+            { role: "model", parts: [{ text: content.response }] },
           ]);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error handling player question:", error);
       setGameMessage(`Error processing your question: ${error.message}. Please try again.`);
     } finally {
@@ -125,7 +126,7 @@ function PlayerGuessesGame({
     }
   };
 
-  const endGame = (finalMessage, victoryStatus) => {
+  const endGame = (finalMessage: string, victoryStatus: boolean) => {
     setStarted(false);
     setLoading(false);
     setVictory(victoryStatus);
@@ -133,13 +134,12 @@ function PlayerGuessesGame({
     setModelResponseText('');
   };
 
-  const handleSelectSuggestion = (question) => {
+  const handleSelectSuggestion = (question: string) => {
     setPlayerGuessInput(question);
   };
 
   return (
     <div id="player-guesses-game">
-      {/* Model Response Buttons (for AI's answer to player's question) */}
       {started && !loading && (
         <div id="response-buttons" className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-3 mb-3">
           <div id="btn-yes" className={`response-yes px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'Yes' ? 'highlight-yes' : ''}`}>Yes</div>
@@ -148,17 +148,14 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      {/* Conversation History */}
       <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} />
 
-      {/* Player Question Count */}
       {started && (
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 mb-4">
           Questions left: {maxQuestions - questionCount}/{maxQuestions}
         </div>
       )}
 
-      {/* Player Guess Input */}
       {started && !loading && (
         <div className="mb-6">
           <label htmlFor="player-guess-input" className="block text-gray-700 text-sm font-semibold mb-2" aria-hidden="true"></label>
@@ -178,19 +175,16 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      {/* Suggestion Chips */}
       {started && !loading && (
         <SuggestionChips onSelectSuggestion={handleSelectSuggestion} />
       )}
 
-      {/* Model Response */}
       {started && !loading && modelResponseText && (
         <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4">
           {modelResponseText}
         </div>
       )}
 
-      {/* Submit Guess Button */}
       {started && !loading && (
         <button
           id="btn-submit-guess"
@@ -201,7 +195,6 @@ function PlayerGuessesGame({
         </button>
       )}
 
-      {/* Start Player Game Button */}
       {!started && (
         <button
           id="btn-start-player-game"

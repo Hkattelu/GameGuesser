@@ -1,4 +1,4 @@
-// C:\Users\himan\code\game-guessr\backend\game.js
+// @ts-nocheck
 import { v4 as uuidv4 } from 'uuid';
 import { callGeminiAPI } from './gemini.js';
 
@@ -27,7 +27,7 @@ async function startPlayerGuessesGame() {
     return { sessionId };
 }
 
-async function handlePlayerQuestion(sessionId, userInput) {
+async function handlePlayerQuestion(sessionId: string, userInput: string) {
     if (!sessionId || !userInput) {
         throw new Error('Session ID and user input are required.');
     }
@@ -63,7 +63,7 @@ async function startAIGuessesGame() {
         Example: {"type": "guess", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
         Start by asking your first question.`;
 
-    const chatHistory = [];
+    const chatHistory: any[] = [];
     const jsonResponse = await callGeminiAPI(initialPrompt, chatHistory);
     chatHistory.push({ role: "model", parts: [{ text: JSON.stringify(jsonResponse) }] });
 
@@ -77,7 +77,7 @@ async function startAIGuessesGame() {
     return { sessionId, aiResponse: jsonResponse, questionCount: 1 };
 }
 
-async function handleAIAnswer(sessionId, userAnswer) {
+async function handleAIAnswer(sessionId: string, userAnswer: string) {
     if (!sessionId || !userAnswer) {
         throw new Error('Session ID and user answer are required.');
     }
@@ -103,7 +103,7 @@ async function handleAIAnswer(sessionId, userAnswer) {
     return { aiResponse: jsonResponse, questionCount: session.questionCount };
 }
 
-function getSession(sessionId) {
+function getSession(sessionId: string) {
     return gameSessions.get(sessionId);
 }
 

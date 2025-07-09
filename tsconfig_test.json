@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "noEmit": false,
+    "outDir": "dist_ts_test",
+    "strict": false
+  },
+  "include": ["testA.ts", "testB.ts"]
+}

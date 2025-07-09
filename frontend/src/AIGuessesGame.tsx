@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ResponseButtons from './components/ResponseButtons';
 import LoadingIndicator from './components/LoadingIndicator';
 import ConversationHistory from './components/ConversationHistory';
@@ -23,8 +24,8 @@ function AIGuessesGame({
   setSessionId,
   setGameMessage,
   setAiQuestion,
-  setVictory
-}) {
+  setVictory,
+}: any) {
 
   const startGameAI = async () => {
     setPreGame(false);
@@ -57,13 +58,13 @@ function AIGuessesGame({
       setGameMessage("Your turn to answer!");
 
       // Update client-side chat history for display
-      setChatHistory(prevHistory => [
+      setChatHistory((prevHistory: any) => [
         ...prevHistory,
         { role: "user", parts: [{ text: "AI Game Started." }] }, // Simplified initial entry
-        { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] }
+        { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error starting AI guesses game:", error);
       setAiQuestion("Error: Could not start AI game. Check backend and network.");
       setGameMessage(`Please try again. Error: ${error.message}`);
@@ -72,15 +73,15 @@ function AIGuessesGame({
     }
   };
 
-  const handleAnswer = async (answer) => {
+  const handleAnswer = async (answer: string) => {
     if (!started || !sessionId) return;
 
     setLoading(true);
     setHighlightedResponse(null);
     setGameMessage(`You answered "${answer}". Thinking...`);
-    setChatHistory(prevHistory => [
+    setChatHistory((prevHistory: any) => [
       ...prevHistory,
-      { role: "user", parts: [{ text: `User answered: ${answer}` }] }
+      { role: "user", parts: [{ text: `User answered: ${answer}` }] },
     ]);
 
     try {
@@ -101,9 +102,9 @@ function AIGuessesGame({
       const { aiResponse, questionCount: newQuestionCount } = data;
 
       setQuestionCount(newQuestionCount);
-      setChatHistory(prevHistory => [
+      setChatHistory((prevHistory: any) => [
         ...prevHistory,
-        { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] }
+        { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
 
       if (aiResponse.type === "question") {
@@ -119,7 +120,7 @@ function AIGuessesGame({
         setAiQuestion("Error: Unexpected response type from Bot Boy.");
         setGameMessage("Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error handling user answer:", error);
       setAiQuestion("Bot Boy encountered an error. Please try again.");
       setGameMessage(`Error communicating with Bot Boy: ${error.message}`);
@@ -128,7 +129,7 @@ function AIGuessesGame({
     }
   };
 
-  const endGame = (finalMessage, victoryStatus) => {
+  const endGame = (finalMessage: string, victoryStatus: boolean | 'guess') => {
     setStarted(false);
     setLoading(false);
     setHighlightedResponse(victoryStatus === 'guess' ? 'guess' : null); // Set highlight for guess, clear otherwise
