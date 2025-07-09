@@ -16,4 +16,4 @@ To run this project, you need to spin up an instance of a backend service which 
 
 Starting **July 9 2025** the *Player-Guesses* mode no longer chooses a random title for every session. Instead, the first request of each calendar day (UTC) triggers **one** call to Gemini asking for a random, well-known video-game title. That title is stored in `backend/daily-games.json` and is reused for every subsequent session that day so players around the world share the same challenge.
 
-The feature is implemented in `backend/dailyGameStore.js` and requires **no changes** to the public API. If you deploy to an environment where the filesystem is ephemeral, set the `DAILY_GAME_FILE_PATH` environment variable to an external volume or object-store path.
+The feature is implemented in `backend/dailyGameStore.ts` and requires **no changes** to the public API. If you deploy to an environment where the filesystem is ephemeral, set the `DAILY_GAME_FILE_PATH` environment variable to an external volume or object-store path.

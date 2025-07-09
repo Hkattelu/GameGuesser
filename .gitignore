@@ -8,4 +8,16 @@ frontend/package-lock.json
 frontend/.parcel-cache
 frontend/dist
 frontend/dist/*
+
+# Daily Game persistence file
 backend/daily-games.json
+
+# Coverage reports
+/backend/coverage/
+/coverage/
+**/coverage-final.json
+**/clover.xml
+**/lcov-report/
+
+# Transpiled test artifacts
+/dist_ts_test/
