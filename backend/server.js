@@ -1,90 +1,122 @@
-// C:\Users\himan\code\game-guessr\backend\server.js
+// backend/server.js
+// Express application entry with authentication and persistence.
+
 import express from 'express';
+import cors from 'cors';
+
 import {
-    startPlayerGuessesGame,
-    handlePlayerQuestion,
-    startAIGuessesGame,
-    handleAIAnswer
+  startPlayerGuessesGame,
+  handlePlayerQuestion,
+  startAIGuessesGame,
+  handleAIAnswer,
 } from './game.js';
+
+import { register, login, authenticate } from './auth.js';
+import { getConversations } from './store.js';
 
 const app = express();
 const port = process.env.PORT || 8080;
 
+// ---------------------------------------------------------------------------
+// Middleware
+// ---------------------------------------------------------------------------
+
 app.use(express.json());
 
-// Allow CORS from your frontend origin
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*'); // Replace with your frontend URL in production
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
+// Allow CORS from any origin in development – replace with your frontend URL
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Auth routes
+// ---------------------------------------------------------------------------
+
+app.post('/auth/register', register);
+app.post('/auth/login', login);
+
+// ---------------------------------------------------------------------------
+// Conversation history (protected)
+// ---------------------------------------------------------------------------
+
+app.get('/conversations', authenticate, (req, res) => {
+  const userId = req.user.id;
+  const convos = getConversations(userId);
+  res.json(convos);
 });
 
-// Handle preflight requests for all routes
-app.options('*', (req, res) => {
-    res.sendStatus(200);
+// ---------------------------------------------------------------------------
+// Game routes (protected)
+// ---------------------------------------------------------------------------
+
+// Player guesses game
+app.post('/player-guesses/start', authenticate, async (req, res) => {
+  try {
+    const result = await startPlayerGuessesGame(req.user.id);
+    res.json(result);
+  } catch (err) {
+    console.error('Error starting player guesses game:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// New endpoint for Player Guesses Game: Start a new game
-app.post('/player-guesses/start', async (req, res) => {
-    try {
-        const result = await startPlayerGuessesGame();
-        res.json(result);
-    } catch (error) {
-        console.error('Error starting player guesses game:', error);
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+app.post('/player-guesses/question', authenticate, async (req, res) => {
+  const { sessionId, userInput } = req.body;
+  try {
+    const result = await handlePlayerQuestion(sessionId, userInput, req.user.id);
+    res.json(result);
+  } catch (err) {
+    console.error('Error handling player question:', err);
+    if (err.message === 'Session not found.' || err.message === 'Session not found') {
+      return res.status(404).json({ error: err.message });
     }
+    res.status(400).json({ error: err.message });
+  }
 });
 
-// New endpoint for Player Guesses Game: Handle player questions
-app.post('/player-guesses/question', async (req, res) => {
-    const { sessionId, userInput } = req.body;
-    try {
-        const result = await handlePlayerQuestion(sessionId, userInput);
-        res.json(result);
-    } catch (error) {
-        console.error('Error handling player question:', error);
-        if (error.message === 'Session not found.') {
-            return res.status(404).json({ error: error.message });
-        }
-        if (error.message === 'Session ID and user input are required.') {
-            return res.status(400).json({ error: error.message });
-        }
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
-    }
+// AI guesses game
+app.post('/ai-guesses/start', authenticate, async (req, res) => {
+  try {
+    const result = await startAIGuessesGame(req.user.id);
+    res.json(result);
+  } catch (err) {
+    console.error('Error starting AI guesses game:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// New endpoint for AI Guesses Game: Start a new game
-app.post('/ai-guesses/start', async (req, res) => {
-    try {
-        const result = await startAIGuessesGame();
-        res.json(result);
-    } catch (error) {
-        console.error('Error starting AI guesses game:', error);
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+app.post('/ai-guesses/answer', authenticate, async (req, res) => {
+  const { sessionId, userAnswer } = req.body;
+  try {
+    const result = await handleAIAnswer(sessionId, userAnswer, req.user.id);
+    res.json(result);
+  } catch (err) {
+    console.error('Error handling AI answer:', err);
+    if (err.message === 'Session not found.' || err.message === 'Session not found') {
+      return res.status(404).json({ error: err.message });
     }
+    res.status(400).json({ error: err.message });
+  }
 });
 
-// New endpoint for AI Guesses Game: Handle user answers
-app.post('/ai-guesses/answer', async (req, res) => {
-    const { sessionId, userAnswer } = req.body;
-    try {
-        const result = await handleAIAnswer(sessionId, userAnswer);
-        res.json(result);
-    } catch (error) {
-        console.error('Error handling AI answer:', error);
-        if (error.message === 'Session not found.') {
-            return res.status(404).json({ error: error.message });
-        }
-        if (error.message === 'Session ID and user answer are required.') {
-            return res.status(400).json({ error: error.message });
-        }
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
-    }
+// ---------------------------------------------------------------------------
+// Fallback
+// ---------------------------------------------------------------------------
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
 });
+
+// ---------------------------------------------------------------------------
+// Start server
+// ---------------------------------------------------------------------------
 
 app.listen(port, () => {
-    console.log(`Backend server listening on port ${port}`);
+  console.log(`Backend server listening on port ${port}`);
 });
 
 export default app;

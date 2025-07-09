@@ -2,9 +2,10 @@ import ResponseButtons from './components/ResponseButtons';
 import LoadingIndicator from './components/LoadingIndicator';
 import ConversationHistory from './components/ConversationHistory';
 
-const apiUrl = 'http://localhost:8080'; // This will be passed as a prop from App.js later
+const apiUrl = 'http://localhost:8080';
 
 function AIGuessesGame({
+  authToken,
   gameMode,
   preGame,
   started,
@@ -26,6 +27,8 @@ function AIGuessesGame({
   setVictory
 }) {
 
+  const authHeaders = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+
   const startGameAI = async () => {
     setPreGame(false);
     setStarted(true);
@@ -40,6 +43,7 @@ function AIGuessesGame({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
         },
       });
 
@@ -88,6 +92,7 @@ function AIGuessesGame({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
         },
         body: JSON.stringify({ sessionId: sessionId, userAnswer: answer }),
       });

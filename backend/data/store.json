@@ -1,0 +1,39 @@
+{
+  "users": [],
+  "conversations": {
+    "anonymous": {
+      "500b5b3f-ae29-40d4-8ef2-a62a1dc21379": {
+        "mode": "ai-guesses",
+        "chatHistory": [
+          {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"type\":\"question\",\"content\":\"Is it a test game?\"}"
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "User answered \"Yes\"."
+              }
+            ]
+          },
+          {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\"type\":\"question\",\"content\":\"Is it a new game?\"}"
+              }
+            ]
+          }
+        ],
+        "questionCount": 2,
+        "maxQuestions": 20,
+        "createdAt": 1752059014856
+      }
+    }
+  }
+}

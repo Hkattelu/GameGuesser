@@ -2,9 +2,10 @@ import { useState } from 'react';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 
-const apiUrl = 'http://localhost:8080'; // This will be passed as a prop from App.js later
+const API_URL = 'http://localhost:8080';
 
 function PlayerGuessesGame({
+  authToken,
   gameMode,
   preGame,
   started,
@@ -22,10 +23,11 @@ function PlayerGuessesGame({
   setHighlightedResponse,
   setSessionId,
   setGameMessage,
-  setVictory
+  setVictory,
 }) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
-  const [modelResponseText, setModelResponseText] = useState('');
+
+  const authHeaders = authToken ? { Authorization: `Bearer ${authToken}` } : {};
 
   const startGamePlayerGuesses = async () => {
     setPreGame(false);
@@ -38,24 +40,25 @@ function PlayerGuessesGame({
     setGameMessage("I'm thinking of a game. Please wait...");
 
     try {
-      const response = await fetch(`${apiUrl}/player-guesses/start`, {
+      const response = await fetch(`${API_URL}/player-guesses/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
         },
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to start game on backend.');
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to start game');
       }
 
-      const data = await response.json();
-      setSessionId(data.sessionId);
-      setGameMessage("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
+      const { sessionId: newSessionId } = await response.json();
+      setSessionId(newSessionId);
+      setGameMessage('Ask me a yes/no question, or try to guess the game!');
     } catch (error) {
-      console.error("Error starting player guesses game:", error);
-      setGameMessage(`Error starting the game: ${error.message}. Please try again.`);
+      console.error(error);
+      setGameMessage(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -63,151 +66,81 @@ function PlayerGuessesGame({
 
   const handlePlayerQuestion = async () => {
     if (!playerGuessInput || !sessionId) return;
-
     setLoading(true);
     setHighlightedResponse(null);
-    setChatHistory(prevHistory => [
-      ...prevHistory,
-      { role: "user", parts: [{ text: playerGuessInput }] }
-    ]);
+    setChatHistory((prev) => [...prev, { role: 'user', parts: [{ text: playerGuessInput }] }]);
 
     try {
-      const response = await fetch(`${apiUrl}/player-guesses/question`, {
+      const resp = await fetch(`${API_URL}/player-guesses/question`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
         },
-        body: JSON.stringify({ sessionId: sessionId, userInput: playerGuessInput }),
+        body: JSON.stringify({ sessionId, userInput: playerGuessInput }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get AI response from backend.');
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || 'Failed');
       }
 
-      const data = await response.json();
-      const { type, content, questionCount: newQuestionCount } = data;
-
-      setQuestionCount(newQuestionCount);
+      const data = await resp.json();
+      const { type, content, questionCount: newCount } = data;
+      setQuestionCount(newCount);
 
       if (type === 'answer') {
-        setModelResponseText(`My answer: ${content}`);
-        setHighlightedResponse(content); // 'Yes', 'No', or 'I don't know'
-        setChatHistory(prevHistory => [
-          ...prevHistory,
-          { role: "model", parts: [{ text: content }] }
-        ]);
-
-        if (newQuestionCount >= maxQuestions) {
-          endGame(`You're out of questions! The game was ${content}.`, false); // Backend will provide the game title in the final answer
-        }
+        setHighlightedResponse(content);
+        setChatHistory((prev) => [...prev, { role: 'model', parts: [{ text: content }] }]);
       } else if (type === 'guessResult') {
         if (content.correct) {
-          endGame(`You guessed it! The game was ${content.response}.`, true);
-          setChatHistory(prevHistory => [
-            ...prevHistory,
-            { role: "model", parts: [{ text: `You guessed it! The game was ${content.response}.` }] }
-          ]);
+          endGame('You guessed it!', true);
         } else {
           setGameMessage(content.response);
-          setChatHistory(prevHistory => [
-            ...prevHistory,
-            { role: "model", parts: [{ text: content.response }] }
-          ]);
+          setChatHistory((prev) => [...prev, { role: 'model', parts: [{ text: content.response }] }]);
         }
       }
     } catch (error) {
-      console.error("Error handling player question:", error);
-      setGameMessage(`Error processing your question: ${error.message}. Please try again.`);
+      console.error(error);
+      setGameMessage(`Error: ${error.message}`);
     } finally {
       setPlayerGuessInput('');
       setLoading(false);
     }
   };
 
-  const endGame = (finalMessage, victoryStatus) => {
+  const endGame = (msg, victory) => {
     setStarted(false);
-    setLoading(false);
-    setVictory(victoryStatus);
-    setGameMessage(finalMessage);
-    setModelResponseText('');
-  };
-
-  const handleSelectSuggestion = (question) => {
-    setPlayerGuessInput(question);
+    setVictory(victory);
+    setGameMessage(msg);
   };
 
   return (
-    <div id="player-guesses-game">
-      {/* Model Response Buttons (for AI's answer to player's question) */}
-      {started && !loading && (
-        <div id="response-buttons" className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-3 mb-3">
-          <div id="btn-yes" className={`response-yes px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'Yes' ? 'highlight-yes' : ''}`}>Yes</div>
-          <div id="btn-unsure" className={`response-unsure px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'Unsure' ? 'highlight-unsure' : ''}`}>Unsure</div>
-          <div id="btn-no" className={`response-no px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'No' ? 'highlight-no' : ''}`}>No</div>
-        </div>
-      )}
-
-      {/* Conversation History */}
+    <div>
       <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} />
 
-      {/* Player Question Count */}
-      {started && (
-        <div id="player-question-count" className="text-lg font-semibold text-gray-700 mb-4">
-          Questions left: {maxQuestions - questionCount}/{maxQuestions}
-        </div>
-      )}
-
-      {/* Player Guess Input */}
       {started && !loading && (
-        <div className="mb-6">
-          <label htmlFor="player-guess-input" className="block text-gray-700 text-sm font-semibold mb-2" aria-hidden="true"></label>
-          <input
-            type="text"
-            id="player-guess-input"
-            placeholder="e.g., Is the game a first-person shooter?"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
-            value={playerGuessInput}
-            onChange={(e) => setPlayerGuessInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handlePlayerQuestion();
-              }
-            }}
-          />
-        </div>
+        <input
+          className="w-full p-3 border mb-3"
+          value={playerGuessInput}
+          onChange={(e) => setPlayerGuessInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handlePlayerQuestion()}
+          placeholder="Ask a question or guess the game"
+        />
       )}
 
-      {/* Suggestion Chips */}
       {started && !loading && (
-        <SuggestionChips onSelectSuggestion={handleSelectSuggestion} />
+        <SuggestionChips onSelectSuggestion={(q) => setPlayerGuessInput(q)} />
       )}
 
-      {/* Model Response */}
-      {started && !loading && modelResponseText && (
-        <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4">
-          {modelResponseText}
-        </div>
-      )}
-
-      {/* Submit Guess Button */}
       {started && !loading && (
-        <button
-          id="btn-submit-guess"
-          className="px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
-          onClick={handlePlayerQuestion}
-        >
+        <button className="px-6 py-2 bg-blue-600 text-white rounded" onClick={handlePlayerQuestion}>
           Submit
         </button>
       )}
 
-      {/* Start Player Game Button */}
       {!started && (
-        <button
-          id="btn-start-player-game"
-          className="mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
-          onClick={startGamePlayerGuesses}
-        >
+        <button className="px-6 py-2 bg-blue-600 text-white rounded" onClick={startGamePlayerGuesses}>
           Start Game
         </button>
       )}
