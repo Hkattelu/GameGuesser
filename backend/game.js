@@ -1,26 +1,28 @@
 // C:\Users\himan\code\game-guessr\backend\game.js
 import { v4 as uuidv4 } from 'uuid';
-import { callGeminiAPI } from './gemini.js';
+import { callGeminiAPI } from './gemini.js'; // still needed for handlePlayerQuestion & AI game flows
+import { getDailyGame } from './dailyGameStore.js';
 
 // In-memory store for game sessions
 const gameSessions = new Map();
 
 async function startPlayerGuessesGame() {
-    const initialPrompt = `You are Game Boy, a friendly robot thinking of a secret video game. The user will ask yes/no questions to guess it.
-        Your response MUST be a JSON object with a 'secretGame' field.
-        Example: {"secretGame": "The Witcher 3: Wild Hunt"}`;
-
-    const jsonResponse = await callGeminiAPI(initialPrompt);
-    const secretGame = jsonResponse.secretGame;
-
-    if (!secretGame) {
-        throw new Error("Gemini did not return a secret game.");
-    }
+    // Fetch the secret game for today (UTC).
+    const secretGame = await getDailyGame();
 
     const sessionId = uuidv4();
     gameSessions.set(sessionId, {
         secretGame: secretGame,
-        chatHistory: [{ role: "user", parts: [{ text: `The secret game is ${secretGame}. The user will now ask questions.` }] }],
+        chatHistory: [
+            {
+                role: "user",
+                parts: [
+                    {
+                        text: `The secret game is ${secretGame}. The user will now ask questions.`,
+                    },
+                ],
+            },
+        ],
         questionCount: 0,
     });
 

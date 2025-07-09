@@ -8,3 +8,4 @@ frontend/package-lock.json
 frontend/.parcel-cache
 frontend/dist
 frontend/dist/*
+backend/daily-games.json
