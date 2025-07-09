@@ -1,7 +1,12 @@
-// @ts-nocheck
 import React, { useEffect, useRef } from 'react';
+import { ChatMessage, GameMode } from '../types';
 
-function ConversationHistory({ chatHistory, gameMode }: any) {
+export interface ConversationHistoryProps {
+  chatHistory: ChatMessage[];
+  gameMode: GameMode;
+}
+
+function ConversationHistory({ chatHistory, gameMode }: ConversationHistoryProps) {
   const historyEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -14,7 +19,7 @@ function ConversationHistory({ chatHistory, gameMode }: any) {
       className="text-left mb-6 p-4 bg-gray-50 rounded-lg max-h-60 overflow-y-auto"
     >
       <p className="text-lg text-gray-600">Conversation History:</p>
-      {chatHistory.map((entry: any, index: number) => {
+      {chatHistory.map((entry, index) => {
         let textContent = '';
         let className = 'mb-1';
 
@@ -31,10 +36,13 @@ function ConversationHistory({ chatHistory, gameMode }: any) {
               textContent = `Bot Boy (Guess): ${jsonContent.content}`;
             } else if (jsonContent.type === 'answer') {
               textContent = `Bot Boy: ${jsonContent.content}`;
-            } else if (jsonContent.type === 'guessResult') {
+            } else if (
+              jsonContent.type === 'guessResult' &&
+              typeof jsonContent.content?.response === 'string'
+            ) {
               textContent = `Bot Boy: ${jsonContent.content.response}`;
             }
-          } catch (_) {
+          } catch {
             textContent = `Bot Boy: ${entry.parts[0].text}`;
           }
         }

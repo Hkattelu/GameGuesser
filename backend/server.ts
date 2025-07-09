@@ -1,14 +1,13 @@
-// @ts-nocheck
-import express from 'express';
+import express, { Request, Response } from 'express';
 import {
-    startPlayerGuessesGame,
-    handlePlayerQuestion,
-    startAIGuessesGame,
-    handleAIAnswer
+  startPlayerGuessesGame,
+  handlePlayerQuestion,
+  startAIGuessesGame,
+  handleAIAnswer,
 } from './game.js';
 
 const app = express();
-const port = process.env.PORT || 8080;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
 
 app.use(express.json());
 
@@ -23,53 +22,66 @@ app.use((req, res, next) => {
 app.options('*', (_, res) => res.sendStatus(200));
 
 // Player-guesses endpoints
-app.post('/player-guesses/start', async (_, res) => {
+app.post('/player-guesses/start', async (_: Request, res: Response) => {
     try {
         const result = await startPlayerGuessesGame();
         res.json(result);
-    } catch (error: any) {
-        console.error('Error starting player guesses game:', error);
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    } catch (error: unknown) {
+        const err = error as Error;
+        // eslint-disable-next-line no-console
+        console.error('Error starting player guesses game:', err);
+        res.status(500).json({ error: 'Internal Server Error', details: err.message });
     }
 });
 
-app.post('/player-guesses/question', async (req, res) => {
-    const { sessionId, userInput } = req.body;
+app.post('/player-guesses/question', async (req: Request, res: Response) => {
+    const { sessionId, userInput } = req.body as { sessionId: string; userInput: string };
     try {
         const result = await handlePlayerQuestion(sessionId, userInput);
         res.json(result);
-    } catch (error: any) {
-        console.error('Error handling player question:', error);
-        if (error.message === 'Session not found.') return res.status(404).json({ error: error.message });
-        if (error.message === 'Session ID and user input are required.') return res.status(400).json({ error: error.message });
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    } catch (error: unknown) {
+        const err = error as Error;
+        // eslint-disable-next-line no-console
+        console.error('Error handling player question:', err);
+        if (err.message === 'Session not found.') return res.status(404).json({ error: err.message });
+        if (err.message === 'Session ID and user input are required.')
+            return res.status(400).json({ error: err.message });
+        res.status(500).json({ error: 'Internal Server Error', details: err.message });
     }
 });
 
 // AI-guesses endpoints
-app.post('/ai-guesses/start', async (_, res) => {
+app.post('/ai-guesses/start', async (_: Request, res: Response) => {
     try {
         const result = await startAIGuessesGame();
         res.json(result);
-    } catch (error: any) {
-        console.error('Error starting AI guesses game:', error);
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    } catch (error: unknown) {
+        const err = error as Error;
+        // eslint-disable-next-line no-console
+        console.error('Error starting AI guesses game:', err);
+        res.status(500).json({ error: 'Internal Server Error', details: err.message });
     }
 });
 
-app.post('/ai-guesses/answer', async (req, res) => {
-    const { sessionId, userAnswer } = req.body;
+app.post('/ai-guesses/answer', async (req: Request, res: Response) => {
+    const { sessionId, userAnswer } = req.body as { sessionId: string; userAnswer: string };
     try {
         const result = await handleAIAnswer(sessionId, userAnswer);
         res.json(result);
-    } catch (error: any) {
-        console.error('Error handling AI answer:', error);
-        if (error.message === 'Session not found.') return res.status(404).json({ error: error.message });
-        if (error.message === 'Session ID and user answer are required.') return res.status(400).json({ error: error.message });
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    } catch (error: unknown) {
+        const err = error as Error;
+        // eslint-disable-next-line no-console
+        console.error('Error handling AI answer:', err);
+        if (err.message === 'Session not found.') return res.status(404).json({ error: err.message });
+        if (err.message === 'Session ID and user answer are required.')
+            return res.status(400).json({ error: err.message });
+        res.status(500).json({ error: 'Internal Server Error', details: err.message });
     }
 });
 
-app.listen(port, () => console.log(`Backend server listening on port ${port}`));
+app.listen(PORT, () =>
+  // eslint-disable-next-line no-console
+  console.log(`Backend server listening on port ${PORT}`),
+);
 
 export default app;

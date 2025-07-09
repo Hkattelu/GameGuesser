@@ -1,9 +1,30 @@
-// @ts-nocheck
 import ResponseButtons from './components/ResponseButtons';
 import LoadingIndicator from './components/LoadingIndicator';
 import ConversationHistory from './components/ConversationHistory';
+import { API_URL } from './constants';
+import { ChatMessage, GameMode } from './types';
 
-const apiUrl = 'http://localhost:8080'; // This will be passed as a prop from App.js later
+export interface AIGuessesGameProps {
+  gameMode: GameMode;
+  preGame: boolean;
+  started: boolean;
+  loading: boolean;
+  questionCount: number;
+  maxQuestions: number;
+  chatHistory: ChatMessage[];
+  highlightedResponse: string | null;
+  sessionId: string | null;
+  setPreGame: React.Dispatch<React.SetStateAction<boolean>>;
+  setStarted: React.Dispatch<React.SetStateAction<boolean>>;
+  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
+  setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setHighlightedResponse: React.Dispatch<React.SetStateAction<string | null>>;
+  setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
+  setGameMessage: React.Dispatch<React.SetStateAction<string>>;
+  setAiQuestion: React.Dispatch<React.SetStateAction<string>>;
+  setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
+}
 
 function AIGuessesGame({
   gameMode,
@@ -25,7 +46,7 @@ function AIGuessesGame({
   setGameMessage,
   setAiQuestion,
   setVictory,
-}: any) {
+}: AIGuessesGameProps) {
 
   const startGameAI = async () => {
     setPreGame(false);
@@ -37,7 +58,7 @@ function AIGuessesGame({
     setHighlightedResponse(null);
 
     try {
-      const response = await fetch(`${apiUrl}/ai-guesses/start`, {
+      const response = await fetch(`${API_URL}/ai-guesses/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,16 +79,17 @@ function AIGuessesGame({
       setGameMessage("Your turn to answer!");
 
       // Update client-side chat history for display
-      setChatHistory((prevHistory: any) => [
+      setChatHistory((prevHistory) => [
         ...prevHistory,
         { role: "user", parts: [{ text: "AI Game Started." }] }, // Simplified initial entry
         { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
 
-    } catch (error: any) {
-      console.error("Error starting AI guesses game:", error);
-      setAiQuestion("Error: Could not start AI game. Check backend and network.");
-      setGameMessage(`Please try again. Error: ${error.message}`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error('Error starting AI guesses game:', err);
+      setAiQuestion('Error: Could not start AI game. Check backend and network.');
+      setGameMessage(`Please try again. Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -79,13 +101,13 @@ function AIGuessesGame({
     setLoading(true);
     setHighlightedResponse(null);
     setGameMessage(`You answered "${answer}". Thinking...`);
-    setChatHistory((prevHistory: any) => [
+    setChatHistory((prevHistory) => [
       ...prevHistory,
       { role: "user", parts: [{ text: `User answered: ${answer}` }] },
     ]);
 
     try {
-      const response = await fetch(`${apiUrl}/ai-guesses/answer`, {
+      const response = await fetch(`${API_URL}/ai-guesses/answer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +124,7 @@ function AIGuessesGame({
       const { aiResponse, questionCount: newQuestionCount } = data;
 
       setQuestionCount(newQuestionCount);
-      setChatHistory((prevHistory: any) => [
+      setChatHistory((prevHistory) => [
         ...prevHistory,
         { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
@@ -120,10 +142,11 @@ function AIGuessesGame({
         setAiQuestion("Error: Unexpected response type from Bot Boy.");
         setGameMessage("Please try again.");
       }
-    } catch (error: any) {
-      console.error("Error handling user answer:", error);
-      setAiQuestion("Bot Boy encountered an error. Please try again.");
-      setGameMessage(`Error communicating with Bot Boy: ${error.message}`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error('Error handling user answer:', err);
+      setAiQuestion('Bot Boy encountered an error. Please try again.');
+      setGameMessage(`Error communicating with Bot Boy: ${err.message}`);
     } finally {
       setLoading(false);
     }

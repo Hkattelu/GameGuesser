@@ -1,22 +1,23 @@
-// @ts-nocheck
 import { useState, useEffect } from 'react';
 import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
+import { ChatMessage, GameMode } from './types';
+import { MAX_QUESTIONS } from './constants';
 
 function App() {
-  const [gameMode, setGameMode] = useState<'ai-guesses' | 'player-guesses'>('ai-guesses');
-  const [preGame, setPreGame] = useState(true);
-  const [started, setStarted] = useState(false);
-  const [victory, setVictory] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
-  const [maxQuestions] = useState(20);
-  const [chatHistory, setChatHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [gameMode, setGameMode] = useState<GameMode>('ai-guesses');
+  const [preGame, setPreGame] = useState<boolean>(true);
+  const [started, setStarted] = useState<boolean>(false);
+  const [victory, setVictory] = useState<boolean | 'guess'>(false);
+  const [questionCount, setQuestionCount] = useState<number>(0);
+  const [maxQuestions] = useState<number>(MAX_QUESTIONS);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   const [highlightedResponse, setHighlightedResponse] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [gameMessage, setGameMessage] = useState('');
-  const [aiQuestion, setAiQuestion] = useState('');
+  const [gameMessage, setGameMessage] = useState<string>('');
+  const [aiQuestion, setAiQuestion] = useState<string>('');
 
   // Derive mascot image based on current state
   const getMascotImage = () => {

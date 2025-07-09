@@ -1,4 +1,3 @@
-// @ts-nocheck
 function LoadingIndicator() {
   return (
     <div id="loading-indicator" className="flex justify-center items-center my-4">

@@ -1,9 +1,29 @@
-// @ts-nocheck
 import { useState } from 'react';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
+import { API_URL } from './constants';
+import { ChatMessage, GameMode } from './types';
 
-const apiUrl = 'http://localhost:8080'; // This will be passed as a prop from App.js later
+export interface PlayerGuessesGameProps {
+  gameMode: GameMode;
+  preGame: boolean;
+  started: boolean;
+  loading: boolean;
+  questionCount: number;
+  maxQuestions: number;
+  chatHistory: ChatMessage[];
+  highlightedResponse: string | null;
+  sessionId: string | null;
+  setPreGame: React.Dispatch<React.SetStateAction<boolean>>;
+  setStarted: React.Dispatch<React.SetStateAction<boolean>>;
+  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
+  setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setHighlightedResponse: React.Dispatch<React.SetStateAction<string | null>>;
+  setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
+  setGameMessage: React.Dispatch<React.SetStateAction<string>>;
+  setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
+}
 
 function PlayerGuessesGame({
   gameMode,
@@ -24,7 +44,7 @@ function PlayerGuessesGame({
   setSessionId,
   setGameMessage,
   setVictory,
-}: any) {
+}: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
 
@@ -39,7 +59,7 @@ function PlayerGuessesGame({
     setGameMessage("I'm thinking of a game. Please wait...");
 
     try {
-      const response = await fetch(`${apiUrl}/player-guesses/start`, {
+      const response = await fetch(`${API_URL}/player-guesses/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,9 +74,10 @@ function PlayerGuessesGame({
       const data = await response.json();
       setSessionId(data.sessionId);
       setGameMessage("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
-    } catch (error: any) {
-      console.error("Error starting player guesses game:", error);
-      setGameMessage(`Error starting the game: ${error.message}. Please try again.`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error('Error starting player guesses game:', err);
+      setGameMessage(`Error starting the game: ${err.message}. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -67,13 +88,13 @@ function PlayerGuessesGame({
 
     setLoading(true);
     setHighlightedResponse(null);
-    setChatHistory((prevHistory: any) => [
+    setChatHistory((prevHistory) => [
       ...prevHistory,
       { role: "user", parts: [{ text: playerGuessInput }] },
     ]);
 
     try {
-      const response = await fetch(`${apiUrl}/player-guesses/question`, {
+      const response = await fetch(`${API_URL}/player-guesses/question`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,7 +115,7 @@ function PlayerGuessesGame({
       if (type === 'answer') {
         setModelResponseText(`My answer: ${content}`);
         setHighlightedResponse(content); // 'Yes', 'No', or 'I don't know'
-        setChatHistory((prevHistory: any) => [
+        setChatHistory((prevHistory) => [
           ...prevHistory,
           { role: "model", parts: [{ text: content }] },
         ]);
@@ -105,21 +126,22 @@ function PlayerGuessesGame({
       } else if (type === 'guessResult') {
         if (content.correct) {
           endGame(`You guessed it! The game was ${content.response}.`, true);
-          setChatHistory((prevHistory: any) => [
+          setChatHistory((prevHistory) => [
             ...prevHistory,
-            { role: "model", parts: [{ text: `You guessed it! The game was ${content.response}.` }] },
+            { role: 'model', parts: [{ text: `You guessed it! The game was ${content.response}.` }] },
           ]);
         } else {
           setGameMessage(content.response);
-          setChatHistory((prevHistory: any) => [
+          setChatHistory((prevHistory) => [
             ...prevHistory,
-            { role: "model", parts: [{ text: content.response }] },
+            { role: 'model', parts: [{ text: content.response }] },
           ]);
         }
       }
-    } catch (error: any) {
-      console.error("Error handling player question:", error);
-      setGameMessage(`Error processing your question: ${error.message}. Please try again.`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error('Error handling player question:', err);
+      setGameMessage(`Error processing your question: ${err.message}. Please try again.`);
     } finally {
       setPlayerGuessInput('');
       setLoading(false);

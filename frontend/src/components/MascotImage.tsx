@@ -1,7 +1,10 @@
-// @ts-nocheck
 import React from 'react';
 
-function MascotImage({ imageSrc }: { imageSrc: URL }) {
+export interface MascotImageProps {
+  imageSrc: URL;
+}
+
+function MascotImage({ imageSrc }: MascotImageProps) {
   return (
     <div className="flex justify-center mb-4">
       {/* eslint-disable-next-line @next/next/no-img-element */}
