@@ -1,15 +1,15 @@
-/*************  ✨ Windsurf Command 🌟  *************/
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import {
   startPlayerGuessesGame,
   handlePlayerQuestion,
   startAIGuessesGame,
   handleAIAnswer,
-} from './game.js';
+} from './game.ts';
 
 // Auth & persistence helpers
-import { authenticateToken, register, login } from './auth.js';
-import { saveConversationMessage, getConversationHistory } from './db.js';
+import { authenticateToken, register, login } from './auth.ts';
+import { saveConversationMessage, getConversationHistory } from './db.ts';
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
@@ -201,5 +201,3 @@ app.listen(PORT, () =>
 );
 
 export default app;
-
-/*******  850435e1-bffd-4c77-8d9b-d50e15fb9beb  *******/

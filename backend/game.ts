@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
-import { callGeminiAPI, ChatMessage } from './gemini.js';
+import { callGeminiAPI } from './gemini.ts';
+import type { ChatMessage } from './gemini.ts';
 import { getDailyGame } from './dailyGameStore.ts';
 
 // In-memory store for game sessions – keyed by UUID
@@ -25,8 +26,6 @@ const gameSessions = new Map<string, PlayerGuessSession | AIGuessSession>();
 
 // Maximum number of questions for the AI guessing mode.
 const MAX_QUESTIONS = 20;
-
-
 
 /**
 * Starts a new *Player-Guesses* game session.

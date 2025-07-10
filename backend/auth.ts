@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-import { createUser, findUserByUsername } from './db.js';
+import { createUser, findUserByUsername } from './db.ts';
 
 // ---------------------------------------------------------------------------
 // Types & interfaces
@@ -62,6 +62,19 @@ function generateToken(payload: JWTPayload): string {
 
 // Express-style middleware – validates the Bearer token and populates req.user.
 import type { Request, Response, NextFunction } from 'express';
+
+/**
+ * Express middleware that authenticates a request using a JWT Bearer token.
+ * 
+ * Extracts the Bearer token from the Authorization header and verifies it
+ * using the server's secret key. If the token is valid, the decoded payload
+ * is attached to `req.user`. If the token is missing or invalid, a 401
+ * Unauthorized response is sent.
+ * 
+ * @param {Request} req - The Express request object, expected to have an Authorization header.
+ * @param {Response} res - The Express response object, used to send a response in case of error.
+ * @param {NextFunction} next - The next middleware function in the stack.
+ */
 
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];

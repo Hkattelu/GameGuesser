@@ -1,11 +1,12 @@
-export interface ChatPart {
+interface ChatPart {
   text: string;
 }
 
-export interface ChatMessage {
+interface ChatMessage {
   role: 'user' | 'model';
   parts: ChatPart[];
 }
+export type {ChatMessage, ChatPart};
 
 /**
 * Wrapper around the Gemini REST endpoint that returns strongly typed JSON content.

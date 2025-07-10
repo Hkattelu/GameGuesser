@@ -11,8 +11,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "types": ["node", "jest"],
-  "allowJs": true,
-  "isolatedModules": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
