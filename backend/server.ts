@@ -13,7 +13,31 @@ import { saveConversationMessage, getConversationHistory } from './db.js';
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
 
+// ---------------------------------------------------------------------------
+// CORS configuration
+// ---------------------------------------------------------------------------
+
+// Restrict cross-origin requests to the trusted frontend URL. Default to the
+// local dev Vite server when the env var is not provided.
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+
 app.use(express.json());
+
+// Apply CORS headers early, before any route handlers run. We deliberately
+// avoid `*` here because the backend sends credentials (Authorization header)
+// and we only want the first-party SPA to be able to read the responses.
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.header('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  );
+  next();
+});
+
+// Handle CORS preflight requests for **any** route in one place.
+app.options('*', (_, res) => res.sendStatus(200));
 
 // ---------------------------------------------------------------------------
 // Auth routes
@@ -55,15 +79,7 @@ app.get('/conversations/history', authenticateToken, (req: Request, res: Respons
   }
 });
 
-// Allow CORS from any origin (adjust for production)
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
 
-app.options('*', (_, res) => res.sendStatus(200));
 
 // Player-guesses endpoints
 app.post('/player-guesses/start', authenticateToken, async (req: Request, res: Response) => {
