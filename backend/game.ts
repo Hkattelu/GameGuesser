@@ -26,31 +26,10 @@ const gameSessions = new Map<string, PlayerGuessSession | AIGuessSession>();
 // Maximum number of questions for the AI guessing mode.
 const MAX_QUESTIONS = 20;
 
+
+
 /**
 * Starts a new *Player-Guesses* game session.
-*
-* Why we **delegate to `getDailyGame()` instead of hitting Gemini directly**:
-*
-* 1. **Daily Wordle-style challenge** – `getDailyGame()` returns **one** secret
-*    game title for the **current UTC day**. Every player who joins on that
-*    date gets the *same* mystery game, creating a shared puzzle that friends
-*    can discuss and compare (just like Wordle). Generating a fresh title for
-*    each browser tab would fragment the experience.
-*
-* 2. **Performance & cost control** – Large-language-model calls are slow and
-*    billed per request. Caching the first Gemini response of the day in
-*    memory *and* persisting it to `daily-games.json` means subsequent
-*    sessions reuse the value instantly. The server therefore makes **at most
-*    one Gemini request per 24 h**, slashing latency and spend.
-*
-* 3. **Time-zone neutrality with UTC** – The cache key is the ISO
-*    `YYYY-MM-DD` representation of the date in **UTC**. Using a universal
-*    clock guarantees that players in New York and Tokyo see the same “daily”
-*    game even though their local calendars differ.
-*
-* In short, delegating to `getDailyGame()` gives us community cohesion,
-* predictable performance, and minimal API costs while keeping the behaviour
-* consistent worldwide.
 *
 * @returns Promise resolving to an object containing the `sessionId` that the
 *          client must supply on subsequent turns.
@@ -78,6 +57,14 @@ async function startPlayerGuessesGame() {
   return { sessionId };
 }
 
+/**
+ * Handles a player's question in a game of 20 Questions.
+ * @param {string} sessionId - The ID of the game session.
+ * @param {string} userInput - The user's question.
+ * @return {Promise<{questionCount: number, aiResponse: string, questionCount: number}>} - A promise
+ *   resolving to an object containing the updated question count, the AI's
+ *   response, and a boolean indicating whether the AI won.
+ */
 async function handlePlayerQuestion(sessionId: string, userInput: string) {
   if (!sessionId || !userInput) {
     throw new Error('Session ID and user input are required.');
@@ -116,6 +103,13 @@ async function handlePlayerQuestion(sessionId: string, userInput: string) {
   };
 }
 
+/**
+ * Starts a new game of 20 Questions where the player thinks of an object and
+ * the AI tries to guess what it is.
+ * @return {Promise<{sessionId: string, aiResponse: string, questionCount: number}>} - A promise
+ *   resolving to an object containing the session ID and the AI's first
+ *   question.
+ */
 async function startAIGuessesGame() {
   const maxQuestions = MAX_QUESTIONS;
   const initialPrompt = `You are Bot Boy, a friendly robot playing a "20 Questions" game to guess a video game the user is thinking of.
@@ -146,6 +140,16 @@ async function startAIGuessesGame() {
   return { sessionId, aiResponse: jsonResponse, questionCount: 1 };
 }
 
+/**
+ * Handles a player's answer in a game of 20 Questions.
+ * 
+ * This method also pushed the conversation update to chat history.
+ * @param {string} sessionId - The ID of the game session.
+ * @param {string} userAnswer - The user's answer.
+ * @return {Promise<{questionCount: number, aiResponse: string}>} - A promise
+ *   resolving to an object containing the updated question count, the AI's
+ *   response.
+ */
 async function handleAIAnswer(sessionId: string, userAnswer: string) {
   if (!sessionId || !userAnswer) {
     throw new Error('Session ID and user answer are required.');
