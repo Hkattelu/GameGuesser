@@ -1,0 +1,60 @@
+name: Generate Coverage Badges
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Run backend tests
+        run: npm test
+        working-directory: ./backend
+
+      - name: Generate backend coverage badge
+        uses: emibcn/clover-coverage-badges-action@v1.0.0
+        with:
+          clover-file: backend/coverage/clover.xml
+          label: 'Backend Coverage'
+          color: 'blue'
+          style: 'flat'
+          path: 'backend-coverage.svg'
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./frontend
+
+      - name: Run frontend tests
+        run: npm test
+        working-directory: ./frontend
+
+      - name: Generate frontend coverage badge
+        uses: emibcn/clover-coverage-badges-action@v1.0.0
+        with:
+          clover-file: frontend/coverage/clover.xml
+          label: 'Frontend Coverage'
+          color: 'green'
+          style: 'flat'
+          path: 'frontend-coverage.svg'
+
+      - name: Commit badges
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add backend-coverage.svg frontend-coverage.svg
+          git commit -m 'Update coverage badges' || echo "No changes to commit"
+          git push

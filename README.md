@@ -1,5 +1,8 @@
 # AI Game Guesser
 
+![Backend Coverage](backend-coverage.svg)
+![Frontend Coverage](frontend-coverage.svg)
+
 This is a simple web-based game where an AI tries to guess a video game you're thinking of by asking a series of yes/no questions.
 
 ## Setup

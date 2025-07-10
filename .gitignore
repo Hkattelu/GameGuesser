@@ -20,10 +20,8 @@ backend/coverage/*
 backend/daily-games.json
 
 # Coverage reports
-/coverage/
-**/coverage-final.json
-**/clover.xml
-**/lcov-report/
+!frontend/coverage/clover.xml
+!backend/coverage/clover.xml
 
 # Transpiled test artifacts
 /dist_ts_test/

@@ -12,4 +12,7 @@ module.exports = {
     ],
   },
   testPathIgnorePatterns: ['/dist/'],
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+  coverageReporters: ['json', 'lcov', 'text', 'clover'], // Customize as needed
 };

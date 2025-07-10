@@ -115,4 +115,54 @@ describe('AIGuessesGame', () => {
       expect(mockProps.setAiQuestion).toHaveBeenCalledWith('My guess is: Starcraft. Am I right?');
     });
   });
+
+  it('handles startGameAI failure', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Test error' }),
+    });
+
+    render(<AIGuessesGame {...mockProps} />);
+    fireEvent.click(screen.getByText('Start Game'));
+
+    await waitFor(() => {
+      expect(mockProps.setAiQuestion).toHaveBeenCalledWith('Error: Could not start AI game. Check backend and network.');
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Please try again. Error: Test error');
+    });
+  });
+
+  it('handles handleAnswer failure', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Test error' }),
+    });
+
+    const props = { ...mockProps, started: true, sessionId: 'test-session-id' };
+    render(<AIGuessesGame {...props} />);
+    fireEvent.click(screen.getByText('Yes'));
+
+    await waitFor(() => {
+      expect(mockProps.setAiQuestion).toHaveBeenCalledWith('Bot Boy encountered an error. Please try again.');
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error communicating with Bot Boy: Test error');
+    });
+  });
+
+  it('ends the game if question count exceeds max questions', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        aiResponse: { type: 'question', content: 'Is it a sports game?' },
+        questionCount: 21,
+      }),
+    });
+
+    const props = { ...mockProps, started: true, sessionId: 'test-session-id', questionCount: 20 };
+    render(<AIGuessesGame {...props} />);
+    fireEvent.click(screen.getByText('Yes'));
+
+    await waitFor(() => {
+      expect(mockProps.setVictory).toHaveBeenCalledWith(false);
+      expect(mockProps.setAiQuestion).toHaveBeenCalledWith("I couldn't guess your game in 20 questions! You win!");
+    });
+  });
 });

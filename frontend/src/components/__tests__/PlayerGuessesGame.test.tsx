@@ -113,4 +113,77 @@ describe('PlayerGuessesGame', () => {
       expect(mockProps.setGameMessage).toHaveBeenCalledWith('You guessed it! The game was Starcraft.');
     });
   });
+
+  it('handles startGamePlayerGuesses failure', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Test error' }),
+    });
+
+    render(<PlayerGuessesGame {...mockProps} />);
+    fireEvent.click(screen.getByText('Start Game'));
+
+    await waitFor(() => {
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error starting the game: Test error. Please try again.');
+    });
+  });
+
+  it('handles handlePlayerQuestion failure', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Test error' }),
+    });
+
+    const props = { ...mockProps, started: true, sessionId: 'test-session-id' };
+    render(<PlayerGuessesGame {...props} />);
+    const input = screen.getByPlaceholderText('e.g., Is the game a first-person shooter?');
+    fireEvent.change(input, { target: { value: 'Is it a strategy game?' } });
+    fireEvent.click(screen.getByText('Submit'));
+
+    await waitFor(() => {
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error processing your question: Test error. Please try again.');
+    });
+  });
+
+  it('handles incorrect player guess', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        type: 'guessResult',
+        content: { correct: false, response: 'Incorrect guess.' },
+      }),
+    });
+
+    const props = { ...mockProps, started: true, sessionId: 'test-session-id' };
+    render(<PlayerGuessesGame {...props} />);
+    const input = screen.getByPlaceholderText('e.g., Is the game a first-person shooter?');
+    fireEvent.change(input, { target: { value: 'Wrong game' } });
+    fireEvent.click(screen.getByText('Submit'));
+
+    await waitFor(() => {
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Incorrect guess.');
+    });
+  });
+
+  it('ends the game if question count exceeds max questions', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        type: 'answer',
+        content: 'The game was Starcraft',
+        questionCount: 20,
+      }),
+    });
+
+    const props = { ...mockProps, started: true, sessionId: 'test-session-id', questionCount: 19 };
+    render(<PlayerGuessesGame {...props} />);
+    const input = screen.getByPlaceholderText('e.g., Is the game a first-person shooter?');
+    fireEvent.change(input, { target: { value: 'Is it a strategy game?' } });
+    fireEvent.click(screen.getByText('Submit'));
+
+    await waitFor(() => {
+      expect(mockProps.setVictory).toHaveBeenCalledWith(false);
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith("You're out of questions! The game was The game was Starcraft.");
+    });
+  });
 });
