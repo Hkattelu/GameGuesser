@@ -1,8 +1,5 @@
 import { ResponseOption } from './types';
 
-// Backend base URL – configurable via Vite at build-time, falls back to localhost during development.
-export const API_URL: string = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
-
 // Maximum number of questions allowed in a single game of 20Q.
 export const MAX_QUESTIONS = 20;
 

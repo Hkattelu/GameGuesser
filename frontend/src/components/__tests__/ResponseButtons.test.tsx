@@ -2,6 +2,7 @@
 * @jest-environment jsdom
 */
 
+// jest.mock('src/env_utils.ts');
 import { render, fireEvent, screen } from '@testing-library/react';
 import ResponseButtons from '../ResponseButtons';
 

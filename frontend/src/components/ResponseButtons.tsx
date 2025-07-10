@@ -1,5 +1,6 @@
 import React from 'react';
-import { ResponseOption, RESPONSE_OPTIONS } from '../constants';
+import { ResponseOption } from '../types';
+import { RESPONSE_OPTIONS } from '../constants';
 
 export interface ResponseButtonsProps {
   onAnswer: (answer: ResponseOption) => void;
