@@ -27,10 +27,33 @@ const gameSessions = new Map<string, PlayerGuessSession | AIGuessSession>();
 const MAX_QUESTIONS = 20;
 
 /**
-* Starts a *Player-Guesses* game session.
-* Instead of asking Gemini for a new title on every call we
-* delegate to `getDailyGame()` so all users share the same secret
-* game for the current UTC date (Wordle-style).
+* Starts a new *Player-Guesses* game session.
+*
+* Why we **delegate to `getDailyGame()` instead of hitting Gemini directly**:
+*
+* 1. **Daily Wordle-style challenge** – `getDailyGame()` returns **one** secret
+*    game title for the **current UTC day**. Every player who joins on that
+*    date gets the *same* mystery game, creating a shared puzzle that friends
+*    can discuss and compare (just like Wordle). Generating a fresh title for
+*    each browser tab would fragment the experience.
+*
+* 2. **Performance & cost control** – Large-language-model calls are slow and
+*    billed per request. Caching the first Gemini response of the day in
+*    memory *and* persisting it to `daily-games.json` means subsequent
+*    sessions reuse the value instantly. The server therefore makes **at most
+*    one Gemini request per 24 h**, slashing latency and spend.
+*
+* 3. **Time-zone neutrality with UTC** – The cache key is the ISO
+*    `YYYY-MM-DD` representation of the date in **UTC**. Using a universal
+*    clock guarantees that players in New York and Tokyo see the same “daily”
+*    game even though their local calendars differ.
+*
+* In short, delegating to `getDailyGame()` gives us community cohesion,
+* predictable performance, and minimal API costs while keeping the behaviour
+* consistent worldwide.
+*
+* @returns Promise resolving to an object containing the `sessionId` that the
+*          client must supply on subsequent turns.
 */
 async function startPlayerGuessesGame() {
   // Fetch (or lazily create) the secret game for *today* (UTC).
