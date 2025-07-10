@@ -1,16 +1,21 @@
 import React, { useEffect, useRef } from 'react';
+import { ChatMessage, GameMode } from '../types';
 
-function ConversationHistory({ chatHistory, gameMode }) {
-  const historyEndRef = useRef(null);
+export interface ConversationHistoryProps {
+  chatHistory: ChatMessage[];
+  gameMode: GameMode;
+}
+
+function ConversationHistory({ chatHistory, gameMode }: ConversationHistoryProps) {
+  const historyEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Scroll to the bottom of the history whenever chatHistory changes
-    historyEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
 
   return (
     <div
-      id={gameMode === 'ai-guesses' ? "conversation-history" : "conversation-history-player"}
+      id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
       className="text-left mb-6 p-4 bg-gray-50 rounded-lg max-h-60 overflow-y-auto"
     >
       <p className="text-lg text-gray-600">Conversation History:</p>
@@ -31,13 +36,17 @@ function ConversationHistory({ chatHistory, gameMode }) {
               textContent = `Bot Boy (Guess): ${jsonContent.content}`;
             } else if (jsonContent.type === 'answer') {
               textContent = `Bot Boy: ${jsonContent.content}`;
-            } else if (jsonContent.type === 'guessResult') {
+            } else if (
+              jsonContent.type === 'guessResult' &&
+              typeof jsonContent.content?.response === 'string'
+            ) {
               textContent = `Bot Boy: ${jsonContent.content.response}`;
             }
-          } catch (e) {
+          } catch {
             textContent = `Bot Boy: ${entry.parts[0].text}`;
           }
         }
+
         return (
           <p key={index} className={className}>
             {textContent}
@@ -50,3 +59,4 @@ function ConversationHistory({ chatHistory, gameMode }) {
 }
 
 export default ConversationHistory;
+

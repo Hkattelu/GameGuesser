@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // C:\Users\himan\code\game-guessr\backend\gemini.js
 import fetch from 'node-fetch';
 
@@ -36,3 +37,7 @@ async function callGeminiAPI(prompt, chatHistory = []) {
 }
 
 export { callGeminiAPI };
+=======
+export * from './gemini.ts';
+export { callGeminiAPI as default } from './gemini.ts';
+>>>>>>> 9809e7cffc5a37e7959fea899d0903429459484c

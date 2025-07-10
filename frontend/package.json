@@ -1,22 +1,31 @@
 {
   "name": "game-guessr-frontend",
   "version": "1.0.0",
-  "description": "Frontend for Game Guesser using React",
-  "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "serve": "vite preview"
-  },
-  "keywords": [],
-  "author": "hkattelu",
+  "description": "Frontend for Game Guesser using React + Vite",
   "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "jest --coverage"
+  },
   "license": "ISC",
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.11",
-    "@vitejs/plugin-react": "^4.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tailwindcss": "^4.1.11",
-    "vite": "^7.0.2"
+    "vite": "^7.0.2",
+    "@vitejs/plugin-react": "^4.6.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "tailwindcss": "^4.1.11"
   },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^14.2.1",
+    "@types/jest": "^29.5.12",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.2.7",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.4.5"
+  }
 }

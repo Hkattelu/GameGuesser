@@ -2,27 +2,28 @@ import { useState, useEffect } from 'react';
 import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
+import { ChatMessage, GameMode } from './types';
+import { MAX_QUESTIONS } from './constants';
 
 function App() {
-  const [gameMode, setGameMode] = useState('ai-guesses'); // 'ai-guesses' or 'player-guesses'
-  const [preGame, setPreGame] = useState(true);
-  const [started, setStarted] = useState(false);
-  const [victory, setVictory] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
-  const [maxQuestions] = useState(20);
-  const [chatHistory, setChatHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [highlightedResponse, setHighlightedResponse] = useState(null);
-  const [sessionId, setSessionId] = useState(null);
-  const [gameMessage, setGameMessage] = useState("");
-  const [aiQuestion, setAiQuestion] = useState("");
+  const [gameMode, setGameMode] = useState<GameMode>('ai-guesses');
+  const [preGame, setPreGame] = useState<boolean>(true);
+  const [started, setStarted] = useState<boolean>(false);
+  const [victory, setVictory] = useState<boolean | 'guess'>(false);
+  const [questionCount, setQuestionCount] = useState<number>(0);
+  const [maxQuestions] = useState<number>(MAX_QUESTIONS);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [highlightedResponse, setHighlightedResponse] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [gameMessage, setGameMessage] = useState<string>('');
+  const [aiQuestion, setAiQuestion] = useState<string>('');
 
   /**
-   * Gets the mascot image for the current game state.
-   * 
-   * This must be constructed with a static string to work with parcel.
-   * 
-   * @returns a URL with the correct image source
+   * Returns the mascot image URL appropriate for the current UI state.
+   *
+   * Uses a static `import.meta.url` based construction so that Vite (and
+   * Parcel in dev‐server mode) can statically analyse the asset paths.
    */
   const getMascotImage = () => {
     if (loading) {
@@ -38,12 +39,8 @@ function App() {
     return new URL('bot_boy/guy.png', import.meta.url);
   };
 
-  // Function to clear highlights
-  const clearHighlights = () => {
-    setHighlightedResponse(null);
-  };
+  const clearHighlights = () => setHighlightedResponse(null);
 
-  // Function to reset game state
   const resetGame = () => {
     setPreGame(true);
     setStarted(false);
@@ -56,20 +53,19 @@ function App() {
     setGameMessage(
       gameMode === 'ai-guesses'
         ? "Let's play! Think of a video game, and I'll try to guess it. Click \"Start Game\" when you're ready!"
-        : "I'm thinking of a game. You have 20 questions to guess it. Click \"Start Game\" to begin!"
+        : "I'm thinking of a game. You have 20 questions to guess it. Click \"Start Game\" to begin!",
     );
-    setAiQuestion("");
+    setAiQuestion('');
     clearHighlights();
   };
 
-  // Initialize game message on mode switch or initial load
-  useEffect(() => {
-    resetGame();
-  }, [gameMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Reset whenever the mode changes
+  useEffect(resetGame, [gameMode]);
 
   return (
     <div className="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
       <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Game Boy's Game Guesser</h1>
+
       <div className="tabs flex justify-center border-b mb-4">
         <button
           id="tab-ai-guesses"
@@ -86,9 +82,12 @@ function App() {
           You guess
         </button>
       </div>
+
       <MascotImage imageSrc={getMascotImage()} />
 
-      <p id="game-message" className="text-lg text-gray-600 mb-4">{gameMessage}</p>
+      <p id="game-message" className="text-lg text-gray-600 mb-4">
+        {gameMessage}
+      </p>
 
       {gameMode === 'ai-guesses' && (
         <AIGuessesGame
