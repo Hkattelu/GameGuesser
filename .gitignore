@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-config.js
-backend/Dockerfile
-backend/node_modules
-backend/node_modules/*
-backend/package-lock.json
-backend/dist/
-=======
 # Frontend prod data
->>>>>>> master
 frontend/node_modules
 frontend/package-lock.json
-frontend/.parcel-cache
+frontend/coverage
+frontend/coverage/*
 frontend/dist
 frontend/dist/*
 
