@@ -8,6 +8,10 @@ frontend/package-lock.json
 frontend/.parcel-cache
 frontend/dist
 frontend/dist/*
+
+# Daily Game persistence file
+backend/daily-games.json
+
 # Coverage reports
 /backend/coverage/
 /coverage/

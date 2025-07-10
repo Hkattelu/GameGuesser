@@ -9,6 +9,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "types": ["node", "jest"],
   "allowJs": true,
   "isolatedModules": true,
     "resolveJsonModule": true,
@@ -20,6 +21,7 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.test.ts"
   ]
 }
