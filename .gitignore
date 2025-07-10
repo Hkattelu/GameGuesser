@@ -1,16 +1,33 @@
+<<<<<<< HEAD
 config.js
 backend/Dockerfile
 backend/node_modules
 backend/node_modules/*
 backend/package-lock.json
 backend/dist/
+=======
+# Frontend prod data
+>>>>>>> master
 frontend/node_modules
 frontend/package-lock.json
 frontend/.parcel-cache
 frontend/dist
 frontend/dist/*
+
+# Backend prod data
+backend/Dockerfile
+backend/node_modules
+backend/node_modules/*
+backend/package-lock.json
+backend/dist
+backend/dist/*
+backend/coverage
+backend/coverage/*
+
+# Daily Game persistence file
+backend/daily-games.json
+
 # Coverage reports
-/backend/coverage/
 /coverage/
 **/coverage-final.json
 **/clover.xml

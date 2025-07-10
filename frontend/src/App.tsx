@@ -51,6 +51,12 @@ function App() {
   };
 
   // ---------------- Utility helpers ----------------
+  /**
+   * Returns the mascot image URL appropriate for the current UI state.
+   *
+   * Uses a static `import.meta.url` based construction so that Vite (and
+   * Parcel in dev‐server mode) can statically analyse the asset paths.
+   */
   const getMascotImage = () => {
     if (loading) return new URL('bot_boy/thinking.png', import.meta.url);
     if (preGame) return new URL('bot_boy/guy.png', import.meta.url);

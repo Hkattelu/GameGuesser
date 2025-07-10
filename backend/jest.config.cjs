@@ -4,6 +4,12 @@ module.exports = {
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   // No moduleNameMapper overrides – backend tests import .ts directly.
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
   },
+  testPathIgnorePatterns: ['/dist/'],
 };
