@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
+import type { PlayerGuessSession } from './game.ts';
 
 // ---------------------------------------------------------------------------
 // Test setup – isolate the daily games file so test runs are deterministic.
@@ -12,12 +13,13 @@ const dataFilePath = path.join(tmpDir, 'daily-games.json');
 process.env.DAILY_GAME_FILE_PATH = dataFilePath;
 
 // Mock Gemini so we have full control over responses.
-jest.unstable_mockModule('./gemini.js', () => ({
+jest.unstable_mockModule('./gemini.ts', () => ({
   callGeminiAPI: jest.fn(),
 }));
 
 // Dynamic imports AFTER the mock & env var so modules pick them up.
-const { callGeminiAPI } = await import('./gemini.js');
+const { callGeminiAPI } = await import('./gemini.ts');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const callGeminiMock = callGeminiAPI as jest.Mock<any>;
 const {
   startPlayerGuessesGame,
@@ -53,7 +55,7 @@ describe('Game Logic with Daily Game system', () => {
 
       expect(sessionId).toBeDefined();
       const session = getSession(sessionId!);
-      expect((session as any).secretGame).toBe('Test Game');
+      expect((session as PlayerGuessSession).secretGame).toBe('Test Game');
 
       // Gemini should have been called exactly once to choose the daily game.
       expect(callGeminiMock).toHaveBeenCalledTimes(1);
@@ -65,8 +67,8 @@ describe('Game Logic with Daily Game system', () => {
       const { sessionId: s1 } = await startPlayerGuessesGame();
       const { sessionId: s2 } = await startPlayerGuessesGame();
 
-      const game1 = (getSession(s1!) as any).secretGame;
-      const game2 = (getSession(s2!) as any).secretGame;
+      const game1 = (getSession(s1!) as PlayerGuessSession).secretGame;
+      const game2 = (getSession(s2!) as PlayerGuessSession).secretGame;
 
       expect(game1).toBe('Shared Game');
       expect(game2).toBe('Shared Game');
