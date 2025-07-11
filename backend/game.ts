@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { callGeminiAPI } from './gemini.js';
+import { callGeminiAPI } from './gemini.ts';
 import type { ChatMessage } from './gemini.ts';
 import { getDailyGame } from './dailyGameStore.ts';
 
