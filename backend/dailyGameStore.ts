@@ -71,6 +71,9 @@ function toUtcDateString(date: Date): string {
 
 let _callGeminiAPI: (<T = unknown>(prompt: string) => Promise<T>) | null = null;
 
+// RAWG lazy import to avoid cost when disabled or during tests.
+let _fetchRandomGame: (() => Promise<string>) | null = null;
+
 async function callGeminiOnce(): Promise<string> {
   if (!_callGeminiAPI) {
     const mod = await import('./gemini.js');
@@ -89,12 +92,39 @@ async function callGeminiOnce(): Promise<string> {
 }
 
 // ------------------------------------------------------------------------------------------------
+// RAWG integration (lazy-loaded & optional)
+// ------------------------------------------------------------------------------------------------
+
+/**
+* Attempts to retrieve a random game title from the RAWG API.
+*
+* The function short-circuits (throws) when `RAWG_API_KEY` is absent so the
+* caller can fall back immediately without incurring a dynamic import or HTTP
+* overhead in environments that don’t configure RAWG (e.g. CI).
+*/
+async function callRawgOnce(): Promise<string> {
+  if (!process.env.RAWG_API_KEY) {
+    throw new Error('RAWG_API_KEY not configured');
+  }
+
+  if (!_fetchRandomGame) {
+    const mod = await import('./rawg.js');
+    _fetchRandomGame = mod.fetchRandomGame;
+  }
+
+  return _fetchRandomGame();
+}
+
+// ------------------------------------------------------------------------------------------------
 // Public API
 // ------------------------------------------------------------------------------------------------
 
 /**
 * Retrieves the secret game for the provided date (UTC).
-* If none is stored it will fetch a new title from Gemini, persist it and return it.
+* If none is stored it will fetch a new title – preferring RAWG when the
+*   `RAWG_API_KEY` is configured, otherwise falling back to Gemini.
+* The chosen title is persisted so subsequent calls on the same date return the
+* cached value without hitting external services.
 */
 export async function getDailyGame(date: Date = new Date()): Promise<string> {
   const dateKey = toUtcDateString(date);
@@ -104,7 +134,15 @@ export async function getDailyGame(date: Date = new Date()): Promise<string> {
     return data[dateKey];
   }
 
-  const secretGame = await callGeminiOnce();
+  let secretGame: string;
+
+  try {
+    // Prefer RAWG because it provides real, up-to-date titles.
+    secretGame = await callRawgOnce();
+  } catch {
+    // Fallback to Gemini when RAWG is not configured or fails.
+    secretGame = await callGeminiOnce();
+  }
   data[dateKey] = secretGame;
   await saveData(data);
   return secretGame;

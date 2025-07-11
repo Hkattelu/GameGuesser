@@ -3,25 +3,36 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
-// ------------------------------------------------------------------------------------------
-// Test helpers – point the store at a tmp directory so tests never touch the real filesystem.
-// ------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Test helpers – isolate FS interactions & set env vars *before* module load.
+// ---------------------------------------------------------------------------
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'daily-game-store-'));
 const dataFilePath = path.join(tmpDir, 'daily-games.json');
 process.env.DAILY_GAME_FILE_PATH = dataFilePath;
 
-// Tell Jest to use the manual mock for Gemini.
+// RAWG key (dummy) so the module attempts RAWG first when we want it to.
+process.env.RAWG_API_KEY = 'test-rawg-key';
+
+// Tell Jest to use manual mocks for the external services.
 jest.unstable_mockModule('./gemini.js', () => ({
   callGeminiAPI: jest.fn(),
 }));
 
-// Dynamically import after the mock + env var so the module picks them up.
+jest.unstable_mockModule('./rawg.js', () => ({
+  fetchRandomGame: jest.fn(),
+}));
+
+// Dynamically import after mocks + env var so dailyGameStore picks them up.
 const { callGeminiAPI } = await import('./gemini.js');
+const { fetchRandomGame } = await import('./rawg.js');
+
 const callGeminiMock = callGeminiAPI as jest.Mock<any>;
+const fetchRandomGameMock = fetchRandomGame as jest.Mock<any>;
+
 const { getDailyGame, _clearCache } = await import('./dailyGameStore.ts');
 
-describe('dailyGameStore', () => {
+describe('dailyGameStore with RAWG integration', () => {
   beforeEach(() => {
     _clearCache();
     jest.clearAllMocks();
@@ -30,28 +41,27 @@ describe('dailyGameStore', () => {
     }
   });
 
-  it('creates and persists a new record when none exists', async () => {
-    callGeminiMock.mockResolvedValueOnce({ secretGame: 'Persisted Game' });
+  it('prefers RAWG result when fetch succeeds', async () => {
+    fetchRandomGameMock.mockResolvedValueOnce('RAWG Hit');
 
-    const game = await getDailyGame(new Date('2025-01-01T12:00:00Z'));
+    const game = await getDailyGame(new Date('2025-03-03T00:00:00Z'));
 
-    expect(game).toBe('Persisted Game');
-    expect(callGeminiMock).toHaveBeenCalledTimes(1);
+    expect(game).toBe('RAWG Hit');
+    expect(fetchRandomGameMock).toHaveBeenCalledTimes(1);
+    expect(callGeminiMock).not.toHaveBeenCalled();
 
     const stored = JSON.parse(fs.readFileSync(dataFilePath, 'utf-8'));
-    expect(stored['2025-01-01']).toBe('Persisted Game');
+    expect(stored['2025-03-03']).toBe('RAWG Hit');
   });
 
-  it('returns the same game for multiple calls on the same date', async () => {
-    callGeminiMock.mockResolvedValueOnce({ secretGame: 'Shared Game' });
+  it('falls back to Gemini when RAWG fails', async () => {
+    fetchRandomGameMock.mockRejectedValueOnce(new Error('network oops'));
+    callGeminiMock.mockResolvedValueOnce({ secretGame: 'Gemini Backup' });
 
-    const date = new Date('2025-02-02T00:00:00Z');
+    const game = await getDailyGame(new Date('2025-04-04T00:00:00Z'));
 
-    const first = await getDailyGame(date);
-    const second = await getDailyGame(date);
-
-    expect(first).toBe('Shared Game');
-    expect(second).toBe('Shared Game');
+    expect(game).toBe('Gemini Backup');
+    expect(fetchRandomGameMock).toHaveBeenCalledTimes(1);
     expect(callGeminiMock).toHaveBeenCalledTimes(1);
   });
 });
