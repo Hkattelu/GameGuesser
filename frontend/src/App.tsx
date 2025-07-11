@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import AuthPage from './AuthPage';
 import AIGuessesGame from './AIGuessesGame';
@@ -13,7 +14,20 @@ interface AuthPayload {
   username: string;
 }
 
-function App() {
+interface AppProps {
+  /**
+   * Which game mode should be pre-selected when this component mounts.
+   * If omitted, defaults to `'ai-guesses'`.
+   */
+  initialMode?: GameMode;
+  /**
+   * When `true`, the legacy tabbed UI is hidden. This is used when the user
+   * reaches the game via the new StartScreen flow.
+   */
+  hideTabs?: boolean;
+}
+
+function App({ initialMode = 'ai-guesses', hideTabs = false }: AppProps) {
   // Authentication state
   const [token, setToken] = useState<string | null>(
     typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null,
@@ -23,7 +37,7 @@ function App() {
   );
 
   // Game-specific state
-  const [gameMode, setGameMode] = useState<GameMode>('ai-guesses');
+  const [gameMode, setGameMode] = useState<GameMode>(initialMode);
   const [preGame, setPreGame] = useState<boolean>(true);
   const [started, setStarted] = useState<boolean>(false);
   const [victory, setVictory] = useState<boolean | 'guess'>(false);
@@ -42,12 +56,16 @@ function App() {
     setUsername(newUsername);
   };
 
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     setToken(null);
     setUsername(null);
     resetGame();
+    // Navigate back to the StartScreen once the user logs out.
+    navigate('/');
   };
 
   // ---------------- Utility helpers ----------------
@@ -134,22 +152,24 @@ function App() {
 
       <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Game Boy's Game Guesser</h1>
 
-      <div className="tabs flex justify-center border-b mb-4">
-        <button
-          id="tab-ai-guesses"
-          className={`tab-btn ${gameMode === 'ai-guesses' ? 'active' : ''}`}
-          onClick={() => setGameMode('ai-guesses')}
-        >
-          Game boy guesses
-        </button>
-        <button
-          id="tab-player-guesses"
-          className={`tab-btn ${gameMode === 'player-guesses' ? 'active' : ''}`}
-          onClick={() => setGameMode('player-guesses')}
-        >
-          You guess
-        </button>
-      </div>
+      {!hideTabs && (
+        <div className="tabs flex justify-center border-b mb-4">
+          <button
+            id="tab-ai-guesses"
+            className={`tab-btn ${gameMode === 'ai-guesses' ? 'active' : ''}`}
+            onClick={() => setGameMode('ai-guesses')}
+          >
+            Game boy guesses
+          </button>
+          <button
+            id="tab-player-guesses"
+            className={`tab-btn ${gameMode === 'player-guesses' ? 'active' : ''}`}
+            onClick={() => setGameMode('player-guesses')}
+          >
+            You guess
+          </button>
+        </div>
+      )}
 
       <MascotImage imageSrc={getMascotImage()} />
 
