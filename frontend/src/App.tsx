@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 
-import AuthPage from './AuthPage';
+// The existing AuthPage is now presented via the new StartingScreen so we can
+// remove its direct usage from the main application shell.
+
+import StartingScreen from './screens/StartingScreen';
 import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
@@ -14,7 +17,8 @@ interface AuthPayload {
 }
 
 function App() {
-  // Authentication state
+  // --------------------------- App-level state -----------------------------
+  // Authentication state – persisted in `localStorage` to survive refreshes.
   const [token, setToken] = useState<string | null>(
     typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null,
   );
@@ -22,8 +26,8 @@ function App() {
     typeof localStorage !== 'undefined' ? localStorage.getItem('username') : null,
   );
 
-  // Game-specific state
-  const [gameMode, setGameMode] = useState<GameMode>('ai-guesses');
+  // `null` means the player is still on the starting screen choosing a game.
+  const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [preGame, setPreGame] = useState<boolean>(true);
   const [started, setStarted] = useState<boolean>(false);
   const [victory, setVictory] = useState<boolean | 'guess'>(false);
@@ -36,10 +40,17 @@ function App() {
   const [gameMessage, setGameMessage] = useState<string>('');
   const [aiQuestion, setAiQuestion] = useState<string>('');
 
-  // ---------------- Authentication helpers ----------------
+  // ----------------------------- Helpers -------------------------------
+  // Save auth credentials, then let the starting screen proceed to mode
+  // selection.
   const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
     setToken(newToken);
     setUsername(newUsername);
+  };
+
+  // Called by the starting screen when the player picks which game to play.
+  const handleSelectGame = (mode: GameMode) => {
+    setGameMode(mode);
   };
 
   const handleLogout = () => {
@@ -47,6 +58,8 @@ function App() {
     localStorage.removeItem('username');
     setToken(null);
     setUsername(null);
+    // Return to lobby.
+    setGameMode(null);
     resetGame();
   };
 
@@ -86,8 +99,10 @@ function App() {
     setAiQuestion('');
   };
 
-  // Reset whenever the mode changes
-  useEffect(resetGame, [gameMode]);
+  // Reset all game-specific state whenever the chosen mode changes.
+  useEffect(() => {
+    if (gameMode) resetGame();
+  }, [gameMode]);
 
   // Load conversation history when the user logs-in
   useEffect(() => {
@@ -118,11 +133,20 @@ function App() {
     fetchHistory();
   }, [token]);
 
-  // ---------------- Render ----------------
-  if (!token) {
-    return <AuthPage onAuth={handleAuth} />;
+  // --------------------------- Render ----------------------------
+  // 1. The initial lobby / auth page.
+  if (gameMode === null) {
+    return (
+      <StartingScreen
+        token={token}
+        username={username}
+        onAuth={handleAuth}
+        onSelectGame={handleSelectGame}
+      />
+    );
   }
 
+  // 2. The active game session (either AI guesses or player guesses).
   return (
     <div className="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
       <div className="flex justify-between items-center mb-4">
@@ -134,22 +158,11 @@ function App() {
 
       <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Game Boy's Game Guesser</h1>
 
-      <div className="tabs flex justify-center border-b mb-4">
-        <button
-          id="tab-ai-guesses"
-          className={`tab-btn ${gameMode === 'ai-guesses' ? 'active' : ''}`}
-          onClick={() => setGameMode('ai-guesses')}
-        >
-          Game boy guesses
-        </button>
-        <button
-          id="tab-player-guesses"
-          className={`tab-btn ${gameMode === 'player-guesses' ? 'active' : ''}`}
-          onClick={() => setGameMode('player-guesses')}
-        >
-          You guess
-        </button>
-      </div>
+      {/* The original two–tab selector is now handled via the dedicated
+          starting screen. We keep the semantic container here in case future
+          designs re-introduce mode switching mid-game, but it's hidden to
+          avoid confusing players. */}
+      <div className="hidden" />
 
       <MascotImage imageSrc={getMascotImage()} />
 

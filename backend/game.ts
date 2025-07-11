@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
-import { callGeminiAPI } from './gemini.ts';
-import type { ChatMessage } from './gemini.ts';
+import { callGeminiAPI } from './gemini.js';
+import type { ChatMessage } from './gemini.js';
 import { getDailyGame } from './dailyGameStore.ts';
 
 // In-memory store for game sessions – keyed by UUID
