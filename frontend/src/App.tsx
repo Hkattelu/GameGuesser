@@ -88,16 +88,12 @@ function App({
   /**
    * Returns the mascot image URL appropriate for the current UI state.
    *
-   * Uses a static `import.meta.url` based construction so that Vite (and
-   * Parcel in dev‐server mode) can statically analyse the asset paths.
-   */
-  /**
-   * Returns the mascot image URL appropriate for the current UI state.
-   *
-   * Note: We avoid the `import.meta.url` pattern here so the file continues to
-   * transpile correctly under Jest's CommonJS transform.  Using relative paths
-   * works fine in both the dev server (Vite) and in tests where the asset
-   * itself is usually stubbed/mocked.
+   * Implementation detail:
+   * Jest’s CommonJS transform cannot parse the `import.meta.url` syntax that
+   * Vite normally uses to bundle assets. To keep unit tests green we fall back
+   * to plain relative paths under `/bot_boy/…`. In development/production the
+   * images live in the same location thanks to Vite’s `publicDir`, so this
+   * simpler path works in the browser too.
    */
   const getMascotImage = () => {
     const base = '/bot_boy/';
