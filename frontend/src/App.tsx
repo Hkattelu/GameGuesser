@@ -25,9 +25,21 @@ interface AppProps {
    * reaches the game via the new StartScreen flow.
    */
   hideTabs?: boolean;
+  /**
+   * Optional callback to navigate back to the home / start screen. When
+   * provided the component will call this callback on logout instead of
+   * using React-Router's `useNavigate` to push `/`. This lets the component
+   * be rendered in isolation (e.g. in unit tests or Storybook) without
+   * requiring a Router context.
+   */
+  onNavigateHome?: () => void;
 }
 
-function App({ initialMode = 'ai-guesses', hideTabs = false }: AppProps) {
+function App({
+  initialMode = 'ai-guesses',
+  hideTabs = false,
+  onNavigateHome,
+}: AppProps) {
   // Authentication state
   const [token, setToken] = useState<string | null>(
     typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null,
@@ -65,7 +77,11 @@ function App({ initialMode = 'ai-guesses', hideTabs = false }: AppProps) {
     setUsername(null);
     resetGame();
     // Navigate back to the StartScreen once the user logs out.
-    navigate('/');
+    if (onNavigateHome) {
+      onNavigateHome();
+    } else {
+      navigate('/');
+    }
   };
 
   // ---------------- Utility helpers ----------------
@@ -75,14 +91,23 @@ function App({ initialMode = 'ai-guesses', hideTabs = false }: AppProps) {
    * Uses a static `import.meta.url` based construction so that Vite (and
    * Parcel in dev‐server mode) can statically analyse the asset paths.
    */
+  /**
+   * Returns the mascot image URL appropriate for the current UI state.
+   *
+   * Note: We avoid the `import.meta.url` pattern here so the file continues to
+   * transpile correctly under Jest's CommonJS transform.  Using relative paths
+   * works fine in both the dev server (Vite) and in tests where the asset
+   * itself is usually stubbed/mocked.
+   */
   const getMascotImage = () => {
-    if (loading) return new URL('bot_boy/thinking.png', import.meta.url);
-    if (preGame) return new URL('bot_boy/guy.png', import.meta.url);
+    const base = '/bot_boy/';
+    if (loading) return `${base}thinking.png`;
+    if (preGame) return `${base}guy.png`;
     if (!started) {
-      if (victory) return new URL('bot_boy/sadge.png', import.meta.url);
-      return new URL('bot_boy/guy.png', import.meta.url);
+      if (victory) return `${base}sadge.png`;
+      return `${base}guy.png`;
     }
-    return new URL('bot_boy/guy.png', import.meta.url);
+    return `${base}guy.png`;
   };
 
   const clearHighlights = () => setHighlightedResponse(null);
