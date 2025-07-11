@@ -12,10 +12,12 @@ const dataFilePath = path.join(tmpDir, 'daily-games.json');
 process.env.DAILY_GAME_FILE_PATH = dataFilePath;
 
 // Tell Jest to use the manual mock for Gemini.
-jest.unstable_mockModule('./gemini.ts', () => import('./__mocks__/gemini.ts'));
+jest.unstable_mockModule('./gemini.js', () => ({
+  callGeminiAPI: jest.fn(),
+}));
 
 // Dynamically import after the mock + env var so the module picks them up.
-const { callGeminiAPI } = await import('./gemini.ts');
+const { callGeminiAPI } = await import('./gemini.js');
 const callGeminiMock = callGeminiAPI as jest.Mock<any>;
 const { getDailyGame, _clearCache } = await import('./dailyGameStore.ts');
 

@@ -73,7 +73,7 @@ let _callGeminiAPI: (<T = unknown>(prompt: string) => Promise<T>) | null = null;
 
 async function callGeminiOnce(): Promise<string> {
   if (!_callGeminiAPI) {
-    const mod = await import('./gemini.ts');
+    const mod = await import('./gemini.js');
     _callGeminiAPI = mod.callGeminiAPI;
   }
 
