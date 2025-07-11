@@ -69,23 +69,28 @@ function toUtcDateString(date: Date): string {
 // Gemini integration (lazy-loaded to avoid cycles in tests)
 // ------------------------------------------------------------------------------------------------
 
-let _callGeminiAPI: (<T = unknown>(prompt: string) => Promise<T>) | null = null;
+// ---------------------------------------------------------------------------------------------
+// RAWG integration – we lazily import to avoid increasing startup time and to make it easy to
+// inject a Jest mock in unit tests without manually resetting the module cache.
+// ---------------------------------------------------------------------------------------------
 
-async function callGeminiOnce(): Promise<string> {
-  if (!_callGeminiAPI) {
-    const mod = await import('./gemini.js');
-    _callGeminiAPI = mod.callGeminiAPI;
+let _fetchRandomGame:
+  | (typeof import('./integrations/rawgApiClient.ts'))['fetchRandomGame']
+  | null = null;
+
+async function fetchRandomGameOnce(): Promise<string> {
+  if (!_fetchRandomGame) {
+    // Dynamic import so Jest can intercept with `unstable_mockModule()`.
+    const mod = await import('./integrations/rawgApiClient.ts');
+    _fetchRandomGame = mod.fetchRandomGame;
   }
 
-  const prompt =
-    'Pick a random, well-known video game title. Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.';
-
-  const jsonResponse = await _callGeminiAPI<{ secretGame: string }>(prompt);
-  const secretGame = jsonResponse?.secretGame;
-  if (!secretGame) {
-    throw new Error('Gemini did not return a secretGame field.');
+  const gameMeta = await _fetchRandomGame!();
+  if (!gameMeta?.name) {
+    throw new Error('RAWG did not return a game name.');
   }
-  return secretGame;
+
+  return gameMeta.name;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -104,7 +109,7 @@ export async function getDailyGame(date: Date = new Date()): Promise<string> {
     return data[dateKey];
   }
 
-  const secretGame = await callGeminiOnce();
+  const secretGame = await fetchRandomGameOnce();
   data[dateKey] = secretGame;
   await saveData(data);
   return secretGame;

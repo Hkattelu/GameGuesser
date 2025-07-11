@@ -16,9 +16,18 @@ jest.unstable_mockModule('./gemini.js', () => ({
   callGeminiAPI: jest.fn(),
 }));
 
+// Mock the RAWG client so we can control the daily-game selection deterministically.
+jest.unstable_mockModule('./integrations/rawgApiClient.ts', () => ({
+  fetchRandomGame: jest.fn(),
+}));
+
 // Dynamic imports AFTER the mock & env var so modules pick them up.
 const { callGeminiAPI } = await import('./gemini.js');
 const callGeminiMock = callGeminiAPI as jest.Mock<any>;
+
+// RAWG mock import (must come AFTER the mockModule call)
+const { fetchRandomGame } = await import('./integrations/rawgApiClient.ts');
+const fetchRandomGameMock = fetchRandomGame as jest.Mock<any>;
 const {
   startPlayerGuessesGame,
   handlePlayerQuestion,
@@ -47,7 +56,7 @@ describe('Game Logic with Daily Game system', () => {
 
   describe('Player Guesses Game', () => {
     it('starts a new session using the daily secret game', async () => {
-      callGeminiMock.mockResolvedValueOnce({ secretGame: 'Test Game' });
+      fetchRandomGameMock.mockResolvedValueOnce({ id: 1, name: 'Test Game', releaseDate: '2025-01-01' });
 
       const { sessionId } = await startPlayerGuessesGame();
 
@@ -55,12 +64,12 @@ describe('Game Logic with Daily Game system', () => {
       const session = getSession(sessionId!);
       expect((session as any).secretGame).toBe('Test Game');
 
-      // Gemini should have been called exactly once to choose the daily game.
-      expect(callGeminiMock).toHaveBeenCalledTimes(1);
+      // RAWG client should have been called exactly once to choose the daily game.
+      expect(fetchRandomGameMock).toHaveBeenCalledTimes(1);
     });
 
     it('reuses the same game for multiple sessions on the same day', async () => {
-      callGeminiMock.mockResolvedValueOnce({ secretGame: 'Shared Game' });
+      fetchRandomGameMock.mockResolvedValueOnce({ id: 2, name: 'Shared Game', releaseDate: '2025-02-02' });
 
       const { sessionId: s1 } = await startPlayerGuessesGame();
       const { sessionId: s2 } = await startPlayerGuessesGame();
@@ -70,11 +79,11 @@ describe('Game Logic with Daily Game system', () => {
 
       expect(game1).toBe('Shared Game');
       expect(game2).toBe('Shared Game');
-      expect(callGeminiMock).toHaveBeenCalledTimes(1);
+      expect(fetchRandomGameMock).toHaveBeenCalledTimes(1);
     });
 
     it('handles a player question', async () => {
-      callGeminiMock.mockResolvedValueOnce({ secretGame: 'Test Game' });
+      fetchRandomGameMock.mockResolvedValueOnce({ id: 3, name: 'Test Game', releaseDate: '2025-03-03' });
       const { sessionId } = await startPlayerGuessesGame();
 
       callGeminiMock.mockResolvedValueOnce({ type: 'answer', content: 'Yes' });
