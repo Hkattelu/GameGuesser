@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ConversationHistory from '../ConversationHistory';
-import { GameMode, ChatMessage } from '../../types';
+import { ChatMessage } from '../../types';
 
 window.HTMLElement.prototype.scrollIntoView = jest.fn()
 
