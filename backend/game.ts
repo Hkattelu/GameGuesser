@@ -4,7 +4,7 @@ import type { ChatMessage } from './gemini.ts';
 import { getDailyGame } from './dailyGameStore.ts';
 
 // In-memory store for game sessions – keyed by UUID
-interface PlayerGuessSession {
+export interface PlayerGuessSession {
   secretGame: string;
   chatHistory: ChatMessage[];
   questionCount: number;

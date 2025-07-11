@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
-import { API_URL } from './constants';
+import { getApiUrl } from './env_utils';
 import { ChatMessage, GameMode } from './types';
 
 export interface PlayerGuessesGameProps {
@@ -60,7 +60,7 @@ function PlayerGuessesGame({
     setGameMessage("I'm thinking of a game. Please wait...");
 
     try {
-      const response = await fetch(`${API_URL}/player-guesses/start`, {
+      const response = await fetch(`${getApiUrl()}/player-guesses/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,6 @@ function PlayerGuessesGame({
       setGameMessage("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
     } catch (error: unknown) {
       const err = error as Error;
-      console.error('Error starting player guesses game:', err);
       setGameMessage(`Error starting the game: ${err.message}. Please try again.`);
     } finally {
       setLoading(false);
@@ -96,7 +95,7 @@ function PlayerGuessesGame({
     ]);
 
     try {
-      const response = await fetch(`${API_URL}/player-guesses/question`, {
+      const response = await fetch(`${getApiUrl()}/player-guesses/question`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +142,6 @@ function PlayerGuessesGame({
       }
     } catch (error: unknown) {
       const err = error as Error;
-      console.error('Error handling player question:', err);
       setGameMessage(`Error processing your question: ${err.message}. Please try again.`);
     } finally {
       setPlayerGuessInput('');

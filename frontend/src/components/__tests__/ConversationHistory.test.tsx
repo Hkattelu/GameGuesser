@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import ConversationHistory from '../ConversationHistory';
 import { ChatMessage } from '../../types';
 
-window.HTMLElement.prototype.scrollIntoView = jest.fn()
+window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
 describe('ConversationHistory', () => {
   const mockChatHistory: ChatMessage[] = [

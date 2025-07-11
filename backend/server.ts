@@ -49,12 +49,12 @@ app.options('*', (_, res) => res.sendStatus(200));
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
  */
-app.post('/auth/register', (req: Request, res: Response) => {
+app.post('/auth/register', async (req: Request, res: Response) => {
   const { username, password } = req.body as { username: string; password: string };
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
   try {
-    const token = register(username, password);
+    const token = await register(username, password);
     return res.json({ token });
   } catch (err) {
     return res.status(400).json({ error: (err as Error).message });
@@ -66,12 +66,12 @@ app.post('/auth/register', (req: Request, res: Response) => {
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
  */
-app.post('/auth/login', (req: Request, res: Response) => {
+app.post('/auth/login', async (req: Request, res: Response) => {
   const { username, password } = req.body as { username: string; password: string };
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
   try {
-    const token = login(username, password);
+    const token = await login(username, password);
     return res.json({ token });
   } catch (err) {
     return res.status(401).json({ error: (err as Error).message });
@@ -83,19 +83,16 @@ app.post('/auth/login', (req: Request, res: Response) => {
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
  */
-// Fetch full conversation history for the logged-in user.
-app.get('/conversations/history', authenticateToken, (req: Request, res: Response) => {
+app.get('/conversations/history', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const rows = getConversationHistory(req.user!.id);
+    const rows = await getConversationHistory(req.user!.id);
     return res.json(rows);
   } catch (err) {
-     
     console.error('Error fetching history', err);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// Player-guesses endpoints
 /**
  * Starts a new game of 20 Questions where the player thinks of an object and
  * the AI tries to guess what it is.
@@ -105,7 +102,12 @@ app.get('/conversations/history', authenticateToken, (req: Request, res: Respons
 app.post('/player-guesses/start', authenticateToken, async (req: Request, res: Response) => {
   try {
     const result = await startPlayerGuessesGame();
-    saveConversationMessage(req.user!.id, result.sessionId, 'system', 'Player-guesses game started');
+    await saveConversationMessage(
+      req.user!.id,
+      result.sessionId,
+      'system',
+      'Player-guesses game started',
+    );
     res.json(result);
   } catch (error: unknown) {
     const err = error as Error;
@@ -124,12 +126,17 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
   const { sessionId, userInput } = req.body as { sessionId: string; userInput: string };
   try {
     // Persist user question
-    saveConversationMessage(req.user!.id, sessionId, 'user', userInput);
+    await saveConversationMessage(req.user!.id, sessionId, 'user', userInput);
 
     const result = await handlePlayerQuestion(sessionId, userInput);
 
     // Persist model response as raw JSON string for readability
-    saveConversationMessage(req.user!.id, sessionId, 'model', JSON.stringify(result));
+    await saveConversationMessage(
+      req.user!.id,
+      sessionId,
+      'model',
+      JSON.stringify(result),
+    );
 
     res.json(result);
   } catch (error: unknown) {
@@ -143,7 +150,6 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
   }
 });
 
-// AI-guesses endpoints
 /**
  * Starts a new game of 20 Questions where the AI thinks of an object and the
  * player tries to guess what it is.
@@ -155,8 +161,18 @@ app.post('/ai-guesses/start', authenticateToken, async (req: Request, res: Respo
     const result = await startAIGuessesGame();
 
     // Persist system message and first AI question
-    saveConversationMessage(req.user!.id, result.sessionId, 'system', 'AI-guesses game started');
-    saveConversationMessage(req.user!.id, result.sessionId, 'model', JSON.stringify(result.aiResponse));
+    await saveConversationMessage(
+      req.user!.id,
+      result.sessionId,
+      'system',
+      'AI-guesses game started',
+    );
+    await saveConversationMessage(
+      req.user!.id,
+      result.sessionId,
+      'model',
+      JSON.stringify(result.aiResponse),
+    );
 
     res.json(result);
   } catch (error: unknown) {
@@ -176,12 +192,17 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
   const { sessionId, userAnswer } = req.body as { sessionId: string; userAnswer: string };
   try {
     // Persist user answer
-    saveConversationMessage(req.user!.id, sessionId, 'user', userAnswer);
+    await saveConversationMessage(req.user!.id, sessionId, 'user', userAnswer);
 
     const result = await handleAIAnswer(sessionId, userAnswer);
 
     // Persist model response
-    saveConversationMessage(req.user!.id, sessionId, 'model', JSON.stringify(result.aiResponse));
+    await saveConversationMessage(
+      req.user!.id,
+      sessionId,
+      'model',
+      JSON.stringify(result.aiResponse),
+    );
 
     res.json(result);
   } catch (error: unknown) {
@@ -196,7 +217,6 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
 });
 
 app.listen(PORT, () =>
-   
   console.log(`Backend server listening on port ${PORT}`),
 );
 

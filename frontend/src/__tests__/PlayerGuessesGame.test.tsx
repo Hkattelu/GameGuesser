@@ -1,18 +1,22 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PlayerGuessesGame from '../../PlayerGuessesGame';
-import { GameMode } from '../../types';
+import PlayerGuessesGame from '../PlayerGuessesGame';
+import { GameMode } from '../types';
 
 // Mock child components
-jest.mock('../../components/SuggestionChips', () => (props: any) => (
-  <div data-testid="suggestion-chips">
-    <button onClick={() => props.onSelectSuggestion('Is it a strategy game?')}>Suggest</button>
-  </div>
-));
-jest.mock('../../components/ConversationHistory', () => () => <div data-testid="conversation-history" />);
+vi.mock('../components/SuggestionChips', () => ({
+    default: (props: any) => (
+        <div data-testid="suggestion-chips">
+            <button onClick={() => props.onSelectSuggestion('Is it a strategy game?')}>Suggest</button>
+        </div>
+    ),
+}));
+vi.mock('../components/ConversationHistory', () => ({
+    default: () => <div data-testid="conversation-history" />,
+}));
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 const mockProps = {
   gameMode: 'player-guesses' as GameMode,
@@ -24,21 +28,21 @@ const mockProps = {
   chatHistory: [],
   highlightedResponse: null,
   sessionId: null,
-  setPreGame: jest.fn(),
-  setStarted: jest.fn(),
-  setQuestionCount: jest.fn(),
-  setChatHistory: jest.fn(),
-  setLoading: jest.fn(),
-  setHighlightedResponse: jest.fn(),
-  setSessionId: jest.fn(),
-  setGameMessage: jest.fn(),
-  setVictory: jest.fn(),
+  setPreGame: vi.fn(),
+  setStarted: vi.fn(),
+  setQuestionCount: vi.fn(),
+  setChatHistory: vi.fn(),
+  setLoading: vi.fn(),
+  setHighlightedResponse: vi.fn(),
+  setSessionId: vi.fn(),
+  setGameMessage: vi.fn(),
+  setVictory: vi.fn(),
 };
 
 describe('PlayerGuessesGame', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockClear();
+    vi.clearAllMocks();
+    (global.fetch as vi.Mock).mockClear();
   });
 
   it('renders the start button initially', () => {
@@ -47,7 +51,7 @@ describe('PlayerGuessesGame', () => {
   });
 
   it('calls startGamePlayerGuesses and updates state on start button click', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ sessionId: 'test-session-id' }),
     });
@@ -67,7 +71,7 @@ describe('PlayerGuessesGame', () => {
   });
 
   it('handles player question and updates the conversation', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         type: 'answer',
@@ -93,7 +97,7 @@ describe('PlayerGuessesGame', () => {
   });
 
   it('handles correct player guess and ends the game', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         type: 'guessResult',
@@ -115,7 +119,7 @@ describe('PlayerGuessesGame', () => {
   });
 
   it('handles startGamePlayerGuesses failure', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ error: 'Test error' }),
     });
@@ -129,7 +133,7 @@ describe('PlayerGuessesGame', () => {
   });
 
   it('handles handlePlayerQuestion failure', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ error: 'Test error' }),
     });
@@ -146,7 +150,7 @@ describe('PlayerGuessesGame', () => {
   });
 
   it('handles incorrect player guess', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         type: 'guessResult',
@@ -166,7 +170,7 @@ describe('PlayerGuessesGame', () => {
   });
 
   it('ends the game if question count exceeds max questions', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         type: 'answer',

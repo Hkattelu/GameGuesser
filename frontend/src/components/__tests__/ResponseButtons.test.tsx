@@ -1,13 +1,9 @@
-/**
-* @jest-environment jsdom
-*/
-
 import { render, fireEvent, screen } from '@testing-library/react';
 import ResponseButtons from '../ResponseButtons';
 
 describe('ResponseButtons component', () => {
   it('calls onAnswer callback with correct value when buttons are clicked', () => {
-    const onAnswer = jest.fn();
+    const onAnswer = vi.fn();
     render(<ResponseButtons onAnswer={onAnswer} highlightedResponse={null} />);
 
     fireEvent.click(screen.getByText('Yes'));

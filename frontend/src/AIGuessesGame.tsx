@@ -1,8 +1,8 @@
 import ResponseButtons from './components/ResponseButtons';
 import LoadingIndicator from './components/LoadingIndicator';
 import ConversationHistory from './components/ConversationHistory';
-import { API_URL } from './constants';
 import { ChatMessage, GameMode } from './types';
+import { getApiUrl } from './env_utils';
 
 export interface AIGuessesGameProps {
   gameMode: GameMode;
@@ -59,7 +59,7 @@ function AIGuessesGame({
     setHighlightedResponse(null);
 
     try {
-      const response = await fetch(`${API_URL}/ai-guesses/start`, {
+      const response = await fetch(`${getApiUrl()}/ai-guesses/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +89,6 @@ function AIGuessesGame({
 
     } catch (error: unknown) {
       const err = error as Error;
-      console.error('Error starting AI guesses game:', err);
       setAiQuestion('Error: Could not start AI game. Check backend and network.');
       setGameMessage(`Please try again. Error: ${err.message}`);
     } finally {
@@ -109,7 +108,7 @@ function AIGuessesGame({
     ]);
 
     try {
-      const response = await fetch(`${API_URL}/ai-guesses/answer`, {
+      const response = await fetch(`${getApiUrl()}/ai-guesses/answer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,7 +146,6 @@ function AIGuessesGame({
       }
     } catch (error: unknown) {
       const err = error as Error;
-      console.error('Error handling user answer:', err);
       setAiQuestion('Bot Boy encountered an error. Please try again.');
       setGameMessage(`Error communicating with Bot Boy: ${err.message}`);
     } finally {

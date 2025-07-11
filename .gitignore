@@ -5,6 +5,7 @@ frontend/coverage
 frontend/coverage/*
 frontend/dist
 frontend/dist/*
+frontend/pglite-debug.log
 
 # Backend prod data
 backend/Dockerfile

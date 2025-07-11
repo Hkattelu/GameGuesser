@@ -2,25 +2,19 @@ import { jest } from '@jest/globals';
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
-import type { PlayerGuessSession } from './game.ts';
+import type { PlayerGuessSession } from '../game.ts';
+import { callGeminiAPI } from '../gemini.ts';
 
 // ---------------------------------------------------------------------------
-// Test setup – isolate the daily games file so test runs are deterministic.
-// ---------------------------------------------------------------------------
+// Test setup – Mocks and environment variables
+// --------------------------------------
+jest.mock('../gemini.ts');
 
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'daily-game-tests-'));
 const dataFilePath = path.join(tmpDir, 'daily-games.json');
 process.env.DAILY_GAME_FILE_PATH = dataFilePath;
 
-// Mock Gemini so we have full control over responses.
-jest.unstable_mockModule('./gemini.ts', () => ({
-  callGeminiAPI: jest.fn(),
-}));
-
-// Dynamic imports AFTER the mock & env var so modules pick them up.
-const { callGeminiAPI } = await import('./gemini.ts');
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const callGeminiMock = callGeminiAPI as jest.Mock<any>;
+// Use `await import` to get the mocked versions of the modules.
 const {
   startPlayerGuessesGame,
   handlePlayerQuestion,
@@ -28,10 +22,12 @@ const {
   handleAIAnswer,
   getSession,
   clearSessions,
-} = await import('./game.ts');
+} = await import('../game.ts');
+const { _clearCache: clearDailyGameCache } = await import(
+  '../dailyGameStore.ts'
+);
 
-// Allow clearing the store cache between tests.
-const { _clearCache: clearDailyGameCache } = await import('./dailyGameStore.ts');
+const callGeminiMock = callGeminiAPI as jest.Mock;
 
 describe('Game Logic with Daily Game system', () => {
   beforeEach(() => {
@@ -49,7 +45,7 @@ describe('Game Logic with Daily Game system', () => {
 
   describe('Player Guesses Game', () => {
     it('starts a new session using the daily secret game', async () => {
-      callGeminiMock.mockResolvedValueOnce({ secretGame: 'Test Game' });
+      callGeminiMock.mockResolvedValue({ secretGame: 'Test Game' });
 
       const { sessionId } = await startPlayerGuessesGame();
 
@@ -62,7 +58,7 @@ describe('Game Logic with Daily Game system', () => {
     });
 
     it('reuses the same game for multiple sessions on the same day', async () => {
-      callGeminiMock.mockResolvedValueOnce({ secretGame: 'Shared Game' });
+      callGeminiMock.mockResolvedValue({ secretGame: 'Shared Game' });
 
       const { sessionId: s1 } = await startPlayerGuessesGame();
       const { sessionId: s2 } = await startPlayerGuessesGame();
@@ -80,7 +76,10 @@ describe('Game Logic with Daily Game system', () => {
       const { sessionId } = await startPlayerGuessesGame();
 
       callGeminiMock.mockResolvedValueOnce({ type: 'answer', content: 'Yes' });
-      const result = await handlePlayerQuestion(sessionId!, 'Is it a test game?');
+      const result = await handlePlayerQuestion(
+        sessionId!,
+        'Is it a test game?',
+      );
 
       expect(result.type).toBe('answer');
       expect(result.content).toBe('Yes');
@@ -95,9 +94,10 @@ describe('Game Logic with Daily Game system', () => {
   describe('AI Guesses Game (unchanged by daily system)', () => {
     it('starts a new AI game', async () => {
       const initialAIResponse = { type: 'question', content: 'Is it an RPG?' };
-      callGeminiMock.mockResolvedValueOnce(initialAIResponse);
+      callGeminiMock.mockResolvedValue(initialAIResponse);
 
-      const { sessionId, aiResponse, questionCount } = await startAIGuessesGame();
+      const { sessionId, aiResponse, questionCount } =
+        await startAIGuessesGame();
 
       expect(sessionId).toBeDefined();
       expect(aiResponse).toEqual(initialAIResponse);

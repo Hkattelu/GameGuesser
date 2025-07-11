@@ -1,21 +1,28 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import AIGuessesGame from '../../AIGuessesGame';
-import { GameMode } from '../../types';
+import AIGuessesGame from '../AIGuessesGame';
+import { GameMode } from '../types';
 
 // Mock child components
-jest.mock('../../components/ResponseButtons', () => (props: any) => (
-  <div data-testid="response-buttons">
-    <button onClick={() => props.onAnswer('Yes')}>Yes</button>
-    <button onClick={() => props.onAnswer('No')}>No</button>
-  </div>
-));
+vi.mock('../components/ResponseButtons', () => ({
+    default: (props: any) => (
+        <div data-testid="response-buttons">
+            <button onClick={() => props.onAnswer('Yes')}>Yes</button>
+            <button onClick={() => props.onAnswer('No')}>No</button>
+        </div>
+    ),
+}));
 
-jest.mock('../../components/LoadingIndicator', () => () => <div data-testid="loading-indicator" />);
-jest.mock('../../components/ConversationHistory', () => () => <div data-testid="conversation-history" />);
+vi.mock('../components/LoadingIndicator', () => ({
+    default: () => <div data-testid="loading-indicator" />,
+}));
+
+vi.mock('../components/ConversationHistory', () => ({
+    default: () => <div data-testid="conversation-history" />,
+}));
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 const mockProps = {
   gameMode: 'ai-guesses' as GameMode,
@@ -27,22 +34,22 @@ const mockProps = {
   chatHistory: [],
   highlightedResponse: null,
   sessionId: null,
-  setPreGame: jest.fn(),
-  setStarted: jest.fn(),
-  setQuestionCount: jest.fn(),
-  setChatHistory: jest.fn(),
-  setLoading: jest.fn(),
-  setHighlightedResponse: jest.fn(),
-  setSessionId: jest.fn(),
-  setGameMessage: jest.fn(),
-  setAiQuestion: jest.fn(),
-  setVictory: jest.fn(),
+  setPreGame: vi.fn(),
+  setStarted: vi.fn(),
+  setQuestionCount: vi.fn(),
+  setChatHistory: vi.fn(),
+  setLoading: vi.fn(),
+  setHighlightedResponse: vi.fn(),
+  setSessionId: vi.fn(),
+  setGameMessage: vi.fn(),
+  setAiQuestion: vi.fn(),
+  setVictory: vi.fn(),
 };
 
 describe('AIGuessesGame', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockClear();
+    vi.clearAllMocks();
+    (global.fetch as vi.Mock).mockClear();
   });
 
   it('renders the start button initially', () => {
@@ -51,7 +58,7 @@ describe('AIGuessesGame', () => {
   });
 
   it('calls startGameAI and updates state on start button click', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         sessionId: 'test-session-id',
@@ -75,7 +82,7 @@ describe('AIGuessesGame', () => {
   });
 
   it('handles user answer and updates state', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         aiResponse: { type: 'question', content: 'Is it a real-time strategy game?' },
@@ -97,7 +104,7 @@ describe('AIGuessesGame', () => {
   });
 
   it('handles AI guess and ends the game', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         aiResponse: { type: 'guess', content: 'Starcraft' },
@@ -117,7 +124,7 @@ describe('AIGuessesGame', () => {
   });
 
   it('handles startGameAI failure', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ error: 'Test error' }),
     });
@@ -132,7 +139,7 @@ describe('AIGuessesGame', () => {
   });
 
   it('handles handleAnswer failure', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ error: 'Test error' }),
     });
@@ -148,7 +155,7 @@ describe('AIGuessesGame', () => {
   });
 
   it('ends the game if question count exceeds max questions', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         aiResponse: { type: 'question', content: 'Is it a sports game?' },

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 
 import AuthPage from './AuthPage';
 import AIGuessesGame from './AIGuessesGame';
@@ -13,7 +14,32 @@ interface AuthPayload {
   username: string;
 }
 
-function App() {
+interface AppProps {
+  /**
+   * Which game mode should be pre-selected when this component mounts.
+   * If omitted, defaults to `'ai-guesses'`.
+   */
+  initialMode?: GameMode;
+  /**
+   * When `true`, the legacy tabbed UI is hidden. This is used when the user
+   * reaches the game via the new StartScreen flow.
+   */
+  hideTabs?: boolean;
+  /**
+   * Optional callback to navigate back to the home / start screen. When
+   * provided the component will call this callback on logout instead of
+   * using React-Router's `useNavigate` to push `/`. This lets the component
+   * be rendered in isolation (e.g. in unit tests or Storybook) without
+   * requiring a Router context.
+   */
+  onNavigateHome?: () => void;
+}
+
+function App({
+  initialMode = 'ai-guesses',
+  hideTabs = false,
+  onNavigateHome,
+}: AppProps) {
   // Authentication state
   const [token, setToken] = useState<string | null>(
     typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null,
@@ -23,7 +49,7 @@ function App() {
   );
 
   // Game-specific state
-  const [gameMode, setGameMode] = useState<GameMode>('ai-guesses');
+  const [gameMode, setGameMode] = useState<GameMode>(initialMode);
   const [preGame, setPreGame] = useState<boolean>(true);
   const [started, setStarted] = useState<boolean>(false);
   const [victory, setVictory] = useState<boolean | 'guess'>(false);
@@ -42,29 +68,42 @@ function App() {
     setUsername(newUsername);
   };
 
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     setToken(null);
     setUsername(null);
     resetGame();
+    // Navigate back to the StartScreen once the user logs out.
+    if (onNavigateHome) {
+      onNavigateHome();
+    } else {
+      navigate('/');
+    }
   };
 
   // ---------------- Utility helpers ----------------
   /**
    * Returns the mascot image URL appropriate for the current UI state.
    *
-   * Uses a static `import.meta.url` based construction so that Vite (and
-   * Parcel in dev‐server mode) can statically analyse the asset paths.
+   * Implementation detail:
+   * Jest’s CommonJS transform cannot parse the `import.meta.url` syntax that
+   * Vite normally uses to bundle assets. To keep unit tests green we fall back
+   * to plain relative paths under `/bot_boy/…`. In development/production the
+   * images live in the same location thanks to Vite’s `publicDir`, so this
+   * simpler path works in the browser too.
    */
   const getMascotImage = () => {
-    if (loading) return new URL('bot_boy/thinking.png', import.meta.url);
-    if (preGame) return new URL('bot_boy/guy.png', import.meta.url);
+    const base = '/bot_boy/';
+    if (loading) return `${base}thinking.png`;
+    if (preGame) return `${base}guy.png`;
     if (!started) {
-      if (victory) return new URL('bot_boy/sadge.png', import.meta.url);
-      return new URL('bot_boy/guy.png', import.meta.url);
+      if (victory) return `${base}sadge.png`;
+      return `${base}guy.png`;
     }
-    return new URL('bot_boy/guy.png', import.meta.url);
+    return `${base}guy.png`;
   };
 
   const clearHighlights = () => setHighlightedResponse(null);
@@ -134,22 +173,24 @@ function App() {
 
       <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Game Boy's Game Guesser</h1>
 
-      <div className="tabs flex justify-center border-b mb-4">
-        <button
-          id="tab-ai-guesses"
-          className={`tab-btn ${gameMode === 'ai-guesses' ? 'active' : ''}`}
-          onClick={() => setGameMode('ai-guesses')}
-        >
-          Game boy guesses
-        </button>
-        <button
-          id="tab-player-guesses"
-          className={`tab-btn ${gameMode === 'player-guesses' ? 'active' : ''}`}
-          onClick={() => setGameMode('player-guesses')}
-        >
-          You guess
-        </button>
-      </div>
+      {!hideTabs && (
+        <div className="tabs flex justify-center border-b mb-4">
+          <button
+            id="tab-ai-guesses"
+            className={`tab-btn ${gameMode === 'ai-guesses' ? 'active' : ''}`}
+            onClick={() => setGameMode('ai-guesses')}
+          >
+            Game boy guesses
+          </button>
+          <button
+            id="tab-player-guesses"
+            className={`tab-btn ${gameMode === 'player-guesses' ? 'active' : ''}`}
+            onClick={() => setGameMode('player-guesses')}
+          >
+            You guess
+          </button>
+        </div>
+      )}
 
       <MascotImage imageSrc={getMascotImage()} />
 
