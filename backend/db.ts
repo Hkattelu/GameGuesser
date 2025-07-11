@@ -1,103 +1,96 @@
-import Database from 'better-sqlite3';
+import { firestore } from './firestoreClient.ts';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 export interface UserRow {
-  id: number;
+  id: string; // Firestore document ID (string UUID)
   username: string;
   password_hash: string;
-  created_at: string;
+  created_at: string; // ISO string
 }
 
 export interface ConversationRow {
-  id: number;
-  user_id: number;
+  id: string; // Firestore document ID
+  user_id: string;
   session_id: string;
   role: 'user' | 'model' | 'system';
   content: string;
-  created_at: string;
+  created_at: string; // ISO string
 }
 
 // ---------------------------------------------------------------------------
-// Database initialisation
+// Collection references (kept as constants to avoid typos)
 // ---------------------------------------------------------------------------
 
-// The SQLite file lives in the project root so data persists across restarts.
-const db = new Database('./database.sqlite');
-
-// Enable foreign-key constraints (disabled by default in SQLite < 3.42)
-db.exec('PRAGMA foreign_keys = ON');
-
-// Idempotent schema setup – runs on every process start.
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id            INTEGER      PRIMARY KEY AUTOINCREMENT,
-    username      TEXT         NOT NULL UNIQUE,
-    password_hash TEXT         NOT NULL,
-    created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS conversations (
-    id          INTEGER      PRIMARY KEY AUTOINCREMENT,
-    user_id     INTEGER      NOT NULL,
-    session_id  TEXT         NOT NULL,
-    role        TEXT         NOT NULL,
-    content     TEXT         NOT NULL,
-    created_at  DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-`);
+const usersCol = firestore.collection('users');
+const conversationsCol = firestore.collection('conversations');
 
 // ---------------------------------------------------------------------------
-// Prepared statements – helps performance & guards against SQL injection.
+// Public helpers – users
 // ---------------------------------------------------------------------------
 
-const insertUserStmt = db.prepare<[
-  string,
-  string,
-]>('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-
-const findUserByUsernameStmt = db.prepare<[
-  string,
-], UserRow>('SELECT id, username, password_hash, created_at FROM users WHERE username = ?');
-
-const insertConversationStmt = db.prepare<[
-  number,
-  string,
-  string,
-  string,
-]>('INSERT INTO conversations (user_id, session_id, role, content) VALUES (?, ?, ?, ?)');
-
-const selectConversationByUserStmt = db.prepare<[
-  number,
-], ConversationRow>('SELECT session_id, role, content, created_at FROM conversations WHERE user_id = ? ORDER BY id ASC');
-
-// ---------------------------------------------------------------------------
-// Public helpers
-// ---------------------------------------------------------------------------
-
-export function createUser(username: string, passwordHash: string): number {
-  const info = insertUserStmt.run(username, passwordHash);
-  return Number(info.lastInsertRowid);
+/**
+* Creates a new user document and returns its generated id.
+*
+* @param username The account's username.
+* @param passwordHash BCrypt hash stored as-is.
+*/
+export async function createUser(username: string, passwordHash: string): Promise<string> {
+  const now = new Date().toISOString();
+  const docRef = await usersCol.add({
+    username,
+    password_hash: passwordHash,
+    created_at: now,
+  });
+  return docRef.id;
 }
 
-export function findUserByUsername(username: string): UserRow | undefined {
-  return findUserByUsernameStmt.get(username);
+/**
+* Finds a user by its unique username.
+*/
+export async function findUserByUsername(username: string): Promise<UserRow | undefined> {
+  const snap = await usersCol.where('username', '==', username).limit(1).get();
+  if (snap.empty) return undefined;
+  const doc = snap.docs[0];
+  const data = doc.data() as Omit<UserRow, 'id'>;
+  return { id: doc.id, ...data } satisfies UserRow;
 }
 
-export function saveConversationMessage(
-  userId: number,
+// ---------------------------------------------------------------------------
+// Public helpers – conversations
+// ---------------------------------------------------------------------------
+
+/**
+* Persists a single conversation message.
+*/
+export async function saveConversationMessage(
+  userId: string,
   sessionId: string,
   role: ConversationRow['role'],
   content: string,
-): void {
-  insertConversationStmt.run(userId, sessionId, role, content);
+): Promise<void> {
+  const now = new Date().toISOString();
+  await conversationsCol.add({
+    user_id: userId,
+    session_id: sessionId,
+    role,
+    content,
+    created_at: now,
+  });
 }
 
-export function getConversationHistory(userId: number): Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[] {
-  return selectConversationByUserStmt.all(userId);
-}
+export async function getConversationHistory(
+  userId: string,
+): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[]> {
+  const snap = await conversationsCol
+    .where('user_id', '==', userId)
+    .orderBy('created_at', 'asc')
+    .get();
 
-export default db;
+  return snap.docs.map((doc) => {
+    const { session_id, role, content, created_at } = doc.data() as ConversationRow;
+    return { session_id, role, content, created_at };
+  });
+}

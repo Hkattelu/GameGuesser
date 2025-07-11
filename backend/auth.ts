@@ -8,7 +8,7 @@ import { createUser, findUserByUsername } from './db.ts';
 // ---------------------------------------------------------------------------
 
 export interface JWTPayload {
-  id: number;
+  id: string; // Firestore document id
   username: string;
 }
 
@@ -36,19 +36,19 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-game-boy-key';
 // Helpers
 // ---------------------------------------------------------------------------
 
-export function register(username: string, password: string): string {
+export async function register(username: string, password: string): Promise<string> {
   if (!username || !password) throw new Error('Username and password required');
 
-  const existing = findUserByUsername(username);
+  const existing = await findUserByUsername(username);
   if (existing) throw new Error('Username already taken');
 
   const passwordHash = bcrypt.hashSync(password, 10);
-  const userId = createUser(username, passwordHash);
+  const userId = await createUser(username, passwordHash);
   return generateToken({ id: userId, username });
 }
 
-export function login(username: string, password: string): string {
-  const user = findUserByUsername(username);
+export async function login(username: string, password: string): Promise<string> {
+  const user = await findUserByUsername(username);
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
     throw new Error('Invalid credentials');
   }
