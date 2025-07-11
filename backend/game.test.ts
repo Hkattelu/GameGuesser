@@ -11,7 +11,7 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'daily-game-tests-'));
 const dataFilePath = path.join(tmpDir, 'daily-games.json');
 process.env.DAILY_GAME_FILE_PATH = dataFilePath;
 
-// Mock Gemini so we have full control over responses.
+// Tell Jest to use the manual mock for Gemini.
 jest.unstable_mockModule('./gemini.js', () => ({
   callGeminiAPI: jest.fn(),
 }));
