@@ -23,6 +23,8 @@ export interface PlayerGuessesGameProps {
   setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
   setGameMessage: React.Dispatch<React.SetStateAction<string>>;
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
+  // Optional JWT token for authenticated API requests
+  token?: string | null;
 }
 
 function PlayerGuessesGame({
@@ -48,6 +50,7 @@ function PlayerGuessesGame({
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
+  const [hintText, setHintText] = useState<string | null>(null);
 
   const startGamePlayerGuesses = async () => {
     setPreGame(false);
@@ -56,6 +59,7 @@ function PlayerGuessesGame({
     setChatHistory([]);
     setLoading(true);
     setHighlightedResponse(null);
+    setHintText(null);
     setSessionId(null);
     setGameMessage("I'm thinking of a game. Please wait...");
 
@@ -149,6 +153,35 @@ function PlayerGuessesGame({
     }
   };
 
+  // Fetch a textual hint for the current secret game
+  const handleGetHint = async () => {
+    if (!sessionId) return;
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${getApiUrl()}/player-guesses/${sessionId}/hint`, {
+        method: 'GET',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch hint.');
+      }
+
+      const data = (await response.json()) as { type: string; value: string | number };
+      const label = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+      setHintText(`${label}: ${data.value}`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      setGameMessage(`Error fetching hint: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const endGame = (finalMessage: string, victoryStatus: boolean) => {
     setStarted(false);
     setLoading(false);
@@ -195,6 +228,21 @@ function PlayerGuessesGame({
               }
             }}
           />
+          <div className="flex justify-start mt-4">
+            <button
+              id="btn-hint"
+              type="button"
+              className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-200"
+              onClick={handleGetHint}
+            >
+              Hint
+            </button>
+          </div>
+          {hintText && (
+            <div id="hint-text" className="mt-2 text-md text-gray-800 font-medium" data-testid="hint-text">
+              {hintText}
+            </div>
+          )}
         </div>
       )}
 
