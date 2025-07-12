@@ -60,23 +60,16 @@ describe('Game Logic with Daily Game system', () => {
 
   describe('Player Guesses Game', () => {
     it('starts a new session using the daily secret game', async () => {
-      // The secret game is now mocked by getDailyGameStoreMock
-      // callGeminiMock.mockResolvedValue({ secretGame: 'Test Game' }); // This line is no longer needed
-
       const { sessionId } = await startPlayerGuessesGame();
 
       expect(sessionId).toBeDefined();
       const session = getSession(sessionId!);
       expect((session as PlayerGuessSession).secretGame).toBe('Mocked Daily Game');
 
-      // Gemini should not have been called for the daily game in this test
       expect(callGeminiMock).not.toHaveBeenCalled();
     });
 
     it('reuses the same game for multiple sessions on the same day', async () => {
-      // The secret game is now mocked by getDailyGameStoreMock
-      // callGeminiMock.mockResolvedValue({ secretGame: 'Shared Game' }); // This line is no longer needed
-
       const { sessionId: s1 } = await startPlayerGuessesGame();
       const { sessionId: s2 } = await startPlayerGuessesGame();
 
@@ -85,7 +78,7 @@ describe('Game Logic with Daily Game system', () => {
 
       expect(game1).toBe('Mocked Daily Game');
       expect(game2).toBe('Mocked Daily Game');
-      expect(callGeminiMock).not.toHaveBeenCalled(); // Gemini should not have been called for the daily game in this test
+      expect(callGeminiMock).not.toHaveBeenCalled();
     });
 
     it('handles a player question', async () => {

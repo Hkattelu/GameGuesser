@@ -73,7 +73,6 @@ export async function getDailyGame(date: Date = new Date()): Promise<string> {
 
   // Prefer RAWG because it provides real, up-to-date titles.
   // Fallback to Gemini when RAWG is not configured or fails.
-  
   try {
     secretGame = await fetchGameFromRawg(recentGameNames);
   } catch {

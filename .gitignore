@@ -6,6 +6,8 @@ frontend/coverage/*
 frontend/dist
 frontend/dist/*
 frontend/pglite-debug.log
+frontend/.firebase
+frontend/.firebase/*
 
 # Backend prod data
 backend/Dockerfile

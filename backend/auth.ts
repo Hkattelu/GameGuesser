@@ -3,10 +3,6 @@ import bcrypt from 'bcryptjs';
 
 import { createUser, findUserByUsername } from './db.ts';
 
-// ---------------------------------------------------------------------------
-// Types & interfaces
-// ---------------------------------------------------------------------------
-
 export interface JWTPayload {
   id: string; // Firestore doc ID (username)
   username: string;
@@ -20,10 +16,6 @@ declare module 'express-serve-static-core' {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Config – ensure secret exists in production.
-// ---------------------------------------------------------------------------
-
 const isProd = process.env.NODE_ENV === 'production';
 
 if (!process.env.JWT_SECRET && isProd) {
@@ -31,10 +23,6 @@ if (!process.env.JWT_SECRET && isProd) {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-game-boy-key';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 export async function register(username: string, password: string): Promise<string> {
   if (!username || !password) throw new Error('Username and password required');
@@ -75,7 +63,6 @@ import type { Request, Response, NextFunction } from 'express';
  * @param {Response} res - The Express response object, used to send a response in case of error.
  * @param {NextFunction} next - The next middleware function in the stack.
  */
-
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
