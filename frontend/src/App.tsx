@@ -21,11 +21,6 @@ interface AppProps {
    */
   initialMode?: GameMode;
   /**
-   * When `true`, the legacy tabbed UI is hidden. This is used when the user
-   * reaches the game via the new StartScreen flow.
-   */
-  hideTabs?: boolean;
-  /**
    * Optional callback to navigate back to the home / start screen. When
    * provided the component will call this callback on logout instead of
    * using React-Router's `useNavigate` to push `/`. This lets the component
@@ -37,7 +32,6 @@ interface AppProps {
 
 function App({
   initialMode = 'ai-guesses',
-  hideTabs = false,
   onNavigateHome,
 }: AppProps) {
   // Authentication state
@@ -160,27 +154,7 @@ function App({
         </button>
       </div>
 
-      <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Game Boy's Game Guesser</h1>
-
-      {!hideTabs && (
-        <div className="tabs flex justify-center border-b mb-4">
-          <button
-            id="tab-ai-guesses"
-            className={`tab-btn cursor-pointer ${gameMode === 'ai-guesses' ? 'active' : ''}`}
-            onClick={() => setGameMode('ai-guesses')}
-          >
-            Game boy guesses
-          </button>
-          <button
-            id="tab-player-guesses"
-            className={`tab-btn cursor-pointer ${gameMode === 'player-guesses' ? 'active' : ''}`}
-            onClick={() => setGameMode('player-guesses')}
-          >
-            You guess
-          </button>
-        </div>
-      )}
-
+      <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Quiz Bot 9000's Arcade!</h1>
       <MascotImage imageSrc={getMascotImage()} />
 
       <p id="game-message" className="text-lg text-gray-600 mb-4">
