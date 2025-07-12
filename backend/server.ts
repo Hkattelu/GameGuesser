@@ -5,11 +5,13 @@ import {
   handlePlayerQuestion,
   startAIGuessesGame,
   handleAIAnswer,
+  getSession,
 } from './game.ts';
 
 // Auth & persistence helpers
 import { authenticateToken, register, login } from './auth.ts';
 import { saveConversationMessage, getConversationHistory } from './db.ts';
+import { fetchGameHint } from './hints.ts';
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
@@ -216,8 +218,38 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
   }
 });
 
-app.listen(PORT, () =>
+/**
+* Retrieves a textual hint (developer, publisher, release year) for the secret
+* game associated with a given Player-Guesses session.
+*
+* Route params:
+*   :sessionId – The active Player-Guesses session ID. Using the session keeps
+*   the actual game title hidden from the client while allowing the backend
+*   to resolve it.
+*/
+app.get('/games/:sessionId/hint', authenticateToken, async (req: Request, res: Response) => {
+  const { sessionId } = req.params as { sessionId: string };
+
+  if (!sessionId) return res.status(400).json({ error: 'sessionId is required' });
+
+  const session = getSession(sessionId);
+  if (!session || !(session as any).secretGame) {
+    return res.status(404).json({ error: 'Game session not found' });
+  }
+
+  try {
+    const secretGame = (session as { secretGame: string }).secretGame;
+    const hint = await fetchGameHint(secretGame);
+    return res.json(hint);
+  } catch (err) {
+    console.error('Error fetching hint:', err);
+    return res.status(500).json({ error: (err as Error).message ?? 'Failed to fetch hint' });
+  }
+});
+
+const server = app.listen(PORT, () =>
   console.log(`Backend server listening on port ${PORT}`),
 );
 
+export { server };
 export default app;

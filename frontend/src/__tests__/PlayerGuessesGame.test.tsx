@@ -190,4 +190,41 @@ describe('PlayerGuessesGame', () => {
       expect(mockProps.setGameMessage).toHaveBeenCalledWith("You're out of questions! The game was The game was Starcraft.");
     });
   });
+
+  it('fetches and displays a hint when HintButton is clicked', async () => {
+    // Mock the hint endpoint response
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          developer: 'Blizzard Entertainment',
+          publisher: 'Blizzard',
+          releaseYear: 1998,
+        }),
+    });
+
+    const props = {
+      ...mockProps,
+      started: true,
+      sessionId: 'test-session-id',
+    };
+
+    render(<PlayerGuessesGame {...props} />);
+
+    // The Hint button should be present
+    const hintButton = screen.getByText('Hint');
+    fireEvent.click(hintButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('hint-text')).toHaveTextContent(
+        /Blizzard Entertainment/,
+      );
+    });
+
+    // Ensure fetch was called with the correct URL
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining(`/games/${props.sessionId}/hint`),
+      expect.any(Object),
+    );
+  });
 });

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
+import HintButton from './components/HintButton';
 import { getApiUrl } from './env_utils';
 import { ChatMessage, GameMode } from './types';
 
@@ -48,6 +49,7 @@ function PlayerGuessesGame({
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
+  const [hintText, setHintText] = useState<string | null>(null);
 
   const startGamePlayerGuesses = async () => {
     setPreGame(false);
@@ -200,6 +202,23 @@ function PlayerGuessesGame({
 
       {started && !loading && (
         <SuggestionChips onSelectSuggestion={handleSelectSuggestion} />
+      )}
+
+      {started && !loading && (
+        <div className="flex justify-center mb-6" data-testid="hint-button-container">
+          <HintButton
+            sessionId={sessionId}
+            token={token}
+            onHintLoaded={(txt) => setHintText(txt)}
+            disabled={!sessionId || !!hintText || loading}
+          />
+        </div>
+      )}
+
+      {started && hintText && (
+        <div id="hint-text" className="text-md font-medium text-yellow-800 bg-yellow-100 p-4 rounded-lg my-4" data-testid="hint-text">
+          {hintText}
+        </div>
       )}
 
       {started && !loading && modelResponseText && (
