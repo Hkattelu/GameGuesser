@@ -64,7 +64,7 @@ function HintButton({ sessionId, token, disabled, onHintLoaded }: HintButtonProp
       onClick={handleClick}
       disabled={disabled || loading}
     >
-      {loading ? 'Loading…' : 'Hint'}
+      {loading ? 'Loading...' : 'Hint'}
     </button>
   );
 }
