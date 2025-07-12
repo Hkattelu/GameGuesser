@@ -1,47 +1,32 @@
 import { jest } from '@jest/globals';
-import os from 'os';
-import path from 'path';
-import fs from 'fs';
-import type { PlayerGuessSession } from '../game.ts';
-import { callGeminiAPI } from '../gemini.ts';
-
-// ---------------------------------------------------------------------------
-// Test setup – Mocks and environment variables
-// --------------------------------------
-jest.mock('../gemini.ts');
-
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'daily-game-tests-'));
-const dataFilePath = path.join(tmpDir, 'daily-games.json');
-process.env.DAILY_GAME_FILE_PATH = dataFilePath;
-
-// Use `await import` to get the mocked versions of the modules.
-const {
+import {
   startPlayerGuessesGame,
   handlePlayerQuestion,
   startAIGuessesGame,
   handleAIAnswer,
   getSession,
-  clearSessions,
-} = await import('../game.ts');
-const { _clearCache: clearDailyGameCache } = await import(
-  '../dailyGameStore.ts'
-);
+  clearSessions
+} from '../game.ts';
 
-const callGeminiMock = callGeminiAPI as jest.Mock;
+const callGeminiMock = jest.fn();
+const fetchRandomGameMock = jest.fn();
+
+jest.mock('../rawg.ts', () => ({
+  __esModule: true,
+  fetchRandomGame: fetchRandomGameMock,
+}));
+
+// Do the same for the gemini module.
+jest.mock('../gemini.ts', () => ({
+  __esModule: true,
+  callGeminiAPI: callGeminiMock,
+}));
 
 describe('Game Logic with Daily Game system', () => {
   beforeEach(() => {
     clearSessions();
-    clearDailyGameCache();
     jest.clearAllMocks();
-    if (fs.existsSync(dataFilePath)) {
-      fs.unlinkSync(dataFilePath);
-    }
   });
-
-  // -----------------------------------------------------------------------
-  // Player-Guesses mode (Wordle-style daily secret game)
-  // -----------------------------------------------------------------------
 
   describe('Player Guesses Game', () => {
     it('starts a new session using the daily secret game', async () => {
@@ -87,11 +72,7 @@ describe('Game Logic with Daily Game system', () => {
     });
   });
 
-  // -----------------------------------------------------------------------
-  // AI-Guesses mode (unchanged by the daily system)
-  // -----------------------------------------------------------------------
-
-  describe('AI Guesses Game (unchanged by daily system)', () => {
+  describe('AI Guesses Game', () => {
     it('starts a new AI game', async () => {
       const initialAIResponse = { type: 'question', content: 'Is it an RPG?' };
       callGeminiMock.mockResolvedValue(initialAIResponse);

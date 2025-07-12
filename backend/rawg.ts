@@ -21,26 +21,23 @@
 // Types & helpers – kept minimal on purpose to avoid pulling in extra deps.
 // ------------------------------------------------------------------------------------------------
 
+interface Game {
+  id: number;
+  name: string;
+  slug: string;
+};
+
 /**
 * Partial shape of RAWG’s `/games` list response we care about.
 * {@link https://api.rawg.io/docs#operation/games_list}
 */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-/**
-* @typedef {Object} RawgGamesListResponse
-* @property {{id: number, name: string, slug: string, released?: string|null}[]} results
-*/
+interface RawgGamesListResponse {
+  results: Game[];
+};
 
-/**
-* Picks a random integer between `min` (inclusive) and `max` (inclusive).
-*/
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
-// ------------------------------------------------------------------------------------------------
-// Public API
-// ------------------------------------------------------------------------------------------------
 
 /**
 * Fetches the name of a random game from RAWG.
@@ -85,7 +82,7 @@ export async function fetchRandomGame() {
 
   /** @type {RawgGamesListResponse} */
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const data = await res.json();
+  const data = await res.json() as RawgGamesListResponse;
   if (!data?.results?.length) {
     throw new Error('RAWG API response contained no games.');
   }

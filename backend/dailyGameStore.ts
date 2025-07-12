@@ -1,89 +1,68 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-// ------------------------------------------------------------------------------------------------
-// Types
-// ------------------------------------------------------------------------------------------------
+import { callGeminiAPI } from './gemini.ts';
+import { fetchRandomGame } from './rawg.ts';
 
 /**
-* Mapping of UTC date string (YYYY-MM-DD) ➜ secret game title returned by Gemini.
+* Mapping of UTC date string (YYYY-MM-DD) ➜ Game of the day
 */
 type DailyGameMap = Record<string, string>;
-
-// ------------------------------------------------------------------------------------------------
-// Private constants & helpers
-// ------------------------------------------------------------------------------------------------
 
 // Resolve directory of this module in an ESM-compatible way.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/**
-* Location on disk where the daily map is stored.
-* Can be overridden via the `DAILY_GAME_FILE_PATH` environment variable so callers can
-* mount a persistent volume or point to a temporary directory during tests.
-*/
-const DATA_FILE: string = process.env.DAILY_GAME_FILE_PATH
+const DAILY_GAMES_FILENAME: string = process.env.DAILY_GAME_FILE_PATH
   ? path.resolve(process.env.DAILY_GAME_FILE_PATH)
   : path.join(__dirname, 'daily-games.json');
 
+
+let dailyGameMap: DailyGameMap | null = null;
+
 /**
-* Lazily initialised in-memory cache. This avoids reading the JSON file on every request.
-* Cleared in tests via `_clearCache()`.
-*/
-let cache: DailyGameMap | null = null;
+ * Attempts to load the daily games map from the server-configured filename.
+ * @returns {Promise<DailyGameMap>} a daily games map
+ */
+async function loadDailyGamesMap(): Promise<DailyGameMap> {
+  if (dailyGameMap) return dailyGameMap;
 
-// ------------------------------------------------------------------------------------------------
-// Persistence helpers
-// ------------------------------------------------------------------------------------------------
-
-async function loadData(): Promise<DailyGameMap> {
-  if (cache) return cache;
-
+  console.error(DAILY_GAMES_FILENAME);
   try {
-    const raw = await fs.readFile(DATA_FILE, 'utf-8');
-    cache = JSON.parse(raw) as DailyGameMap;
-    return cache;
+    const raw = await fs.readFile(DAILY_GAMES_FILENAME, 'utf-8');
+    dailyGameMap = JSON.parse(raw) as DailyGameMap;
+    return dailyGameMap;
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-      cache = {};
-      return cache;
+      dailyGameMap = {};
+      return dailyGameMap;
     }
     throw err;
   }
 }
 
-async function saveData(data: DailyGameMap): Promise<void> {
-  cache = data;
-  // NOTE: For simplicity we write directly. In production you may want an atomic write.
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+/**
+ * Write the specificied map to the server-configured filename
+ * @param data the daily game map to write
+ */
+async function saveDailyGamesMap(data: DailyGameMap): Promise<void> {
+  dailyGameMap = data;
+  await fs.writeFile(DAILY_GAMES_FILENAME, JSON.stringify(data, null, 2), 'utf-8');
 }
 
+/** Returns YYYY-MM-DD for the provided date in UTC. */
 function toUtcDateString(date: Date): string {
-  // Returns YYYY-MM-DD for the provided date in UTC.
   return date.toISOString().split('T')[0];
 }
 
-// ------------------------------------------------------------------------------------------------
-// Gemini integration (lazy-loaded to avoid cycles in tests)
-// ------------------------------------------------------------------------------------------------
-
-let _callGeminiAPI: (<T = unknown>(prompt: string) => Promise<T>) | null = null;
-
-// RAWG lazy import to avoid cost when disabled or during tests.
-let _fetchRandomGame: (() => Promise<string>) | null = null;
-
 async function callGeminiOnce(): Promise<string> {
-  if (!_callGeminiAPI) {
-    const mod = await import('./gemini.ts');
-    _callGeminiAPI = mod.callGeminiAPI;
-  }
-
   const prompt =
-    'Pick a random, well-known video game title. Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.';
+    `Pick a random, well-known video game title.
+     It must not be from one of these: [${Object.values(dailyGameMap).join(',')}]
+     Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.
+    `;
+  const jsonResponse = await callGeminiAPI<{ secretGame: string }>(prompt);
 
-  const jsonResponse = await _callGeminiAPI<{ secretGame: string }>(prompt);
   const secretGame = jsonResponse?.secretGame;
   if (!secretGame) {
     throw new Error('Gemini did not return a secretGame field.');
@@ -91,33 +70,29 @@ async function callGeminiOnce(): Promise<string> {
   return secretGame;
 }
 
-// ------------------------------------------------------------------------------------------------
-// RAWG integration (lazy-loaded & optional)
-// ------------------------------------------------------------------------------------------------
-
 /**
-* Attempts to retrieve a random game title from the RAWG API.
-*
-* The function short-circuits (throws) when `RAWG_API_KEY` is absent so the
-* caller can fall back immediately without incurring a dynamic import or HTTP
-* overhead in environments that don’t configure RAWG (e.g. CI).
-*/
-async function callRawgOnce(): Promise<string> {
-  if (!process.env.RAWG_API_KEY) {
-    throw new Error('RAWG_API_KEY not configured');
+ * Retrieve a random game title from the RAWG API.
+ */
+async function fetchGameFromRawg(): Promise<string> {
+  let game: string = '';
+  let counter = 0;
+
+  // Fetch random games from the API until we get one we haven't seen.
+  // Give up if it takes more than 5 tries
+  while (counter < 5 && game === '') {
+    const tempGame = await fetchRandomGame();
+    if (!Object.values(dailyGameMap).includes(tempGame)) {
+      game = tempGame
+      break;
+    }
+    counter++;
   }
 
-  if (!_fetchRandomGame) {
-    const mod = await import('./rawg.js');
-    _fetchRandomGame = mod.fetchRandomGame;
+  if (!game) {
+    throw new Error('Could not find a game from the RAWG API.');
   }
-
-  return _fetchRandomGame();
+  return game;
 }
-
-// ------------------------------------------------------------------------------------------------
-// Public API
-// ------------------------------------------------------------------------------------------------
 
 /**
 * Retrieves the secret game for the provided date (UTC).
@@ -128,32 +103,33 @@ async function callRawgOnce(): Promise<string> {
 */
 export async function getDailyGame(date: Date = new Date()): Promise<string> {
   const dateKey = toUtcDateString(date);
-  const data = await loadData();
+  const dailyGamesMap = await loadDailyGamesMap();
 
-  if (data[dateKey]) {
-    return data[dateKey];
+  if (dailyGamesMap[dateKey]) {
+    return dailyGamesMap[dateKey];
   }
 
   let secretGame: string;
 
+  // Prefer RAWG because it provides real, up-to-date titles.
+  // Fallback to Gemini when RAWG is not configured or fails.
   try {
-    // Prefer RAWG because it provides real, up-to-date titles.
-    secretGame = await callRawgOnce();
+    secretGame = await fetchGameFromRawg();
   } catch {
-    // Fallback to Gemini when RAWG is not configured or fails.
     secretGame = await callGeminiOnce();
   }
-  data[dateKey] = secretGame;
-  await saveData(data);
+  dailyGamesMap[dateKey] = secretGame;
+  await saveDailyGamesMap(dailyGamesMap);
   return secretGame;
 }
 
-/**
-* Clears the in-memory cache (used in unit tests).
-*/
-export function _clearCache(): void {
-  cache = null;
+/** Clears the in-memory cache (used in unit tests). */
+function clearCache(): void {
+  dailyGameMap = null;
 }
+export const TEST_ONLY = {
+  clearCache
+};
 
-// Exported solely for inspection in tests / debugging.
-export const _DATA_FILE = DATA_FILE;
+/** Exported solely for inspection in tests / debugging. */
+export const _DAILY_GAMES_FILENAME = DAILY_GAMES_FILENAME;
