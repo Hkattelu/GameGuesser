@@ -37,6 +37,7 @@ const mockProps = {
   setSessionId: vi.fn(),
   setGameMessage: vi.fn(),
   setVictory: vi.fn(),
+  token: null,
 };
 
 describe('PlayerGuessesGame', () => {
@@ -188,6 +189,22 @@ describe('PlayerGuessesGame', () => {
     await waitFor(() => {
       expect(mockProps.setVictory).toHaveBeenCalledWith(false);
       expect(mockProps.setGameMessage).toHaveBeenCalledWith("You're out of questions! The game was The game was Starcraft.");
+    });
+  });
+
+  it('fetches and displays a hint when the Hint button is clicked', async () => {
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ type: 'developer', value: 'Nintendo' }),
+    });
+
+    const props = { ...mockProps, started: true, sessionId: 'test-session-id' };
+    render(<PlayerGuessesGame {...props} />);
+
+    fireEvent.click(screen.getByText('Hint'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('hint-text')).toHaveTextContent('Developer: Nintendo');
     });
   });
 });

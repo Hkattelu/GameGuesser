@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { callGeminiAPI } from './gemini.ts';
 import type { ChatMessage } from './gemini.ts';
 import { getDailyGame } from './dailyGameStore.ts';
+import { fetchGameMetadata, GameMetadata } from './rawgDetails.ts';
 
 // In-memory store for game sessions – keyed by UUID
 export interface PlayerGuessSession {
@@ -198,6 +199,48 @@ function clearSessions() {
   gameSessions.clear();
 }
 
+/**
+* Returns a single hint for the secret game belonging to the provided session.
+*
+* The hint is randomly selected from the available metadata fields (developer,
+* publisher, release year). If no metadata is available, the function throws –
+* callers should translate this into a 404/500 as appropriate.
+*/
+async function getPlayerGuessHint(sessionId: string): Promise<{ type: string; value: string | number }> {
+  const session = gameSessions.get(sessionId);
+  if (!session || !('secretGame' in session)) {
+    throw new Error('Session not found.');
+  }
+
+  // Fetch metadata (with naive in-memory cache to avoid hitting RAWG for
+  // repeated hints in the same process lifetime).
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  const cache = (getPlayerGuessHint as any).cache as Map<string, GameMetadata> | undefined;
+  const metadataCache = cache ?? new Map<string, GameMetadata>();
+  if (!(getPlayerGuessHint as any).cache) {
+    (getPlayerGuessHint as any).cache = metadataCache;
+  }
+
+  let metadata = metadataCache.get(session.secretGame);
+  if (!metadata) {
+    metadata = await fetchGameMetadata(session.secretGame);
+    metadataCache.set(session.secretGame, metadata);
+  }
+
+  const candidates: Array<{ type: string; value: string | number }> = [];
+  if (metadata.developer) candidates.push({ type: 'developer', value: metadata.developer });
+  if (metadata.publisher) candidates.push({ type: 'publisher', value: metadata.publisher });
+  if (metadata.releaseYear) candidates.push({ type: 'releaseYear', value: metadata.releaseYear });
+
+  if (!candidates.length) {
+    throw new Error('No hint data available');
+  }
+
+  // Pick a random hint so repeated requests don't always leak the same info.
+  const hint = candidates[Math.floor(Math.random() * candidates.length)];
+  return hint;
+}
+
 export {
   startPlayerGuessesGame,
   handlePlayerQuestion,
@@ -205,4 +248,5 @@ export {
   handleAIAnswer,
   getSession,
   clearSessions,
+  getPlayerGuessHint,
 };

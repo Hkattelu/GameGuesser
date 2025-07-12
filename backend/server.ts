@@ -5,6 +5,7 @@ import {
   handlePlayerQuestion,
   startAIGuessesGame,
   handleAIAnswer,
+  getPlayerGuessHint,
 } from './game.ts';
 
 // Auth & persistence helpers
@@ -156,6 +157,25 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
  */
+// ---------------------------------------------------------------------------
+// Hint route – must be declared before the AI-guesses routes so it matches first.
+// ---------------------------------------------------------------------------
+
+app.get('/player-guesses/:sessionId/hint', authenticateToken, async (req: Request, res: Response) => {
+  const { sessionId } = req.params as { sessionId: string };
+  try {
+    const hint = await getPlayerGuessHint(sessionId);
+    return res.json(hint);
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err.message === 'Session not found.' || err.message === 'No hint data available') {
+      return res.status(404).json({ error: err.message });
+    }
+    console.error('Error fetching hint:', err);
+    return res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+});
+
 app.post('/ai-guesses/start', authenticateToken, async (req: Request, res: Response) => {
   try {
     const result = await startAIGuessesGame();
@@ -216,8 +236,10 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
   }
 });
 
-app.listen(PORT, () =>
-  console.log(`Backend server listening on port ${PORT}`),
-);
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Backend server listening on port ${PORT}`);
+  });
+}
 
 export default app;
