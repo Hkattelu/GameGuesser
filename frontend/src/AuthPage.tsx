@@ -1,7 +1,5 @@
 import { useState } from 'react';
-
-// Frontend builds inject VITE_BACKEND_URL; default to localhost for dev.
-const apiUrl = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8080';
+import { getApiUrl } from './env_utils';
 
 export interface AuthPageProps {
   onAuth: (payload: { token: string; username: string }) => void;
@@ -18,7 +16,7 @@ function AuthPage({ onAuth }: AuthPageProps) {
     setError(null);
 
     try {
-      const response = await fetch(`${apiUrl}/auth/${mode}`, {
+      const response = await fetch(`${getApiUrl()}/auth/${mode}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

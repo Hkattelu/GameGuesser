@@ -5,21 +5,12 @@
 * Documentation: https://api.rawg.io/docs
 *
 * This module exports a single `fetchRandomGame` function that retrieves a
-* randomly-selected game name from RAWG. The implementation intentionally keeps
-* the logic simple and relies on RAWG’s popularity ordering combined with a
-* random page/element pick – it does **not** attempt to exhaustively randomize
-* over the full 500k game catalogue because that would require additional
-* API calls to discover the total number of pages. This trade-off is perfectly
-* acceptable for the "daily secret game" use-case.
+* randomly-selected game name from RAWG.
 *
 * The module expects a `RAWG_API_KEY` environment variable to be present. If it
 * is missing, `fetchRandomGame()` throws synchronously so callers can decide
 * whether to fall back to alternative logic.
 */
-
-// ------------------------------------------------------------------------------------------------
-// Types & helpers – kept minimal on purpose to avoid pulling in extra deps.
-// ------------------------------------------------------------------------------------------------
 
 interface Game {
   id: number;
@@ -80,8 +71,6 @@ export async function fetchRandomGame() {
     throw new Error(`RAWG API request failed with status ${res.status}`);
   }
 
-  /** @type {RawgGamesListResponse} */
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const data = await res.json() as RawgGamesListResponse;
   if (!data?.results?.length) {
     throw new Error('RAWG API response contained no games.');

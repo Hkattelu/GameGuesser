@@ -21,11 +21,6 @@ interface AppProps {
    */
   initialMode?: GameMode;
   /**
-   * When `true`, the legacy tabbed UI is hidden. This is used when the user
-   * reaches the game via the new StartScreen flow.
-   */
-  hideTabs?: boolean;
-  /**
    * Optional callback to navigate back to the home / start screen. When
    * provided the component will call this callback on logout instead of
    * using React-Router's `useNavigate` to push `/`. This lets the component
@@ -37,7 +32,6 @@ interface AppProps {
 
 function App({
   initialMode = 'ai-guesses',
-  hideTabs = false,
   onNavigateHome,
 }: AppProps) {
   // Authentication state
@@ -84,17 +78,7 @@ function App({
     }
   };
 
-  // ---------------- Utility helpers ----------------
-  /**
-   * Returns the mascot image URL appropriate for the current UI state.
-   *
-   * Implementation detail:
-   * Jest’s CommonJS transform cannot parse the `import.meta.url` syntax that
-   * Vite normally uses to bundle assets. To keep unit tests green we fall back
-   * to plain relative paths under `/bot_boy/…`. In development/production the
-   * images live in the same location thanks to Vite’s `publicDir`, so this
-   * simpler path works in the browser too.
-   */
+  /** Returns the mascot image URL appropriate for the current UI state. */
   const getMascotImage = () => {
     const base = '/bot_boy/';
     if (loading) return `${base}thinking.png`;
@@ -157,7 +141,6 @@ function App({
     fetchHistory();
   }, [token]);
 
-  // ---------------- Render ----------------
   if (!token) {
     return <AuthPage onAuth={handleAuth} />;
   }
@@ -171,27 +154,7 @@ function App({
         </button>
       </div>
 
-      <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Game Boy's Game Guesser</h1>
-
-      {!hideTabs && (
-        <div className="tabs flex justify-center border-b mb-4">
-          <button
-            id="tab-ai-guesses"
-            className={`tab-btn ${gameMode === 'ai-guesses' ? 'active' : ''}`}
-            onClick={() => setGameMode('ai-guesses')}
-          >
-            Game boy guesses
-          </button>
-          <button
-            id="tab-player-guesses"
-            className={`tab-btn ${gameMode === 'player-guesses' ? 'active' : ''}`}
-            onClick={() => setGameMode('player-guesses')}
-          >
-            You guess
-          </button>
-        </div>
-      )}
-
+      <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Quiz Bot 9000's Arcade!</h1>
       <MascotImage imageSrc={getMascotImage()} />
 
       <p id="game-message" className="text-lg text-gray-600 mb-4">

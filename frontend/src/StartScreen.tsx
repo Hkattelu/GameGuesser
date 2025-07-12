@@ -68,7 +68,7 @@ function StartScreen() {
         <button
           type="button"
           onClick={() => handleSelectGame('/ai-guesses')}
-          className="game-option-card bg-white rounded-xl p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
+          className="game-option-card cursor-pointer bg-white rounded-xl p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
         >
           <h2 className="text-2xl font-bold mb-2 text-gray-800">Game Boy guesses</h2>
           <p className="text-gray-600 text-sm">
@@ -79,7 +79,7 @@ function StartScreen() {
         <button
           type="button"
           onClick={() => handleSelectGame('/player-guesses')}
-          className="game-option-card bg-white rounded-xl p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
+          className="game-option-card cursor-pointer bg-white rounded-xl p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
         >
           <h2 className="text-2xl font-bold mb-2 text-gray-800">You guess</h2>
           <p className="text-gray-600 text-sm">
