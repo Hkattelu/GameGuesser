@@ -1,19 +1,22 @@
-# AI Game Guesser
-
-![Backend Coverage](backend-coverage.svg)
-![Frontend Coverage](frontend-coverage.svg)
+# Quiz Bot 9000's Video game games!
 
 This is a simple web-based game where an AI tries to guess a video game you're thinking of by asking a series of yes/no questions.
 
+![Quizbot](./frontend/public/bot_boy/guy.png)
+
 ## Setup
 
-To run this project, you need to spin up an instance of a backend service which proxies requests to Gemini. I use pack CLI:
+The backend and frontne servers can easily be built with `npm run build`, but you'll need to specify some environment variables on startup.
 
-1. pack build gcr.io/${PROJECT_ID}/${SERVICE_ID} --path backend --publish
+### Backend
 
-2. gcloud run deploy game-guesser-backend --image gcr.io/${PROJECT_ID}/${SERVICE_ID} --platform managed --region us-east1 --allow-unauthenticated --set-env-vars GEMINI_API_KEY=${YOUR_GEMINI_API_KEY}
+GEMINI_API_KEY: Your Gemini API key
+FRONTEND_ORIGIN: URL to the host of the frontend server
+JWT_SECRET: Your JWT secret used to auth the server
 
-3. Serve the FE using firebase or a simple webserver.
+### Frontend
+
+VITE_BACKEND_URL: URL to the host of the backend server
 
 ## Daily Game system (Wordle-style)
 
