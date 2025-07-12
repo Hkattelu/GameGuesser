@@ -6,6 +6,8 @@ frontend/coverage/*
 frontend/dist
 frontend/dist/*
 frontend/pglite-debug.log
+
+# Firebase
 frontend/.firebase
 frontend/.firebase/*
 

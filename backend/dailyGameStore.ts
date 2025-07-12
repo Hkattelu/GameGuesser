@@ -33,7 +33,7 @@ async function fetchGameFromRawg(exclude: string[]): Promise<string> {
   // Fetch random games from the API until we get one we haven't seen.
   // Give up if it takes more than 5 tries
   while (counter < 5 && game === '') {
-    const tempGame = await fetchRandomGame();
+    const tempGame = await fetchRandomGam();
     if (!exclude.includes(tempGame)) {
       game = tempGame
       break;

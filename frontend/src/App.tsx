@@ -177,14 +177,14 @@ function App({
         <div className="tabs flex justify-center border-b mb-4">
           <button
             id="tab-ai-guesses"
-            className={`tab-btn ${gameMode === 'ai-guesses' ? 'active' : ''}`}
+            className={`tab-btn cursor-pointer ${gameMode === 'ai-guesses' ? 'active' : ''}`}
             onClick={() => setGameMode('ai-guesses')}
           >
             Game boy guesses
           </button>
           <button
             id="tab-player-guesses"
-            className={`tab-btn ${gameMode === 'player-guesses' ? 'active' : ''}`}
+            className={`tab-btn cursor-pointer ${gameMode === 'player-guesses' ? 'active' : ''}`}
             onClick={() => setGameMode('player-guesses')}
           >
             You guess

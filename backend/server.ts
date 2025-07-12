@@ -27,7 +27,7 @@ app.use(express.json());
 // Apply CORS headers early, before any route handlers run. We deliberately
 // avoid `*` here because the backend sends credentials (Authorization header)
 // and we only want the first-party SPA to be able to read the responses.
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((_: Request, res: Response, next: NextFunction) => {
   res.header('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header(
