@@ -84,17 +84,7 @@ function App({
     }
   };
 
-  // ---------------- Utility helpers ----------------
-  /**
-   * Returns the mascot image URL appropriate for the current UI state.
-   *
-   * Implementation detail:
-   * Jest’s CommonJS transform cannot parse the `import.meta.url` syntax that
-   * Vite normally uses to bundle assets. To keep unit tests green we fall back
-   * to plain relative paths under `/bot_boy/…`. In development/production the
-   * images live in the same location thanks to Vite’s `publicDir`, so this
-   * simpler path works in the browser too.
-   */
+  /** Returns the mascot image URL appropriate for the current UI state. */
   const getMascotImage = () => {
     const base = '/bot_boy/';
     if (loading) return `${base}thinking.png`;
@@ -157,7 +147,6 @@ function App({
     fetchHistory();
   }, [token]);
 
-  // ---------------- Render ----------------
   if (!token) {
     return <AuthPage onAuth={handleAuth} />;
   }

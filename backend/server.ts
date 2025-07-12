@@ -6,17 +6,11 @@ import {
   startAIGuessesGame,
   handleAIAnswer,
 } from './game.ts';
-
-// Auth & persistence helpers
 import { authenticateToken, register, login } from './auth.ts';
 import { saveConversationMessage, getConversationHistory } from './db.ts';
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
-
-// ---------------------------------------------------------------------------
-// CORS configuration
-// ---------------------------------------------------------------------------
 
 // Restrict cross-origin requests to the trusted frontend URL. Default to the
 // local dev Vite server when the env var is not provided.
@@ -39,10 +33,6 @@ app.use((_: Request, res: Response, next: NextFunction) => {
 
 // Handle CORS preflight requests for **any** route in one place.
 app.options('*', (_, res) => res.sendStatus(200));
-
-// ---------------------------------------------------------------------------
-// Auth routes
-// ---------------------------------------------------------------------------
 
 /**
  * Registers a new user and returns a JWT token.
@@ -141,8 +131,6 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
     res.json(result);
   } catch (error: unknown) {
     const err = error as Error;
-     
-    console.error('Error handling player question:', err);
     if (err.message === 'Session not found.') return res.status(404).json({ error: err.message });
     if (err.message === 'Session ID and user input are required.')
       return res.status(400).json({ error: err.message });
@@ -177,8 +165,6 @@ app.post('/ai-guesses/start', authenticateToken, async (req: Request, res: Respo
     res.json(result);
   } catch (error: unknown) {
     const err = error as Error;
-     
-    console.error('Error starting AI guesses game:', err);
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
   }
 });
@@ -207,8 +193,6 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
     res.json(result);
   } catch (error: unknown) {
     const err = error as Error;
-     
-    console.error('Error handling AI answer:', err);
     if (err.message === 'Session not found.') return res.status(404).json({ error: err.message });
     if (err.message === 'Session ID and user answer are required.')
       return res.status(400).json({ error: err.message });

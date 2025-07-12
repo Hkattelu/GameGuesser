@@ -41,9 +41,6 @@ export async function callGeminiAPI<T = unknown>(
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    // eslint-disable-next-line no-console
-    console.error('Error from Gemini API:', errorData);
     throw new Error(`Gemini API Error: ${response.status} ${response.statusText}`);
   }
 

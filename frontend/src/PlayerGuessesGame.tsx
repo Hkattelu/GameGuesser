@@ -114,7 +114,7 @@ function PlayerGuessesGame({
 
       setQuestionCount(newQuestionCount);
 
-      if (type === 'answer') {
+      if (type === 'question' || type === 'answer') {
         setModelResponseText(`My answer: ${content}`);
         setHighlightedResponse(content); // 'Yes', 'No', or 'I don't know'
         setChatHistory((prevHistory) => [
@@ -211,7 +211,7 @@ function PlayerGuessesGame({
       {started && !loading && (
         <button
           id="btn-submit-guess"
-          className="px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+          className="cursor-pointer px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
           onClick={handlePlayerQuestion}
         >
           Submit
@@ -221,7 +221,7 @@ function PlayerGuessesGame({
       {!started && (
         <button
           id="btn-start-player-game"
-          className="mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+          className="cursor-pointer mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
           onClick={startGamePlayerGuesses}
         >
           Start Game
