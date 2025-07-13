@@ -7,6 +7,7 @@ import {
   startAIGuessesGame,
   handleAIAnswer,
   getPlayerGuessHint,
+  HintType,
 } from './game.js';
 import { authenticateToken, register, login } from './auth.js';
 import { saveConversationMessage, getConversationHistory } from './db.js';
@@ -139,9 +140,9 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
  * @param {Response} res - The Express response object.
  */
 app.get('/player-guesses/:sessionId/hint', authenticateToken, async (req: Request, res: Response) => {
-  const { sessionId } = req.params as { sessionId: string };
+  const { sessionId, hintType } = req.params as { sessionId: string, hintType?: HintType };
   try {
-    const hint = await getPlayerGuessHint(sessionId);
+    const hint = await getPlayerGuessHint(sessionId, hintType);
     return res.json(hint);
   } catch (error: unknown) {
     const err = error as Error;

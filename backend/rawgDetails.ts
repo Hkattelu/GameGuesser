@@ -5,18 +5,28 @@
 * find the best-matching game and returns a subset of metadata that can be
 * used as hints in the Player-Guesses mode.
 *
-* We deliberately keep the implementation minimal – just two HTTP requests
-* (search → details) – and fall back to partial data when some fields are
-* missing. This keeps latency reasonable and avoids the need for additional
-* pagination or expansion queries.
-*
 * The RAWG API key must be provided via the `RAWG_API_KEY` environment
 * variable, identical to `rawg.ts`.
 */
 
 import fetch from 'node-fetch';
 
+interface Named {
+  name: string;
+}
+
+interface SearchResponse {
+  results: GameMetadata[];
+}
+
+interface GameMetadataResponse {
+  developers: Named[];
+  publishers: Named[];
+  released: string;  // YYYY-MM-DD
+}
+
 export interface GameMetadata {
+  id?: string;
   developer?: string;
   publisher?: string;
   releaseYear?: number;
@@ -45,8 +55,8 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
     const searchRes = await fetch(searchUrl);
     if (!searchRes.ok) throw new Error(`RAWG search failed: ${searchRes.status}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const searchJson = (await searchRes.json()) as any;
+
+    const searchJson = (await searchRes.json()) as SearchResponse;
     const first = searchJson?.results?.[0];
     if (!first) return {};
 
@@ -57,12 +67,11 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
     const detailRes = await fetch(detailUrl);
     if (!detailRes.ok) throw new Error(`RAWG detail failed: ${detailRes.status}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const detailJson = (await detailRes.json()) as any;
+    const detailJson = (await detailRes.json()) as GameMetadataResponse;
 
     const developer: string | undefined = detailJson?.developers?.[0]?.name;
     const publisher: string | undefined = detailJson?.publishers?.[0]?.name;
-    const released: string | undefined = detailJson?.released; // YYYY-MM-DD
+    const released: string | undefined = detailJson?.released;
     const releaseYear = released ? Number(released.split('-')[0]) : undefined;
 
     return {

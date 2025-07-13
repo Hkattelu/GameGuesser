@@ -17,6 +17,14 @@ interface AIGuessSession {
   maxQuestions: number;
 }
 
+/** The types of hints that a client can request. */
+export type HintType = 'developer'|'publisher'|'releaseYear';
+
+interface HintResponse {
+  hintText: string;
+  hintType: HintType
+}
+
 type PlayerQAResponse =
   | { type: 'answer'; content: string }
   | { type: 'guessResult'; content: { correct: boolean; response: string } };
@@ -199,6 +207,8 @@ function clearSessions() {
   gameSessions.clear();
 }
 
+const metadataCache = new Map<string, GameMetadata>();
+
 /**
 * Returns a single hint for the secret game belonging to the provided session.
 *
@@ -206,19 +216,10 @@ function clearSessions() {
 * publisher, release year). If no metadata is available, the function throws –
 * callers should translate this into a 404/500 as appropriate.
 */
-async function getPlayerGuessHint(sessionId: string): Promise<{ type: string; value: string | number }> {
+async function getPlayerGuessHint(sessionId: string, hintType?: HintType): Promise<HintResponse> {
   const session = gameSessions.get(sessionId);
   if (!session || !('secretGame' in session)) {
     throw new Error('Session not found.');
-  }
-
-  // Fetch metadata (with naive in-memory cache to avoid hitting RAWG for
-  // repeated hints in the same process lifetime).
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const cache = (getPlayerGuessHint as any).cache as Map<string, GameMetadata> | undefined;
-  const metadataCache = cache ?? new Map<string, GameMetadata>();
-  if (!(getPlayerGuessHint as any).cache) {
-    (getPlayerGuessHint as any).cache = metadataCache;
   }
 
   let metadata = metadataCache.get(session.secretGame);
@@ -227,16 +228,20 @@ async function getPlayerGuessHint(sessionId: string): Promise<{ type: string; va
     metadataCache.set(session.secretGame, metadata);
   }
 
-  const candidates: Array<{ type: string; value: string | number }> = [];
-  if (metadata.developer) candidates.push({ type: 'developer', value: metadata.developer });
-  if (metadata.publisher) candidates.push({ type: 'publisher', value: metadata.publisher });
-  if (metadata.releaseYear) candidates.push({ type: 'releaseYear', value: metadata.releaseYear });
+  let candidates: Array<HintResponse> = [];
+  if (metadata.developer) candidates.push({hintType: 'developer', hintText: `The developer is ${metadata.developer}.`});
+  if (metadata.publisher) candidates.push({hintType: 'publisher', hintText: `The publisher is ${metadata.publisher}.`});
+  if (metadata.releaseYear) candidates.push({hintType: 'releaseYear', hintText: `It was released in ${metadata.releaseYear}.`});
+
+  if (!!hintType) {
+    candidates = candidates.filter(candidate => candidate.hintType === hintType);
+  }
 
   if (!candidates.length) {
     throw new Error('No hint data available');
   }
 
-  // Pick a random hint so repeated requests don't always leak the same info.
+  // Pick a random hint
   const hint = candidates[Math.floor(Math.random() * candidates.length)];
   return hint;
 }

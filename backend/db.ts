@@ -132,7 +132,6 @@ export async function getConversationsBySession(
 
 /** Returns a daily game by date string (YYYY-MM-DD) or undefined when none exists. */
 export async function getDailyGame(dateKey: string): Promise<string | undefined> {
-  console.error('calling real thing');
   const doc = await dailyGamesCol.doc(dateKey).get();
   if (!doc.exists) return undefined;
   const data = doc.data() as Omit<DailyGameRow, 'id'>;

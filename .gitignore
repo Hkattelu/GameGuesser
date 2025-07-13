@@ -22,6 +22,8 @@ backend/database.sqlite
 backend/dist/*
 backend/coverage
 backend/coverage/*
+backend/.env.development
+backend/.env.production
 
 # Daily Game persistence file
 backend/daily-games.json

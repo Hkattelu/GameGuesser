@@ -195,7 +195,7 @@ describe('PlayerGuessesGame', () => {
   it('fetches and displays a hint when the Hint button is clicked', async () => {
     (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ type: 'developer', value: 'Nintendo' }),
+      json: () => Promise.resolve({ hintText: 'Developer: Nintendo' }),
     });
 
     const props = { ...mockProps, started: true, sessionId: 'test-session-id' };
@@ -204,7 +204,7 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Hint'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('hint-text')).toHaveTextContent('Developer: Nintendo');
+      expect(screen.getByTestId('model-response')).toHaveTextContent('Developer: Nintendo');
     });
   });
 });

@@ -5,6 +5,10 @@ import { getApiUrl } from './env_utils';
 import { MAX_SUGGESTIONS, SUGGESTIONS } from './constants';
 import { ChatMessage, GameMode } from './types';
 
+interface Hint {
+  hintText: string;
+}
+
 export interface PlayerGuessesGameProps {
   gameMode: GameMode;
   preGame: boolean;
@@ -131,8 +135,8 @@ function PlayerGuessesGame({
       setQuestionCount(newQuestionCount);
 
       if (type === 'question' || type === 'answer') {
-        setModelResponseText(`My answer: ${content}`);
-        setHighlightedResponse(content); // 'Yes', 'No', or 'I don't know'
+        setModelResponseText(content);
+        setHighlightedResponse(content);
         setChatHistory((prevHistory) => [
           ...prevHistory,
           { role: "model", parts: [{ text: content }] },
@@ -184,9 +188,8 @@ function PlayerGuessesGame({
         throw new Error(errorData.error || 'Failed to fetch hint.');
       }
 
-      const data = (await response.json()) as { type: string; value: string | number };
-      const label = data.type.charAt(0).toUpperCase() + data.type.slice(1);
-      setHintText(`${label}: ${data.value}`);
+      const data = (await response.json()) as Hint;
+      setModelResponseText(data.hintText);
     } catch (error: unknown) {
       const err = error as Error;
       setGameMessage(`Error fetching hint: ${err.message}`);
@@ -205,6 +208,7 @@ function PlayerGuessesGame({
 
   const handleSelectSuggestion = (question: string) => {
     setPlayerGuessInput(question);
+    setSuggestions(suggestions.filter(suggestion => suggestion !== question));
   };
 
   return (
@@ -214,6 +218,12 @@ function PlayerGuessesGame({
           <div id="btn-yes" className={`response-yes px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'Yes' ? 'highlight-yes' : ''}`}>Yes</div>
           <div id="btn-unsure" className={`response-unsure px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'Unsure' ? 'highlight-unsure' : ''}`}>Unsure</div>
           <div id="btn-no" className={`response-no px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'No' ? 'highlight-no' : ''}`}>No</div>
+        </div>
+      )}
+
+      {started && !loading && modelResponseText && (
+        <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4" data-testid="model-response">
+          {modelResponseText}
         </div>
       )}
 
@@ -251,22 +261,11 @@ function PlayerGuessesGame({
               Hint
             </button>
           </div>
-          {hintText && (
-            <div id="hint-text" className="mt-2 text-md text-gray-800 font-medium" data-testid="hint-text">
-              {hintText}
-            </div>
-          )}
         </div>
       )}
 
       {started && !loading && (
         <SuggestionChips suggestions={suggestions} onSelectSuggestion={handleSelectSuggestion} />
-      )}
-
-      {started && !loading && modelResponseText && (
-        <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4">
-          {modelResponseText}
-        </div>
       )}
 
       {started && !loading && (

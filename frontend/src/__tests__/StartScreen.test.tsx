@@ -37,12 +37,11 @@ describe('StartScreen component', () => {
     );
 
     // The heading and option buttons should be visible.
-    expect(screen.getByText("Game Boy's Game Guesser")).toBeInTheDocument();
-    expect(screen.getByText('Game Boy guesses')).toBeInTheDocument();
+    expect(screen.getByText("Quiz Bot 9000's Arcade")).toBeInTheDocument();
+    expect(screen.getByText('Quiz Bot guesses')).toBeInTheDocument();
     expect(screen.getByText('You guess')).toBeInTheDocument();
 
-    // Ensure clicking a game option starts the transition (adds CSS class).
-    const optionButton = screen.getByText('Game Boy guesses');
+    const optionButton = screen.getByText('Quiz Bot guesses');
     fireEvent.click(optionButton);
 
     await waitFor(() => {

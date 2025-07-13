@@ -24,27 +24,27 @@ describe('ConversationHistory', () => {
 
   it('renders model question messages correctly', () => {
     render(<ConversationHistory chatHistory={mockChatHistory} gameMode={'ai-guesses'} />);
-    expect(screen.getByText('Bot Boy: Does it have a turn-based combat system?')).toBeInTheDocument();
+    expect(screen.getByText('Quiz Bot: Does it have a turn-based combat system?')).toBeInTheDocument();
   });
 
   it('renders model guess messages correctly', () => {
     render(<ConversationHistory chatHistory={mockChatHistory} gameMode={'ai-guesses'} />);
-    expect(screen.getByText('Bot Boy (Guess): Final Fantasy VII')).toBeInTheDocument();
+    expect(screen.getByText('Quiz Bot (Guess): Final Fantasy VII')).toBeInTheDocument();
   });
 
   it('renders plain text model messages correctly', () => {
     render(<ConversationHistory chatHistory={mockChatHistory} gameMode={'ai-guesses'} />);
-    expect(screen.getByText('Bot Boy: You win!')).toBeInTheDocument();
+    expect(screen.getByText('Quiz Bot: You win!')).toBeInTheDocument();
   });
 
   it('renders model answer messages correctly', () => {
     render(<ConversationHistory chatHistory={mockChatHistory} gameMode={'player-guesses'} />);
-    expect(screen.getByText('Bot Boy: No')).toBeInTheDocument();
+    expect(screen.getByText('Quiz Bot: No')).toBeInTheDocument();
   });
 
   it('renders model guessResult messages correctly', () => {
     render(<ConversationHistory chatHistory={mockChatHistory} gameMode={'player-guesses'} />);
-    expect(screen.getByText('Bot Boy: That is incorrect.')).toBeInTheDocument();
+    expect(screen.getByText('Quiz Bot: That is incorrect.')).toBeInTheDocument();
   });
 
   it('sets the correct id for AI Guesses game mode', () => {
