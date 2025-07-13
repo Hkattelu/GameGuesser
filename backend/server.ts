@@ -1,13 +1,15 @@
 import express from 'express';
-import type { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import type { Request, Response } from 'express';
 import {
   startPlayerGuessesGame,
   handlePlayerQuestion,
   startAIGuessesGame,
   handleAIAnswer,
-} from './game.ts';
-import { authenticateToken, register, login } from './auth.ts';
-import { saveConversationMessage, getConversationHistory } from './db.ts';
+  getPlayerGuessHint,
+} from './game.js';
+import { authenticateToken, register, login } from './auth.js';
+import { saveConversationMessage, getConversationHistory } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
@@ -18,21 +20,14 @@ const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 
 app.use(express.json());
 
-// Apply CORS headers early, before any route handlers run. We deliberately
-// avoid `*` here because the backend sends credentials (Authorization header)
-// and we only want the first-party SPA to be able to read the responses.
-app.use((_: Request, res: Response, next: NextFunction) => {
-  res.header('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-  );
-  next();
-});
-
-// Handle CORS preflight requests for **any** route in one place.
-app.options('*', (_, res) => res.sendStatus(200));
+app.use(
+  cors({
+    origin: FRONTEND_ORIGIN,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+    credentials: true,
+  }),
+);
 
 /**
  * Registers a new user and returns a JWT token.
@@ -139,6 +134,26 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
 });
 
 /**
+ * Gives the player a hint.
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ */
+app.get('/player-guesses/:sessionId/hint', authenticateToken, async (req: Request, res: Response) => {
+  const { sessionId } = req.params as { sessionId: string };
+  try {
+    const hint = await getPlayerGuessHint(sessionId);
+    return res.json(hint);
+  } catch (error: unknown) {
+    const err = error as Error;
+    if (err.message === 'Session not found.' || err.message === 'No hint data available') {
+      return res.status(404).json({ error: err.message });
+    }
+    console.error('Error fetching hint:', err);
+    return res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+});
+
+/**
  * Starts a new game of 20 Questions where the AI thinks of an object and the
  * player tries to guess what it is.
  * @param {Request} req - The Express request object.
@@ -200,8 +215,10 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
   }
 });
 
-app.listen(PORT, () =>
-  console.log(`Backend server listening on port ${PORT}`),
-);
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Backend server listening on port ${PORT}`);
+  });
+}
 
 export default app;

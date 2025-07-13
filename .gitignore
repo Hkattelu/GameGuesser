@@ -12,6 +12,7 @@ frontend/.firebase
 frontend/.firebase/*
 
 # Backend prod data
+backend/cloudbuild.yaml
 backend/Dockerfile
 backend/node_modules
 backend/node_modules/*

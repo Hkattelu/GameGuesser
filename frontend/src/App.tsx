@@ -149,12 +149,11 @@ function App({
     <div className="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Hello, {username}!</h2>
-        <button className="text-sm text-blue-600 hover:underline" onClick={handleLogout}>
+        <button className="cursor-pointer text-sm text-blue-600 hover:underline" onClick={handleLogout}>
           Logout
         </button>
       </div>
 
-      <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Quiz Bot 9000's Arcade!</h1>
       <MascotImage imageSrc={getMascotImage()} />
 
       <p id="game-message" className="text-lg text-gray-600 mb-4">

@@ -6,6 +6,8 @@ export interface ConversationHistoryProps {
   gameMode: GameMode;
 }
 
+const AI_NAME = 'Quiz Bot';
+
 function ConversationHistory({ chatHistory, gameMode }: ConversationHistoryProps) {
   const historyEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -18,7 +20,6 @@ function ConversationHistory({ chatHistory, gameMode }: ConversationHistoryProps
       id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
       className="text-left mb-6 p-4 bg-gray-50 rounded-lg max-h-60 overflow-y-auto"
     >
-      <p className="text-lg text-gray-600">Conversation History:</p>
       {chatHistory.map((entry, index) => {
         let textContent = '';
         let className = 'mb-1';
@@ -31,19 +32,19 @@ function ConversationHistory({ chatHistory, gameMode }: ConversationHistoryProps
           try {
             const jsonContent = JSON.parse(entry.parts[0].text);
             if (jsonContent.type === 'question') {
-              textContent = `Bot Boy: ${jsonContent.content}`;
+              textContent = `${AI_NAME}: ${jsonContent.content}`;
             } else if (jsonContent.type === 'guess') {
-              textContent = `Bot Boy (Guess): ${jsonContent.content}`;
+              textContent = `${AI_NAME} (Guess): ${jsonContent.content}`;
             } else if (jsonContent.type === 'answer') {
-              textContent = `Bot Boy: ${jsonContent.content}`;
+              textContent = `${AI_NAME}: ${jsonContent.content}`;
             } else if (
               jsonContent.type === 'guessResult' &&
               typeof jsonContent.content?.response === 'string'
             ) {
-              textContent = `Bot Boy: ${jsonContent.content.response}`;
+              textContent = `${AI_NAME}: ${jsonContent.content.response}`;
             }
           } catch {
-            textContent = `Bot Boy: ${entry.parts[0].text}`;
+            textContent = `${AI_NAME}: ${entry.parts[0].text}`;
           }
         }
 
