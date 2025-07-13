@@ -25,9 +25,19 @@ interface HintResponse {
   hintType: HintType
 }
 
-type PlayerQAResponse =
-  | { type: 'answer'; content: string }
-  | { type: 'guessResult'; content: { correct: boolean; response: string } };
+interface AnswerToQuestion {
+  type: 'answer';
+  questionCount: number;
+  content: string;
+}
+
+interface AnswerToGuess {
+  type: 'guessResult';
+  questionCount: number;
+  content: { correct: boolean, response: string }
+}
+
+type PlayerQAResponse = AnswerToQuestion|AnswerToGuess;
 
 type AIJsonResponse = { type: 'question' | 'guess'; content: string };
 
@@ -65,15 +75,8 @@ async function startPlayerGuessesGame() {
   return { sessionId };
 }
 
-/**
- * Handles a player's question in a game of 20 Questions.
- * @param {string} sessionId - The ID of the game session.
- * @param {string} userInput - The user's question.
- * @return {Promise<{questionCount: number, aiResponse: string, questionCount: number}>} - A promise
- *   resolving to an object containing the updated question count, the AI's
- *   response, and a boolean indicating whether the AI won.
- */
-async function handlePlayerQuestion(sessionId: string, userInput: string) {
+/** Handles a player's question in a game of 20 Questions. */
+async function handlePlayerQuestion(sessionId: string, userInput: string): Promise<PlayerQAResponse> {
   if (!sessionId || !userInput) {
     throw new Error('Session ID and user input are required.');
   }
@@ -89,11 +92,24 @@ async function handlePlayerQuestion(sessionId: string, userInput: string) {
     throw new Error('Invalid session type for player question handler.');
   }
 
+  if (session.questionCount > 20) {
+    return {
+      type:  'guessResult',
+      questionCount: session.questionCount,
+      content: {
+        correct: false,
+        response: `You are out of tries. The game was ${session.secretGame}`,
+      }
+    } as AnswerToGuess;
+  }
+
   const prompt = `The user asked: "${userInput}". The secret game is "${session.secretGame}".
         Is it a guess or a question? If it's a guess, is it correct?
         Your response MUST be a JSON object with a 'type' field ('answer' or 'guessResult') and a 'content' field.
         If it's a question, content should be "Yes", "No", or "I don't know".
-        If it's a guess, content should be an object with 'correct' (true/false) and a 'response' string.`;
+        If it's a guess, content should be an object with 'correct' (true/false) and a 'response' string.
+        If the user guessed correctly, response string should contain only the name of the secret game.
+        If the user guessed incorrectly, response string should contain contain a message telling them they are incorrect. `;
 
   const jsonResponse = await callGeminiAPI<PlayerQAResponse>(
     prompt,
@@ -104,11 +120,7 @@ async function handlePlayerQuestion(sessionId: string, userInput: string) {
     parts: [{ text: JSON.stringify(jsonResponse) }],
   });
 
-  return {
-    type: jsonResponse.type,
-    content: jsonResponse.content,
-    questionCount: session.questionCount,
-  };
+  return jsonResponse;
 }
 
 /**
