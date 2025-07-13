@@ -2,6 +2,7 @@ import { useState } from 'react';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
+import { MAX_SUGGESTIONS, SUGGESTIONS } from './constants';
 import { ChatMessage, GameMode } from './types';
 
 export interface PlayerGuessesGameProps {
@@ -27,6 +28,16 @@ export interface PlayerGuessesGameProps {
   token?: string | null;
 }
 
+/** Shuffle an array of elements randomly. */
+function shuffle(arr: string[]) {
+  const sortedArr = structuredClone(arr);
+  for (let i = sortedArr.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [sortedArr[i], sortedArr[j]] = [sortedArr[j], sortedArr[i]];
+  }
+  return sortedArr;
+}
+
 function PlayerGuessesGame({
   gameMode,
   preGame,
@@ -50,6 +61,7 @@ function PlayerGuessesGame({
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
+  const [suggestions, setSuggestions] = useState(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
   const [hintText, setHintText] = useState<string | null>(null);
 
   const startGamePlayerGuesses = async () => {
@@ -125,6 +137,7 @@ function PlayerGuessesGame({
           ...prevHistory,
           { role: "model", parts: [{ text: content }] },
         ]);
+        setSuggestions(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
 
         if (newQuestionCount >= maxQuestions) {
           endGame(`You're out of questions! The game was ${content}.`, false); // Backend will provide the game title in the final answer
@@ -222,7 +235,7 @@ function PlayerGuessesGame({
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
             value={playerGuessInput}
             onChange={(e) => setPlayerGuessInput(e.target.value)}
-            onKeyPress={(e) => {
+            onKeyUp={(e) => {
               if (e.key === 'Enter') {
                 handlePlayerQuestion();
               }
@@ -232,7 +245,7 @@ function PlayerGuessesGame({
             <button
               id="btn-hint"
               type="button"
-              className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-200"
+              className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-200"
               onClick={handleGetHint}
             >
               Hint
@@ -247,7 +260,7 @@ function PlayerGuessesGame({
       )}
 
       {started && !loading && (
-        <SuggestionChips onSelectSuggestion={handleSelectSuggestion} />
+        <SuggestionChips suggestions={suggestions} onSelectSuggestion={handleSelectSuggestion} />
       )}
 
       {started && !loading && modelResponseText && (

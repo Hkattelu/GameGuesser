@@ -11,7 +11,7 @@ function SuggestionChips({ onSelectSuggestion }: SuggestionChipsProps) {
       {SUGGESTIONS.map((q) => (
         <button
           key={q}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-2 px-4 rounded-full"
+          className="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-2 px-4 rounded-full"
           onClick={() => onSelectSuggestion(q)}
         >
           {q}
