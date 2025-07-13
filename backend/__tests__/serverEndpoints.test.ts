@@ -1,4 +1,4 @@
-import { jest, beforeAll, afterEach, describe, it, expect } from '@jest/globals';
+import { jest, beforeAll, afterAll, afterEach, describe, it, expect } from '@jest/globals';
 import supertest from 'supertest';
 
 // ---------------------------------------------------------------------------
@@ -53,11 +53,25 @@ jest.unstable_mockModule('../game.js', () => ({
 
 let request: supertest.SuperTest<supertest.Test>;
 
+// Preserve the original NODE_ENV so we can restore it after the suite runs.
+let originalNodeEnv: string | undefined;
+
 beforeAll(async () => {
+  // Capture existing value before overwriting so it doesn't leak to other suites.
+  originalNodeEnv = process.env.NODE_ENV;
   process.env.NODE_ENV = 'test';
   const mod = await import('../server.js');
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   request = supertest(mod.default);
+});
+
+afterAll(() => {
+  // Restore the original NODE_ENV (it could be undefined).
+  if (originalNodeEnv === undefined) {
+    delete process.env.NODE_ENV;
+  } else {
+    process.env.NODE_ENV = originalNodeEnv;
+  }
 });
 
 afterEach(() => {
