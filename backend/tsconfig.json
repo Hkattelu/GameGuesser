@@ -14,7 +14,10 @@
     "types": ["node", "jest"],
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "stream/web": ["./node_modules/@types/node/stream/web.d.ts"]
+    }
   },
   "include": [
     "*.ts",
@@ -24,5 +27,5 @@
     "node_modules",
     "dist",
     "**/*.test.ts"
-  ],
+  ]
 }
