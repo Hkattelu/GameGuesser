@@ -40,6 +40,15 @@ const config: JestConfigWithTsJest = {
     '/dist/', // Assuming compiled output is in 'dist'
   ],
   verbose: true,
+
+  // Support TypeScript "NodeNext" style imports that append `.js` when
+  // referencing `.ts` source files. The regexp strips the trailing `.js`
+  // so Jest's resolver can locate the underlying `.ts` module during tests.
+  // Without this, imports like "./db.js" fail because Jest looks for an actual
+  // JavaScript file on disk instead of the source `.ts` file.
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
 };
 
 export default config;
