@@ -83,7 +83,7 @@ function AIGuessesGame({
       // Update client-side chat history for display
       setChatHistory((prevHistory) => [
         ...prevHistory,
-        { role: "user", parts: [{ text: "AI Game Started." }] }, // Simplified initial entry
+        { role: "user", parts: [{ text: "AI Game Started." }] },
         { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
 
