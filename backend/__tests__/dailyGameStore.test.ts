@@ -1,28 +1,39 @@
-import { beforeEach, jest } from '@jest/globals';
-import { getDailyGame } from '../dailyGameStore.ts';
+import { jest, beforeEach, describe, it, expect, beforeAll } from '@jest/globals';
 
+// ---------------------- Mocks ----------------------
 const callGeminiMock = jest.fn();
 const fetchRandomGameMock = jest.fn();
-const getDailyGameMock = jest.fn();
-const saveDailyGameMock = jest.fn();
-const getRecentDailyGamesMock = jest.fn();
+const getDailyGameDbMock = jest.fn();
+const saveDailyGameDbMock = jest.fn();
+const getRecentDailyGamesDbMock = jest.fn();
 
-jest.mock('../rawg.js', () => ({
+// Use ESM-aware mocking so we can import the module-under-test after stubs are ready
+jest.unstable_mockModule('../rawg.js', () => ({
   __esModule: true,
   fetchRandomGame: fetchRandomGameMock,
 }));
 
-jest.mock('../gemini.js', () => ({
+jest.unstable_mockModule('../gemini.js', () => ({
   __esModule: true,
   callGeminiAPI: callGeminiMock,
 }));
 
-jest.mock('../db.js', () => ({
+jest.unstable_mockModule('../db.js', () => ({
   __esModule: true,
-  getDailyGame: getDailyGameMock,
-  saveDailyGame: saveDailyGameMock,
-  getRecentDailyGames: getRecentDailyGamesMock,
+  getDailyGame: getDailyGameDbMock,
+  saveDailyGame: saveDailyGameDbMock,
+  getRecentDailyGames: getRecentDailyGamesDbMock,
 }));
+
+// ---------------------- Imports ----------------------
+let getDailyGame: typeof import('../dailyGameStore.ts').getDailyGame;
+
+beforeAll(async () => {
+  const mod = await import('../dailyGameStore.ts');
+  getDailyGame = mod.getDailyGame;
+});
+
+// ---------------------- Tests ----------------------
 
 describe('dailyGameStore with RAWG integration', () => {
   beforeEach(() => {
@@ -30,34 +41,34 @@ describe('dailyGameStore with RAWG integration', () => {
   });
 
   it('prefers RAWG result when fetch succeeds', async () => {
-    getDailyGameMock.mockResolvedValue(undefined);
+    getDailyGameDbMock.mockResolvedValue(undefined);
     fetchRandomGameMock.mockResolvedValue('RAWG Hit');
-    getRecentDailyGamesMock.mockResolvedValue([]);
+    getRecentDailyGamesDbMock.mockResolvedValue([]);
 
     const game = await getDailyGame(new Date('2025-03-03T00:00:00Z'));
     expect(game).toBe('RAWG Hit');
     expect(callGeminiMock).not.toHaveBeenCalled();
-    expect(saveDailyGameMock).toHaveBeenCalledWith('2025-03-03', 'RAWG Hit');
+    expect(saveDailyGameDbMock).toHaveBeenCalledWith('2025-03-03', 'RAWG Hit');
   });
 
   it('falls back to Gemini when RAWG fails', async () => {
-    getDailyGameMock.mockResolvedValue(undefined);
+    getDailyGameDbMock.mockResolvedValue(undefined);
     fetchRandomGameMock.mockRejectedValue(new Error('network oops'));
     callGeminiMock.mockResolvedValue({ secretGame: 'Gemini Backup' });
-    getRecentDailyGamesMock.mockResolvedValue([]);
+    getRecentDailyGamesDbMock.mockResolvedValue([]);
 
     const game = await getDailyGame(new Date('2025-04-04T00:00:00Z'));
     expect(game).toBe('Gemini Backup');
-    expect(saveDailyGameMock).toHaveBeenCalledWith('2025-04-04', 'Gemini Backup');
+    expect(saveDailyGameDbMock).toHaveBeenCalledWith('2025-04-04', 'Gemini Backup');
   });
 
   it('returns the stored game if it exists', async () => {
-    getDailyGameMock.mockResolvedValue('Stored Game');
+    getDailyGameDbMock.mockResolvedValue('Stored Game');
 
     const game = await getDailyGame(new Date('2025-05-05T00:00:00Z'));
     expect(game).toBe('Stored Game');
     expect(fetchRandomGameMock).not.toHaveBeenCalled();
     expect(callGeminiMock).not.toHaveBeenCalled();
-    expect(saveDailyGameMock).not.toHaveBeenCalled();
+    expect(saveDailyGameDbMock).not.toHaveBeenCalled();
   });
 });
