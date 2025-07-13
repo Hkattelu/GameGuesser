@@ -32,8 +32,15 @@ app.use((_: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Handle CORS preflight requests for **any** route in one place.
-app.options('*', (_, res) => res.sendStatus(200));
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  );
+  res.sendStatus(200);
+});
 
 /**
  * Registers a new user and returns a JWT token.
