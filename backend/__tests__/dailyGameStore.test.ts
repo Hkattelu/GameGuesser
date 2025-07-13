@@ -1,4 +1,5 @@
 import { beforeEach, jest } from '@jest/globals';
+import { getDailyGame } from '../dailyGameStore.ts';
 
 const callGeminiMock = jest.fn();
 const fetchRandomGameMock = jest.fn();
@@ -6,18 +7,17 @@ const getDailyGameMock = jest.fn();
 const saveDailyGameMock = jest.fn();
 const getRecentDailyGamesMock = jest.fn();
 
-// Use unstable_mockModule for ESM mocking
-jest.unstable_mockModule('../rawg.ts', () => ({
+jest.mock('../rawg.js', () => ({
   __esModule: true,
   fetchRandomGame: fetchRandomGameMock,
 }));
 
-jest.unstable_mockModule('../gemini.ts', () => ({
+jest.mock('../gemini.js', () => ({
   __esModule: true,
   callGeminiAPI: callGeminiMock,
 }));
 
-jest.unstable_mockModule('../db.ts', () => ({
+jest.mock('../db.js', () => ({
   __esModule: true,
   getDailyGame: getDailyGameMock,
   saveDailyGame: saveDailyGameMock,
@@ -25,18 +25,13 @@ jest.unstable_mockModule('../db.ts', () => ({
 }));
 
 describe('dailyGameStore with RAWG integration', () => {
-  let getDailyGame: typeof import('../dailyGameStore.ts').getDailyGame;
-
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
-    // Dynamically import the module under test AFTER mocks are set up
-    const dailyGameStore = await import('../dailyGameStore.ts');
-    getDailyGame = dailyGameStore.getDailyGame;
   });
 
   it('prefers RAWG result when fetch succeeds', async () => {
     getDailyGameMock.mockResolvedValue(undefined);
-    fetchRandomGameMock.mockResolvedValue(Promise.resolve('RAWG Hit'));
+    fetchRandomGameMock.mockResolvedValue('RAWG Hit');
     getRecentDailyGamesMock.mockResolvedValue([]);
 
     const game = await getDailyGame(new Date('2025-03-03T00:00:00Z'));

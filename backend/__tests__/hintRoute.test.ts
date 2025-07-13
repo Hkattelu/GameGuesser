@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 const authenticateMock = (_req: any, _res: any, next: any) => next();
 
 // Mock auth middleware so we don't have to build/verify a JWT in tests
-jest.unstable_mockModule('../auth.ts', () => ({
+jest.unstable_mockModule('../auth.js', () => ({
   __esModule: true,
   authenticateToken: authenticateMock,
   register: jest.fn(),
@@ -13,10 +13,10 @@ jest.unstable_mockModule('../auth.ts', () => ({
 // Stub the getPlayerGuessHint function so the route logic can be tested in isolation.
 const getPlayerGuessHintMock = jest.fn();
 
-jest.unstable_mockModule('../game.ts', () => {
+jest.unstable_mockModule('../game.js', () => {
   return {
     __esModule: true,
-    // Only the APIs required by server.ts need to be stubbed.
+    // Only the APIs required by server.js need to be stubbed.
     startPlayerGuessesGame: jest.fn(),
     handlePlayerQuestion: jest.fn(),
     startAIGuessesGame: jest.fn(),
@@ -31,7 +31,7 @@ import supertest from 'supertest';
 let app: typeof import('express').default;
 
 beforeAll(async () => {
-  const mod = await import('../server.ts');
+  const mod = await import('../server.js');
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   app = mod.default;
   process.env.NODE_ENV = 'test';

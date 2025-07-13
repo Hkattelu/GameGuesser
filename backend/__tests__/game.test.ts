@@ -8,17 +8,17 @@ const getRecentDailyGamesDbMock = jest.fn(); // Mock for db.ts's getRecentDailyG
 const getDailyGameStoreMock = jest.fn(); // Mock for dailyGameStore.ts's getDailyGame
 
 // Use unstable_mockModule for ESM mocking
-jest.unstable_mockModule('../rawg.ts', () => ({
+jest.unstable_mockModule('../rawg.js', () => ({
   __esModule: true,
   fetchRandomGame: fetchRandomGameMock,
 }));
 
-jest.unstable_mockModule('../gemini.ts', () => ({
+jest.unstable_mockModule('../gemini.js', () => ({
   __esModule: true,
   callGeminiAPI: callGeminiMock,
 }));
 
-jest.unstable_mockModule('../db.ts', () => ({
+jest.unstable_mockModule('../db.js', () => ({
   __esModule: true,
   getDailyGame: getDailyGameDbMock,
   saveDailyGame: saveDailyGameDbMock,

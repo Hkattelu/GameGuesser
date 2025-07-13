@@ -6,9 +6,9 @@ import {
   startAIGuessesGame,
   handleAIAnswer,
   getPlayerGuessHint,
-} from './game.ts';
-import { authenticateToken, register, login } from './auth.ts';
-import { saveConversationMessage, getConversationHistory } from './db.ts';
+} from './game.js';
+import { authenticateToken, register, login } from './auth.js';
+import { saveConversationMessage, getConversationHistory } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;

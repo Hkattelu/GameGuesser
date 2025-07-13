@@ -1,6 +1,6 @@
-import { callGeminiAPI } from './gemini.ts';
-import { fetchRandomGame } from './rawg.ts';
-import * as db from './db.ts';
+import { callGeminiAPI } from './gemini.js';
+import { fetchRandomGame } from './rawg.js';
+import * as db from './db.js';
 
 /** Returns YYYY-MM-DD for the provided date in UTC. */
 function toUtcDateString(date: Date): string {
@@ -69,7 +69,7 @@ export async function getDailyGame(date: Date = new Date()): Promise<string> {
   // 100 games and pass them as an exclusion list to the game pickers.
   
   const recentGames = await db.getRecentDailyGames(100);
-  const recentGameNames = recentGames.map(g => g.gameName);
+  const recentGameNames = recentGames.map((g: { gameName: string }) => g.gameName);
 
   // Prefer RAWG because it provides real, up-to-date titles.
   // Fallback to Gemini when RAWG is not configured or fails.

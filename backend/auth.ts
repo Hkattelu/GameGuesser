@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-import { createUser, findUserByUsername } from './db.ts';
+import { createUser, findUserByUsername } from './db.js';
 
 export interface JWTPayload {
   id: string; // Firestore doc ID (username)
