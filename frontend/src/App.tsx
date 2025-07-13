@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import ConfettiExplosion from "react-confetti-explosion";
 
 import AuthPage from './AuthPage';
 import AIGuessesGame from './AIGuessesGame';
@@ -160,6 +161,15 @@ function App({
       <p id="game-message" className="text-lg text-gray-600 mb-4">
         {gameMessage}
       </p>
+      {victory && (
+        <ConfettiExplosion
+          force={0.6}
+          duration={2000}
+          particleCount={100}
+          floorheight={1600}
+          floorwidth={1600}
+        />
+      )}
 
       {gameMode === 'ai-guesses' && (
         <AIGuessesGame
