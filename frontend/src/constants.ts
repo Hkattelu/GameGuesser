@@ -1,5 +1,7 @@
 import { ResponseOption } from './types';
 
+export const AI_NAME = 'Quiz Bot';
+
 // Maximum number of questions allowed in a single game of 20Q.
 export const MAX_QUESTIONS = 20;
 

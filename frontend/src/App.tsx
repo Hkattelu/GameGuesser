@@ -8,6 +8,7 @@ import MascotImage from './components/MascotImage';
 
 import { ChatMessage, GameMode } from './types';
 import { MAX_QUESTIONS } from './constants';
+import { getApiUrl } from './env_utils';
 
 interface AuthPayload {
   token: string;
@@ -118,7 +119,7 @@ function App({
 
     const fetchHistory = async () => {
       try {
-        const response = await fetch('http://localhost:8080/conversations/history', {
+        const response = await fetch(`${getApiUrl()}/conversations/history`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

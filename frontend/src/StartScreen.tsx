@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 
 import AuthPage from './AuthPage';
 
+import {AI_NAME} from './constants';
 import './styles/startScreen.css';
 
 interface AuthPayload {
@@ -47,7 +48,6 @@ function StartScreen() {
     }, 500);
   };
 
-  // -------------------------------- Render --------------------------------
   if (!token) {
     return <AuthPage onAuth={handleAuth} />;
   }
@@ -59,7 +59,7 @@ function StartScreen() {
       }`}
     >
       <h1 className="text-5xl sm:text-6xl font-extrabold text-white drop-shadow mb-4">
-        Game Boy's Game Guesser
+        {AI_NAME} 9000's Arcade
       </h1>
 
       <p className="text-white text-lg mb-8">Welcome, {username}! Choose a game mode:</p>
@@ -70,9 +70,9 @@ function StartScreen() {
           onClick={() => handleSelectGame('/ai-guesses')}
           className="game-option-card cursor-pointer bg-white rounded-xl p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
         >
-          <h2 className="text-2xl font-bold mb-2 text-gray-800">Game Boy guesses</h2>
+          <h2 className="text-2xl font-bold mb-2 text-gray-800">{AI_NAME} guesses</h2>
           <p className="text-gray-600 text-sm">
-            Think of any video game and let Game Boy try to guess it by asking you questions.
+            Think of any video game and let {AI_NAME} try to guess it by asking you questions.
           </p>
         </button>
 
@@ -83,7 +83,7 @@ function StartScreen() {
         >
           <h2 className="text-2xl font-bold mb-2 text-gray-800">You guess</h2>
           <p className="text-gray-600 text-sm">
-            Game Boy is thinking of a game — can you figure it out within twenty questions?
+            {AI_NAME} is thinking of a game — can you figure it out within twenty questions?
           </p>
         </button>
       </div>
