@@ -1,7 +1,7 @@
 {
   "name": "game-guessr-backend",
   "version": "1.0.0",
-  "description": "Backend for Game Guesser to proxy Gemini API calls",
+  "description": "Backend for Game Guesser to proxy AI calls",
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
@@ -29,7 +29,10 @@
     "node-fetch": "^3.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "genkit": "^1.11.1",
+    "@genkit-ai/googleai": "^1.11.1",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.27.1",
