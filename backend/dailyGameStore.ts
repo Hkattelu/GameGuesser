@@ -1,5 +1,6 @@
 import { generateStructured } from './ai.js';
 import { fetchRandomGame } from './rawg.js';
+import { SECRET_GAME_PICK_PROMPT } from './prompts.js';
 import * as db from './db.js';
 
 /** Returns YYYY-MM-DD for the provided date in UTC. */
@@ -12,11 +13,7 @@ import { z } from 'zod';
 const secretGameSchema = z.object({ secretGame: z.string() });
 
 async function callAIOnce(exclude: string[]): Promise<string> {
-  const prompt =
-    `Pick a random, well-known video game title.
-     It must not be from one of these: [${exclude.join(',')}]
-     Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.
-    `;
+  const prompt = SECRET_GAME_PICK_PROMPT(exclude);
   const jsonResponse = await generateStructured(secretGameSchema, prompt);
 
   const secretGame = jsonResponse?.secretGame;

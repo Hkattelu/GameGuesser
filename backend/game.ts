@@ -1,5 +1,10 @@
 import { randomUUID } from 'crypto';
 import { generateStructured, ChatMessage } from './ai.js';
+import {
+  PLAYER_QA_CLASSIFICATION_PROMPT,
+  AI_GUESS_INITIAL_PROMPT,
+  AI_GUESS_NEXT_PROMPT,
+} from './prompts.js';
 import { z } from 'zod';
 import { getDailyGame } from './dailyGameStore.js';
 import { fetchGameMetadata, GameMetadata } from './rawgDetails.js';
@@ -123,13 +128,7 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     } as AnswerToGuess;
   }
 
-  const prompt = `The user asked: "${userInput}". The secret game is "${session.secretGame}".
-        Is it a guess or a question? If it's a guess, is it correct?
-        Your response MUST be a JSON object with a 'type' field ('answer' or 'guessResult') and a 'content' field.
-        If it's a question, content should be "Yes", "No", or "I don't know".
-        If it's a guess, content should be an object with 'correct' (true/false) and a 'response' string.
-        If the user guessed correctly, response string should contain only the name of the secret game.
-        If the user guessed incorrectly, response string should contain contain a message telling them they are incorrect. `;
+  const prompt = PLAYER_QA_CLASSIFICATION_PROMPT(userInput, session.secretGame);
 
   const jsonResponse = await generateStructured<PlayerQAResponse>(
     PlayerQAResponseSchema,
@@ -153,13 +152,7 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
  */
 async function startAIGuessesGame() {
   const maxQuestions = MAX_QUESTIONS;
-  const initialPrompt = `You are Bot Boy, a friendly robot playing a "20 Questions" game to guess a video game the user is thinking of.
-        You will ask yes/no questions. If you are very confident, you can make a guess.
-        You have ${maxQuestions} questions in total. This is question 1.
-        Your response MUST be a JSON object with a 'type' field ("question" or "guess") and a 'content' field (the question text or the game guess).
-        Example: {"type": "question", "content": "Is your game an RPG?"}
-        Example: {"type": "guess", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
-        Start by asking your first question.`;
+  const initialPrompt = AI_GUESS_INITIAL_PROMPT(maxQuestions);
 
   const chatHistory: ChatMessage[] = [];
   const jsonResponse = await generateStructured<AIJsonResponse>(
@@ -211,11 +204,8 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
     throw new Error('Invalid session type for AI answer handler.');
   }
 
-  const nextTurnPrompt = `The user just answered "${userAnswer}". You have ${
-    session.maxQuestions - session.questionCount
-  } questions left.
-        Based on this, ask your next yes/no question or make a guess if you are confident.
-        Remember, your response MUST be a JSON object with 'type' and 'content'.`;
+  const questionsLeft = session.maxQuestions - session.questionCount;
+  const nextTurnPrompt = AI_GUESS_NEXT_PROMPT(userAnswer, questionsLeft);
 
   const jsonResponse = await generateStructured<AIJsonResponse>(
     AIJsonResponseSchema,
