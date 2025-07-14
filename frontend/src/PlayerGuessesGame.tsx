@@ -227,7 +227,7 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} />
+      <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
 
       {started && (
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 mb-4">

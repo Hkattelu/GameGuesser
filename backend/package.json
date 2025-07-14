@@ -24,6 +24,7 @@
     "@types/node": "^20.10.7",
     "bcryptjs": "^2.4.3",
     "express": "^4.18.2",
+    "cors": "^2.8.5",
     "jsonwebtoken": "^9.0.2",
     "node-fetch": "^3.3.0",
     "ts-node": "^10.9.2",
