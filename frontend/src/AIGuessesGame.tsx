@@ -1,5 +1,4 @@
 import ResponseButtons from './components/ResponseButtons';
-import LoadingIndicator from './components/LoadingIndicator';
 import ConversationHistory from './components/ConversationHistory';
 import { ChatMessage, GameMode } from './types';
 import { getApiUrl } from './env_utils';
@@ -164,7 +163,7 @@ function AIGuessesGame({
   return (
     <div id="ai-guesses-game">
       {/* Conversation History */}
-      <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} />
+      <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
 
       {/* AI's Question Display */}
       {started && (
@@ -174,8 +173,7 @@ function AIGuessesGame({
         </div>
       )}
 
-      {/* Loading Indicator */}
-      {loading && <LoadingIndicator />}
+      {/* Loading indicator is now embedded inside ConversationHistory */}
 
       {/* User Response Buttons */}
       {started && !loading && (
