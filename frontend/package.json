@@ -19,6 +19,7 @@
     "react-confetti-explosion": "^3.0.3",
     "react-dom": "^18.2.0",
     "react-router": "^7.6.3",
+    "ai": "^4.3.17",
     "tailwindcss": "^4.1.11",
     "vite": "^7.0.2"
   },

@@ -1,18 +1,18 @@
 import { randomUUID } from 'crypto';
 import { callGeminiAPI } from './gemini.js';
-import type { ChatMessage } from './gemini.js';
+import type { GenKitMessage } from './gemini.js';
 import { getDailyGame } from './dailyGameStore.js';
 import { fetchGameMetadata, GameMetadata } from './rawgDetails.js';
 
 // In-memory store for game sessions – keyed by UUID
 export interface PlayerGuessSession {
   secretGame: string;
-  chatHistory: ChatMessage[];
+  chatHistory: GenKitMessage[];
   questionCount: number;
 }
 
 interface AIGuessSession {
-  chatHistory: ChatMessage[];
+  chatHistory: GenKitMessage[];
   questionCount: number;
   maxQuestions: number;
 }
@@ -62,11 +62,7 @@ async function startPlayerGuessesGame() {
     chatHistory: [
       {
         role: 'user',
-        parts: [
-          {
-            text: `The secret game is ${secretGame}. The user will now ask questions.`,
-          },
-        ],
+        content: `The secret game is ${secretGame}. The user will now ask questions.`,
       },
     ],
     questionCount: 0,
@@ -116,8 +112,8 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     session.chatHistory,
   );
   session.chatHistory.push({
-    role: 'model',
-    parts: [{ text: JSON.stringify(jsonResponse) }],
+    role: 'assistant',
+    content: JSON.stringify(jsonResponse),
   });
 
   return jsonResponse;
@@ -140,14 +136,14 @@ async function startAIGuessesGame() {
         Example: {"type": "guess", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
         Start by asking your first question.`;
 
-  const chatHistory: ChatMessage[] = [];
+  const chatHistory: GenKitMessage[] = [];
   const jsonResponse = await callGeminiAPI<AIJsonResponse>(
     initialPrompt,
     chatHistory,
   );
   chatHistory.push({
-    role: 'model',
-    parts: [{ text: JSON.stringify(jsonResponse) }],
+    role: 'assistant',
+    content: JSON.stringify(jsonResponse),
   });
 
   const sessionId = randomUUID();
@@ -182,7 +178,7 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
 
   session.chatHistory.push({
     role: 'user',
-    parts: [{ text: `User answered "${userAnswer}".` }],
+    content: `User answered "${userAnswer}".`,
   });
 
   if (!('maxQuestions' in session)) {
@@ -200,8 +196,8 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
     session.chatHistory,
   );
   session.chatHistory.push({
-    role: 'model',
-    parts: [{ text: JSON.stringify(jsonResponse) }],
+    role: 'assistant',
+    content: JSON.stringify(jsonResponse),
   });
 
   if (jsonResponse.type === 'question') {
