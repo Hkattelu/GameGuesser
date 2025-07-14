@@ -5,25 +5,15 @@ import LoadingIndicator from './LoadingIndicator';
 export interface ConversationHistoryProps {
   chatHistory: ChatMessage[];
   gameMode: GameMode;
-  /**
-   * Indicates the parent component is currently fetching data that will
-   * result in additional entries being appended to the chat history. While
-   * true, the message list is replaced with a visual loading indicator so the
-   * user understands that work is in progress.
-   */
+  // When true, show a spinner instead of the message list while new history
+  // is being fetched.
   loading: boolean;
 }
 
 const AI_NAME = 'Quiz Bot';
 
-/**
-* Renders the chronological list of chat messages exchanged between the user
-* and the AI model. The component also handles two UX enhancements:
-*
-* 1. Automatic scroll-to-bottom behaviour whenever a new message arrives.
-* 2. A built-in loading state that shows a spinner centred within the
-*    container while a request is in-flight.
-*/
+// Renders chat history and shows a centered spinner while `loading` is true.
+// Also auto-scrolls to the newest message whenever history changes.
 function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHistoryProps) {
   const historyEndRef = useRef<HTMLDivElement | null>(null);
 
