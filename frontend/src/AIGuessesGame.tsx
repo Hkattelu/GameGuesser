@@ -1,5 +1,4 @@
 import ResponseButtons from './components/ResponseButtons';
-import LoadingIndicator from './components/LoadingIndicator';
 import ConversationHistory from './components/ConversationHistory';
 import { ChatMessage, GameMode } from './types';
 import { getApiUrl } from './env_utils';
@@ -24,6 +23,8 @@ export interface AIGuessesGameProps {
   setGameMessage: React.Dispatch<React.SetStateAction<string>>;
   setAiQuestion: React.Dispatch<React.SetStateAction<string>>;
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
+  // Optional JWT token for authenticated API requests
+  token?: string | null;
 }
 
 function AIGuessesGame({
@@ -164,7 +165,7 @@ function AIGuessesGame({
   return (
     <div id="ai-guesses-game">
       {/* Conversation History */}
-      <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} />
+      <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
 
       {/* AI's Question Display */}
       {started && (
@@ -173,9 +174,6 @@ function AIGuessesGame({
           <p id="ai-question" className="text-2xl font-bold text-blue-700 bg-blue-50 p-4 rounded-lg shadow-inner mb-6"></p>
         </div>
       )}
-
-      {/* Loading Indicator */}
-      {loading && <LoadingIndicator />}
 
       {/* User Response Buttons */}
       {started && !loading && (
