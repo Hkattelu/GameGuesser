@@ -1,12 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import {AI_NAME} from '../constants';
 import { ChatMessage, GameMode } from '../types';
 
 export interface ConversationHistoryProps {
   chatHistory: ChatMessage[];
   gameMode: GameMode;
 }
-
-const AI_NAME = 'Quiz Bot';
 
 function ConversationHistory({ chatHistory, gameMode }: ConversationHistoryProps) {
   const historyEndRef = useRef<HTMLDivElement | null>(null);

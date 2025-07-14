@@ -78,10 +78,6 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-// ---------------------------------------------------------------------------
-// /auth/register -------------------------------------------------------------
-// ---------------------------------------------------------------------------
-
 describe('POST /auth/register', () => {
   it('returns token on success', async () => {
     registerMock.mockResolvedValue('fake-token');
@@ -111,10 +107,6 @@ describe('POST /auth/register', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// /auth/login ----------------------------------------------------------------
-// ---------------------------------------------------------------------------
-
 describe('POST /auth/login', () => {
   it('returns token on success', async () => {
     loginMock.mockResolvedValue('login-token');
@@ -141,10 +133,6 @@ describe('POST /auth/login', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// /conversations/history -----------------------------------------------------
-// ---------------------------------------------------------------------------
-
 describe('GET /conversations/history', () => {
   it('returns conversation history for authenticated user', async () => {
     const history = [
@@ -165,10 +153,6 @@ describe('GET /conversations/history', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// /player-guesses/start ------------------------------------------------------
-// ---------------------------------------------------------------------------
-
 describe('POST /player-guesses/start', () => {
   it('creates a new player session', async () => {
     startPlayerGuessesGameMock.mockResolvedValue({ sessionId: 'pg1' });
@@ -185,10 +169,6 @@ describe('POST /player-guesses/start', () => {
     await request.post('/player-guesses/start').expect(500);
   });
 });
-
-// ---------------------------------------------------------------------------
-// /player-guesses/question ---------------------------------------------------
-// ---------------------------------------------------------------------------
 
 describe('POST /player-guesses/question', () => {
   const payload = { sessionId: 'pg1', userInput: 'Is it an RPG?' };
@@ -221,10 +201,6 @@ describe('POST /player-guesses/question', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// /ai-guesses/start ----------------------------------------------------------
-// ---------------------------------------------------------------------------
-
 describe('POST /ai-guesses/start', () => {
   const aiStartResponse = {
     sessionId: 'ai1',
@@ -246,10 +222,6 @@ describe('POST /ai-guesses/start', () => {
     await request.post('/ai-guesses/start').expect(500);
   });
 });
-
-// ---------------------------------------------------------------------------
-// /ai-guesses/answer ---------------------------------------------------------
-// ---------------------------------------------------------------------------
 
 describe('POST /ai-guesses/answer', () => {
   const payload = { sessionId: 'ai1', userAnswer: 'Yes' };
