@@ -28,7 +28,10 @@ let capturedPrompt: string | undefined;
 const aiResponse = {
   type: 'answer',
   questionCount: 1,
-  content: 'No - It doesn\'t have a direct sequel or prequel, but it is branded as part of a series.',
+  content: {
+    answer: 'No',
+    clarification: "It doesn't have a direct sequel or prequel, but it is branded as part of a series.",
+  },
 };
 const generateStructuredMock = jest.fn(async (_schema: unknown, prompt: string) => {
   capturedPrompt = prompt;
@@ -73,7 +76,7 @@ describe('Player-Guesses – prompt-based clarification', () => {
 
     // Prompt should contain the instruction about appending a clarification.
     expect(capturedPrompt).toBeDefined();
-    expect(capturedPrompt!).toMatch(/short, spoiler-free clarification/i);
+    expect(capturedPrompt!).toMatch(/content\.clarification/i);
 
     // RAWG metadata is not required for clarification anymore – ensure we do
     // not hit RAWG in this flow.

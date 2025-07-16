@@ -135,16 +135,32 @@ function PlayerGuessesGame({
       setQuestionCount(newQuestionCount);
 
       if (type === 'question' || type === 'answer') {
-        setModelResponseText(content);
-        setHighlightedResponse(content);
+        // For the new schema, `content` is an object. For backward compatibility,
+        // fall back to treating it as a plain string.
+        let answerText = '';
+        let answerLiteral: string = '';
+
+        if (typeof content === 'string') {
+          answerText = content;
+          answerLiteral = content;
+        } else if (content && typeof content === 'object') {
+          answerLiteral = (content as any).answer;
+          answerText = (content as any).answer + ((content as any).clarification ? ` - ${(content as any).clarification}` : '');
+        }
+
+        // Map "I don't know" -> "Unsure" to match button label.
+        const normalizedHighlight = answerLiteral === "I don't know" ? 'Unsure' : answerLiteral;
+
+        setModelResponseText(answerText);
+        setHighlightedResponse(normalizedHighlight);
         setChatHistory((prevHistory) => [
           ...prevHistory,
-          { role: "model", parts: [{ text: content }] },
+          { role: "model", parts: [{ text: answerText }] },
         ]);
         setSuggestions(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
 
         if (newQuestionCount >= maxQuestions) {
-          endGame(`You're out of questions! The game was ${content}.`, false); // Backend will provide the game title in the final answer
+          endGame(`You're out of questions! The game was ${answerText}.`, false); // Backend will provide the game title in the final answer
         }
       } else if (type === 'guessResult') {
         if (content.correct) {
