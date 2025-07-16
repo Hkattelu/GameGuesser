@@ -23,25 +23,10 @@ Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.`;
 export const PLAYER_QA_CLASSIFICATION_PROMPT = (
   userInput: string,
   secretGame: string,
-  metadata?: {
-    hasDirectSequel?: boolean;
-    hasDirectPrequel?: boolean;
-    isBrandedInSeries?: boolean;
-  },
 ): string => {
-  // Serialize metadata so the model can reason about it in the prompt.
-  const mdLines: string[] = [];
-  if (metadata) {
-    mdLines.push('The game metadata is as follows:');
-    mdLines.push(`- hasDirectSequel: ${Boolean(metadata.hasDirectSequel)}`);
-    mdLines.push(`- hasDirectPrequel: ${Boolean(metadata.hasDirectPrequel)}`);
-    mdLines.push(`- isBrandedInSeries: ${Boolean(metadata.isBrandedInSeries)}`);
-  }
-
   return `You are Bot Boy, an assistant helping the user guess a secret video game.\n
 The user asked: "${userInput}". The secret game is "${secretGame}".\n
-${mdLines.join('\n')}\n
-Task:\n1. Determine if the user's input is a *question* about the secret game or an explicit *guess* of the game's title.\n2. Reply with a JSON object. The JSON MUST match exactly one of these two shapes (no additional keys):\n   - {\n       "type": "answer",\n       "questionCount": <number>,\n       "content": "<string>"\n     }\n   - {\n       "type": "guessResult",\n       "questionCount": <number>,\n       "content": { "correct": <boolean>, "response": "<string>" }\n     }\n\nWhen replying to *questions*:\n- Use only "Yes", "No", or "I don't know" for simple facts.\n- If the question concerns *series / franchise relationships* (e.g. contains words like "series", "franchise", "sequel", "prequel"), append a short, spoiler-free clarification after the yes/no when the metadata indicates nuance.\n  • Example clarifications:\n    - "It has a direct sequel."\n    - "It doesn't have a sequel or prequel, but it is branded as part of a series."\n    - "It is a standalone game."\n- Format such answers as: "<Yes|No|I don't know> - <clarification>".\n\nWhen replying to *guesses*:\n- Evaluate whether the guessed title exactly matches the secret game.\n- Set "correct" accordingly.\n- If correct, set the "response" string to just the game title.\n- If incorrect, politely tell the user they are wrong without revealing the secret game.\n`;
+Task:\n1. Determine if the user's input is a *question* about the secret game or an explicit *guess* of the game's title.\n2. Reply with a JSON object. The JSON MUST match exactly one of these two shapes (no additional keys):\n   - {\n       "type": "answer",\n       "questionCount": <number>,\n       "content": "<string>"\n     }\n   - {\n       "type": "guessResult",\n       "questionCount": <number>,\n       "content": { "correct": <boolean>, "response": "<string>" }\n     }\n\nWhen replying to *questions*:\n- Use only "Yes", "No", or "I don't know" for simple facts.\n- If the yes/no hides important nuance (for example, multiple games with the same name or series/franchise relationships), append a short, spoiler-free clarification after the yes/no.\n  • Example clarifications:\n    - "It has a direct sequel."\n    - "It is part of a larger franchise even though it has no numbered sequel."\n    - "It is a standalone game."\n- Format such answers as: "<Yes|No|I don't know> - <clarification>".\n\nWhen replying to *guesses*:\n- Evaluate whether the guessed title exactly matches the secret game.\n- Set "correct" accordingly.\n- If correct, set the "response" string to just the game title.\n- If incorrect, politely tell the user they are wrong without revealing the secret game.\n`;
 };
 
 /**

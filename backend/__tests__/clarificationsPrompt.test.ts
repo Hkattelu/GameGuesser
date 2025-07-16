@@ -11,20 +11,16 @@ jest.unstable_mockModule('../dailyGameStore.js', () => ({
   getDailyGame: getDailyGameMock,
 }));
 
-// 2. RAWG metadata fetcher – enriched franchise flags
+// 2. RAWG metadata fetcher – basic metadata only (no series flags)
 const mockMetadata = {
   developer: 'ZeniMax Online Studios',
   publisher: 'Bethesda Softworks',
   releaseYear: 2014,
-  hasDirectSequel: false,
-  hasDirectPrequel: false,
-  isBrandedInSeries: true,
 };
 const fetchGameMetadataMock = jest.fn(async () => mockMetadata);
 jest.unstable_mockModule('../rawgDetails.js', () => ({
   __esModule: true,
   fetchGameMetadata: fetchGameMetadataMock,
-  GameMetadata: {},
 }));
 
 // 3. AI generation – we capture the prompt and return a synthetic answer
@@ -63,7 +59,7 @@ beforeEach(async () => {
 // ---------------------------------------------------------------------------
 
 describe('Player-Guesses – prompt-based clarification', () => {
-  it('passes metadata in the prompt and relies on the model for clarifications', async () => {
+  it('includes clarification instructions in the prompt and relies on the model', async () => {
     const { sessionId } = await startPlayerGuessesGame();
 
     const question = 'Is the game part of a series?';
@@ -75,15 +71,12 @@ describe('Player-Guesses – prompt-based clarification', () => {
     // The AI helper should have been called once.
     expect(generateStructuredMock).toHaveBeenCalledTimes(1);
 
-    // Prompt should include the metadata flags so the model can clarify.
-    expect(capturedPrompt).toBeDefined();
-    expect(capturedPrompt!).toContain('hasDirectSequel: false');
-    expect(capturedPrompt!).toContain('isBrandedInSeries: true');
-
     // Prompt should contain the instruction about appending a clarification.
-    expect(capturedPrompt!).toMatch(/append a short, spoiler-free clarification/i);
+    expect(capturedPrompt).toBeDefined();
+    expect(capturedPrompt!).toMatch(/short, spoiler-free clarification/i);
 
-    // RAWG metadata must have been fetched exactly once.
-    expect(fetchGameMetadataMock).toHaveBeenCalledWith('Elder Scrolls Online');
+    // RAWG metadata is not required for clarification anymore – ensure we do
+    // not hit RAWG in this flow.
+    expect(fetchGameMetadataMock).not.toHaveBeenCalled();
   });
 });

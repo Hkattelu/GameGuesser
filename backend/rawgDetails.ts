@@ -30,28 +30,6 @@ export interface GameMetadata {
   developer?: string;
   publisher?: string;
   releaseYear?: number;
-
-  /**
-   * True if the game has at least one officially released title that is a
-   * direct narrative sequel (chronologically *after* this game).
-   *
-   * The value is best-effort – when RAWG returns any game in the same series
-   * with a later release date, we treat that as a sequel.
-   */
-  hasDirectSequel?: boolean;
-
-  /**
-   * True if the game has at least one officially released title that is a
-   * direct narrative prequel (chronologically *before* this game).
-   */
-  hasDirectPrequel?: boolean;
-
-  /**
-   * True if the game is marketed/labelled as belonging to a broader franchise
-   * (for example, **Elder Scrolls Online** is part of *The Elder Scrolls*
-   * series even though it lacks a numbered sequel or prequel).
-   */
-  isBrandedInSeries?: boolean;
 }
 
 /**
@@ -96,55 +74,19 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
     const released: string | undefined = detailJson?.released;
     const releaseYear = released ? Number(released.split('-')[0]) : undefined;
 
-    // ---------------------------------------------------------------
-    // Extra franchise / sequel / prequel detection
-    // ---------------------------------------------------------------
-
-    let hasDirectSequel: boolean | undefined;
-    let hasDirectPrequel: boolean | undefined;
-    let isBrandedInSeries: boolean | undefined;
-
-    try {
-      // RAWG exposes a dedicated "game-series" sub-resource that returns all
-      // titles belonging to the same franchise. We use it to approximate
-      // sequel/prequel information and franchise branding.
-
-      const seriesUrl = new URL(`https://api.rawg.io/api/games/${first.id}/game-series`);
-      seriesUrl.searchParams.set('key', apiKey);
-      seriesUrl.searchParams.set('page_size', '40'); // max allowed
-
-      const seriesRes = await fetch(seriesUrl);
-      if (seriesRes.ok) {
-        interface SeriesResp { results: Array<{ released: string | null }>; }
-        const seriesJson = (await seriesRes.json()) as SeriesResp;
-
-        const seriesGames = seriesJson?.results ?? [];
-        isBrandedInSeries = seriesGames.length > 0;
-
-        if (releaseYear && seriesGames.length) {
-          for (const g of seriesGames) {
-            if (!g.released) continue;
-            const yr = Number(g.released.split('-')[0]);
-            if (Number.isNaN(yr)) continue;
-            if (yr > releaseYear) hasDirectSequel = true;
-            if (yr < releaseYear) hasDirectPrequel = true;
-          }
-        }
-      }
-    } catch {
-      // Non-fatal – leave the fields undefined when RAWG refuses the request.
-    }
-
     return {
       developer,
       publisher,
       releaseYear: Number.isNaN(releaseYear) ? undefined : releaseYear,
-      hasDirectSequel,
-      hasDirectPrequel,
-      isBrandedInSeries,
     };
-  } catch {
-    // Network issues or parsing errors – return empty so caller can fall back.
+  } catch (err) {
+    // Network issues or parsing errors – log a warning so we have visibility
+    // in staging/production without crashing the request handler.
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn('[rawgDetails] Failed to fetch metadata:', err);
+    }
+
+    // Return empty so callers can gracefully handle missing data.
     return {};
   }
 }

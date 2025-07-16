@@ -130,24 +130,13 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
   }
 
   // ---------------------------------------------------------------
-  // Build the prompt giving the model direct access to metadata so it can
-  // decide when a clarification is necessary.
+  // Build the prompt. The model itself decides if the answer needs a
+  // spoiler-free clarification – no fragile regex or extra metadata needed.
   // ---------------------------------------------------------------
-
-  let metadata = metadataCache.get(session.secretGame);
-  if (!metadata) {
-    metadata = await fetchGameMetadata(session.secretGame);
-    metadataCache.set(session.secretGame, metadata);
-  }
 
   const prompt = PLAYER_QA_CLASSIFICATION_PROMPT(
     userInput,
     session.secretGame,
-    {
-      hasDirectSequel: metadata?.hasDirectSequel,
-      hasDirectPrequel: metadata?.hasDirectPrequel,
-      isBrandedInSeries: metadata?.isBrandedInSeries,
-    },
   );
 
   const jsonResponse = await generateStructured<PlayerQAResponse>(
@@ -157,7 +146,7 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
   );
   session.chatHistory.push({
     role: 'model',
-    content: JSON.stringify(jsonResponse),
+    content: jsonResponse,
   });
 
   return jsonResponse;
@@ -182,7 +171,7 @@ async function startAIGuessesGame() {
   );
   chatHistory.push({
     role: 'model',
-    content: JSON.stringify(jsonResponse),
+    content: jsonResponse,
   });
 
   const sessionId = randomUUID();
@@ -234,7 +223,7 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
   );
   session.chatHistory.push({
     role: 'model',
-    content: JSON.stringify(jsonResponse),
+    content: jsonResponse,
   });
 
   if (jsonResponse.type === 'question') {
