@@ -128,6 +128,49 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     } as AnswerToGuess;
   }
 
+  // ---------------------------------------------------------------
+  // Nuanced clarification for yes/no questions about series/franchise.
+  // ---------------------------------------------------------------
+  const seriesRegex = /\b(series|franchise|sequel|prequel)\b/i;
+  if (seriesRegex.test(userInput)) {
+    let metadata = metadataCache.get(session.secretGame);
+    if (!metadata) {
+      metadata = await fetchGameMetadata(session.secretGame);
+      metadataCache.set(session.secretGame, metadata);
+    }
+
+    const hasSeq = Boolean(metadata.hasDirectSequel);
+    const hasPre = Boolean(metadata.hasDirectPrequel);
+    const branded = Boolean(metadata.isBrandedInSeries);
+
+    let yesNo: 'Yes' | 'No' = 'No';
+    let clarification: string;
+
+    if (hasSeq || hasPre) {
+      yesNo = 'Yes';
+      const parts: string[] = [];
+      if (hasPre) parts.push('a direct prequel');
+      if (hasSeq) parts.push('a direct sequel');
+      clarification = `It has ${parts.join(' and ')}.`;
+    } else if (branded) {
+      clarification = "It doesn't have a direct sequel or prequel, but it is branded as part of a series.";
+    } else {
+      clarification = 'It is a standalone game.';
+    }
+
+    // Persist answer to chat history for continuity.
+    session.chatHistory.push({
+      role: 'model',
+      content: JSON.stringify({ type: 'answer', content: `${yesNo} - ${clarification}` }),
+    });
+
+    return {
+      type: 'answer',
+      questionCount: session.questionCount,
+      content: `${yesNo} - ${clarification}`,
+    } satisfies AnswerToQuestion;
+  }
+
   const prompt = PLAYER_QA_CLASSIFICATION_PROMPT(userInput, session.secretGame);
 
   const jsonResponse = await generateStructured<PlayerQAResponse>(
