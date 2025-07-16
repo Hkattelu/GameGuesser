@@ -12,6 +12,15 @@ export const firestore = new Firestore({
   keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 });
 
+/**
+* Returns the singleton Firestore instance used by the application. Having a
+* typed accessor allows test suites to obtain the *mocked* instance without
+* resorting to double `as unknown as` casts.
+*/
+export function getFirestoreInstance(): Firestore {
+  return firestore;
+}
+
 const usersCol = firestore.collection('users');
 const conversationsCol = firestore.collection('conversations');
 const dailyGamesCol = firestore.collection('dailyGames');
