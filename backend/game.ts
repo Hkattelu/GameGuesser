@@ -9,6 +9,9 @@ import { z } from 'zod';
 import { getDailyGame } from './dailyGameStore.js';
 import { fetchGameMetadata, GameMetadata } from './rawgDetails.js';
 
+// Clarification helpers ------------------------------------------------------
+import { getClarification } from './clarifications.js';
+
 // In-memory store for game sessions – keyed by UUID
 export interface PlayerGuessSession {
   secretGame: string;
@@ -112,6 +115,31 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
   }
 
   session.questionCount++;
+
+  // -----------------------------------------------------------------------
+  // Clarification step – intercept certain yes/no questions that require a
+  // nuanced answer (e.g. series affiliation) *before* we ask the large model.
+  // -----------------------------------------------------------------------
+
+  if ('secretGame' in session) {
+    const clarification = getClarification(session.secretGame, userInput);
+    if (clarification) {
+      const response: AnswerToQuestion = {
+        type: 'answer',
+        questionCount: session.questionCount,
+        content: clarification,
+      };
+
+      // Persist the clarification in chat history so downstream consumers such
+      // as the conversation UI can display it.
+      session.chatHistory.push({
+        role: 'model',
+        content: clarification,
+      });
+
+      return response;
+    }
+  }
 
   if (!('secretGame' in session)) {
     throw new Error('Invalid session type for player question handler.');
