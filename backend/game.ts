@@ -191,9 +191,9 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
 
   const nextTurnPrompt = `The user just answered "${userAnswer}". You have ${
     session.maxQuestions - session.questionCount
-  } questions left.
+  } questions left. Remember that they must be thinking of a video game.
         Based on this, ask your next yes/no question or make a guess if you are confident.
-        Remember, your response MUST be a JSON object with 'type' and 'content'.`;
+        Your response MUST be a JSON object with 'type' and 'content'.`;
 
   const jsonResponse = await callGeminiAPI<AIJsonResponse>(
     nextTurnPrompt,

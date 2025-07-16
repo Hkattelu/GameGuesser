@@ -5,6 +5,7 @@ frontend/coverage
 frontend/coverage/*
 frontend/dist
 frontend/dist/*
+frontend/pnpm-lock.yaml
 frontend/pglite-debug.log
 
 # Firebase
@@ -24,6 +25,7 @@ backend/coverage
 backend/coverage/*
 backend/.env.development
 backend/.env.production
+backend/pnpm-lock.yaml
 
 # Daily Game persistence file
 backend/daily-games.json
