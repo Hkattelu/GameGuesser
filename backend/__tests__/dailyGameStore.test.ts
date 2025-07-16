@@ -4,7 +4,7 @@ import { jest, beforeEach, describe, it, expect } from '@jest/globals';
 // `jest.unstable_mockModule` because `dailyGameStore.ts` is ESM.
 
 const fetchRandomGameMock = jest.fn();
-const callGeminiMock = jest.fn();
+const generateStructuredMock = jest.fn();
 const getDailyGameDbMock = jest.fn();
 const saveDailyGameDbMock = jest.fn();
 const getRecentDailyGamesDbMock = jest.fn();
@@ -14,9 +14,10 @@ jest.unstable_mockModule('../rawg.js', () => ({
   fetchRandomGame: fetchRandomGameMock,
 }));
 
-jest.unstable_mockModule('../gemini.js', () => ({
+
+jest.unstable_mockModule('../ai.js', () => ({
   __esModule: true,
-  callGeminiAPI: callGeminiMock,
+  generateStructured: generateStructuredMock,
 }));
 
 jest.unstable_mockModule('../db.js', () => ({
@@ -46,7 +47,7 @@ describe('dailyGameStore', () => {
 
     expect(result).toBe('Stored Game');
     expect(fetchRandomGameMock).not.toHaveBeenCalled();
-    expect(callGeminiMock).not.toHaveBeenCalled();
+    expect(generateStructuredMock).not.toHaveBeenCalled();
     expect(saveDailyGameDbMock).not.toHaveBeenCalled();
   });
 
@@ -60,7 +61,7 @@ describe('dailyGameStore', () => {
 
     expect(result).toBe('RAWG Hit');
     expect(fetchRandomGameMock).toHaveBeenCalledTimes(1);
-    expect(callGeminiMock).not.toHaveBeenCalled();
+    expect(generateStructuredMock).not.toHaveBeenCalled();
     expect(saveDailyGameDbMock).toHaveBeenCalledWith(dateKey, 'RAWG Hit');
   });
 
@@ -69,13 +70,13 @@ describe('dailyGameStore', () => {
     getRecentDailyGamesDbMock.mockResolvedValue([]);
 
     fetchRandomGameMock.mockRejectedValue(new Error('RAWG down'));
-    callGeminiMock.mockResolvedValue({ secretGame: 'Gemini Game' });
+    generateStructuredMock.mockResolvedValue({ secretGame: 'Gemini Game' });
 
     const result = await getDailyGame(date);
 
     expect(result).toBe('Gemini Game');
     expect(fetchRandomGameMock).toHaveBeenCalled();
-    expect(callGeminiMock).toHaveBeenCalled();
+    expect(generateStructuredMock).toHaveBeenCalled();
     expect(saveDailyGameDbMock).toHaveBeenCalledWith(dateKey, 'Gemini Game');
   });
 });
