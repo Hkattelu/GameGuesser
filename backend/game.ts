@@ -1,13 +1,14 @@
 import { randomUUID } from 'crypto';
 import { generateStructured, ChatMessage } from './ai.js';
 import {
-  PLAYER_QA_CLASSIFICATION_PROMPT,
+  PLAYER_QA_WITH_CLASSIFICATION_PROMPT,
   AI_GUESS_INITIAL_PROMPT,
   AI_GUESS_NEXT_PROMPT,
 } from './prompts.js';
 import { z } from 'zod';
 import { getDailyGame } from './dailyGameStore.js';
-import { fetchGameMetadata, GameMetadata } from './rawgDetails.js';
+import { fetchGameMetadata } from './rawgDetails.js';
+import type { GameMetadata } from './rawgDetails.js';
 
 // In-memory store for game sessions – keyed by UUID
 export interface PlayerGuessSession {
@@ -30,10 +31,26 @@ interface HintResponse {
   hintType: HintType
 }
 
+
+// -------------------------- Response content shapes --------------------------
+
+interface YesNoClarification {
+  /**
+   * The direct yes/no/unsure answer. Must be exactly one of the three literal
+   * strings so the frontend can reliably highlight the corresponding button.
+   */
+  answer: 'Yes' | 'No' | "I don't know";
+  /**
+   * Optional, spoiler-free extra context when a plain yes/no hides important
+   * nuance (e.g. "It is part of a franchise but has no numbered sequel").
+   */
+  clarification?: string;
+}
+
 interface AnswerToQuestion {
   type: 'answer';
   questionCount: number;
-  content: string;
+  content: YesNoClarification;
 }
 
 interface AnswerToGuess {
@@ -48,10 +65,19 @@ type AIJsonResponse = { type: 'question' | 'guess'; content: string };
 
 // -------------------------- Zod Schemas --------------------------
 
+const YesNoClarificationSchema = z.object({
+  answer: z.union([
+    z.literal('Yes'),
+    z.literal('No'),
+    z.literal("I don't know"),
+  ]),
+  clarification: z.string().optional(),
+});
+
 const AnswerToQuestionSchema = z.object({
   type: z.literal('answer'),
   questionCount: z.number(),
-  content: z.string(),
+  content: YesNoClarificationSchema,
 });
 
 const AnswerToGuessSchema = z.object({
@@ -128,7 +154,15 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     } as AnswerToGuess;
   }
 
-  const prompt = PLAYER_QA_CLASSIFICATION_PROMPT(userInput, session.secretGame);
+  // ---------------------------------------------------------------
+  // Build the prompt. The model itself decides if the answer needs a
+  // spoiler-free clarification – no fragile regex or extra metadata needed.
+  // ---------------------------------------------------------------
+
+  const prompt = PLAYER_QA_WITH_CLASSIFICATION_PROMPT(
+    userInput,
+    session.secretGame,
+  );
 
   const jsonResponse = await generateStructured<PlayerQAResponse>(
     PlayerQAResponseSchema,
@@ -137,7 +171,7 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
   );
   session.chatHistory.push({
     role: 'model',
-    content: JSON.stringify(jsonResponse),
+    content: jsonResponse,
   });
 
   return jsonResponse;
@@ -162,7 +196,7 @@ async function startAIGuessesGame() {
   );
   chatHistory.push({
     role: 'model',
-    content: JSON.stringify(jsonResponse),
+    content: jsonResponse,
   });
 
   const sessionId = randomUUID();
@@ -214,7 +248,7 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
   );
   session.chatHistory.push({
     role: 'model',
-    content: JSON.stringify(jsonResponse),
+    content: jsonResponse,
   });
 
   if (jsonResponse.type === 'question') {

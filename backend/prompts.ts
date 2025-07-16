@@ -23,14 +23,23 @@ Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.`;
 export const PLAYER_QA_CLASSIFICATION_PROMPT = (
   userInput: string,
   secretGame: string,
-): string =>
-  `The user asked: "${userInput}". The secret game is "${secretGame}".
-Is it a guess or a question? If it's a guess, is it correct?
-Your response MUST be a JSON object with a 'type' field ('answer' or 'guessResult') and a 'content' field.
-If it's a question, content should be "Yes", "No", or "I don't know".
-If it's a guess, content should be an object with 'correct' (true/false) and a 'response' string.
-If the user guessed correctly, the response string should contain only the name of the secret game.
-If the user guessed incorrectly, the response string should contain a message telling them they are incorrect.`;
+): string => {
+  return `You are Bot Boy, an assistant helping the user guess a secret video game.\n
+The user asked: "${userInput}". The secret game is "${secretGame}".\n
+Task:\n1. Determine if the user's input is a *question* about the secret game or an explicit *guess* of the game's title.\n2. Reply with a JSON object. The JSON MUST match exactly one of these two shapes (no additional keys):\n   - {\n       "type": "answer",\n       "questionCount": <number>,\n       "content": "<string>"\n     }\n   - {\n       "type": "guessResult",\n       "questionCount": <number>,\n       "content": { "correct": <boolean>, "response": "<string>" }\n     }\n\nWhen replying to *questions*:\n- Use only "Yes", "No", or "I don't know" for simple facts.\n- If the yes/no hides important nuance (for example, multiple games with the same name or series/franchise relationships), append a short, spoiler-free clarification after the yes/no.\n  • Example clarifications:\n    - "It has a direct sequel."\n    - "It is part of a larger franchise even though it has no numbered sequel."\n    - "It is a standalone game."\n- Format such answers as: "<Yes|No|I don't know> - <clarification>".\n\nWhen replying to *guesses*:\n- Evaluate whether the guessed title exactly matches the secret game.\n- Set "correct" accordingly.\n- If correct, set the "response" string to just the game title.\n- If incorrect, politely tell the user they are wrong without revealing the secret game.\n`;
+};
+
+/**
+* Updated prompt version that aligns with the separated answer / clarification
+* object. Kept alongside the original `PLAYER_QA_CLASSIFICATION_PROMPT` for a
+* smoother migration – all new call-sites should prefer this constant.
+*/
+export const PLAYER_QA_WITH_CLASSIFICATION_PROMPT = (
+  userInput: string,
+  secretGame: string,
+): string => {
+  return `You are Bot Boy, an assistant helping the user guess a secret video game.\n\nThe user asked: "${userInput}". The secret game is "${secretGame}".\n\nTask:\n1. Classify the user's input as either:\n   • a *question* about the secret game, or\n   • a *guess* of the game's title.\n\n2. Reply with **valid JSON** that matches exactly one of these shapes (no extra keys):\n   - {\n       "type": "answer",\n       "questionCount": <number>,\n       "content": { "answer": "Yes"|"No"|"I don't know", "clarification"?: "<string>" }\n     }\n   - {\n       "type": "guessResult",\n       "questionCount": <number>,\n       "content": { "correct": <boolean>, "response": "<string>" }\n     }\n\nGuidelines for *answer* objects:\n• **content.answer** must be exactly "Yes", "No", or "I don't know".\n• Include **content.clarification** only when a strict yes/no could be misleading.\n  Example clarifications:\n    – "It has a direct sequel."\n    – "It is part of a franchise even though it has no numbered sequel."\n    – "It is a standalone game."\n\nGuidelines for *guessResult* objects:\n• If the guess is correct, set **content.correct** = true and **content.response** to exactly the secret game title.\n• If incorrect, set **content.correct** = false and use **content.response** to politely inform the user without revealing the real title.`;
+};
 
 /**
 * Initial prompt for the **AI-guesses** game mode, instructing the model to ask

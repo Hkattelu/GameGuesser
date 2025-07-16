@@ -29,9 +29,17 @@ export const ai = genkit({
 
 export interface ChatMessage {
   role: 'user' | 'model' | 'system';
-  // Genkit expects an array of parts. For backwards compatibility we also
-  // allow simple string content in our wrapper, converting it on the fly.
-  content: { text: string }[] | string;
+  /**
+   * The message content can be provided in one of three forms:
+   *   • A preformatted array of parts expected by Genkit.
+   *   • A raw string – convenient for most callers.
+   *   • A JSON-serializable object (e.g. {@link PlayerQAResponse}).
+   *
+   * The `generateStructured()` helper will stringify objects lazily just
+   * before sending them to the model, ensuring we persist the full typed
+   * payload in memory for later inspection or analytics.
+   */
+  content: { text: string }[] | string | Record<string, unknown>;
 }
 
 /**
@@ -49,10 +57,18 @@ export async function generateStructured<T>(
   prompt: string,
   chatHistory: ChatMessage[] = [],
 ): Promise<T> {
-  const normalizedHistory = chatHistory.map((msg) => ({
-    role: msg.role,
-    content: Array.isArray(msg.content) ? msg.content : [{ text: msg.content }],
-  }));
+  const normalizedHistory = chatHistory.map((msg) => {
+    if (Array.isArray(msg.content)) {
+      return { role: msg.role, content: msg.content };
+    }
+
+    if (typeof msg.content === 'string') {
+      return { role: msg.role, content: [{ text: msg.content }] };
+    }
+
+    // Fallback: assume JSON-serializable object
+    return { role: msg.role, content: [{ text: JSON.stringify(msg.content) }] };
+  });
 
   const messages = [
     ...normalizedHistory,

@@ -76,7 +76,7 @@ describe('PlayerGuessesGame', () => {
       ok: true,
       json: () => Promise.resolve({
         type: 'answer',
-        content: 'Yes',
+        content: { answer: 'Yes' },
         questionCount: 1,
       }),
     });

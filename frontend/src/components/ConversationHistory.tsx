@@ -65,7 +65,13 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
             } else if (jsonContent.type === 'guess') {
               textContent = `${AI_NAME} (Guess): ${jsonContent.content}`;
             } else if (jsonContent.type === 'answer') {
-              textContent = `${AI_NAME}: ${jsonContent.content}`;
+              if (typeof jsonContent.content === 'string') {
+                textContent = `${AI_NAME}: ${jsonContent.content}`;
+              } else if (jsonContent.content && typeof jsonContent.content === 'object') {
+                const answer = (jsonContent.content as any).answer;
+                const clarification = (jsonContent.content as any).clarification as string | undefined;
+                textContent = `${AI_NAME}: ${answer}${clarification ? ` - ${clarification}` : ''}`;
+              }
             } else if (
               jsonContent.type === 'guessResult' &&
               typeof jsonContent.content?.response === 'string'
