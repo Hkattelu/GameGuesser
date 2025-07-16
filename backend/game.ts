@@ -1,8 +1,14 @@
 import { randomUUID } from 'crypto';
-import { callGeminiAPI } from './gemini.js';
-import type { ChatMessage } from './gemini.js';
+import { generateStructured, ChatMessage } from './ai.js';
+import {
+  PLAYER_QA_WITH_CLASSIFICATION_PROMPT,
+  AI_GUESS_INITIAL_PROMPT,
+  AI_GUESS_NEXT_PROMPT,
+} from './prompts.js';
+import { z } from 'zod';
 import { getDailyGame } from './dailyGameStore.js';
-import { fetchGameMetadata, GameMetadata } from './rawgDetails.js';
+import { fetchGameMetadata } from './rawgDetails.js';
+import type { GameMetadata } from './rawgDetails.js';
 
 // In-memory store for game sessions – keyed by UUID
 export interface PlayerGuessSession {
@@ -25,10 +31,26 @@ interface HintResponse {
   hintType: HintType
 }
 
+
+// -------------------------- Response content shapes --------------------------
+
+interface YesNoClarification {
+  /**
+   * The direct yes/no/unsure answer. Must be exactly one of the three literal
+   * strings so the frontend can reliably highlight the corresponding button.
+   */
+  answer: 'Yes' | 'No' | "I don't know";
+  /**
+   * Optional, spoiler-free extra context when a plain yes/no hides important
+   * nuance (e.g. "It is part of a franchise but has no numbered sequel").
+   */
+  clarification?: string;
+}
+
 interface AnswerToQuestion {
   type: 'answer';
   questionCount: number;
-  content: string;
+  content: YesNoClarification;
 }
 
 interface AnswerToGuess {
@@ -40,6 +62,39 @@ interface AnswerToGuess {
 type PlayerQAResponse = AnswerToQuestion|AnswerToGuess;
 
 type AIJsonResponse = { type: 'question' | 'guess'; content: string };
+
+// -------------------------- Zod Schemas --------------------------
+
+const YesNoClarificationSchema = z.object({
+  answer: z.union([
+    z.literal('Yes'),
+    z.literal('No'),
+    z.literal("I don't know"),
+  ]),
+  clarification: z.string().optional(),
+});
+
+const AnswerToQuestionSchema = z.object({
+  type: z.literal('answer'),
+  questionCount: z.number(),
+  content: YesNoClarificationSchema,
+});
+
+const AnswerToGuessSchema = z.object({
+  type: z.literal('guessResult'),
+  questionCount: z.number(),
+  content: z.object({
+    correct: z.boolean(),
+    response: z.string(),
+  }),
+});
+
+const PlayerQAResponseSchema = z.union([AnswerToQuestionSchema, AnswerToGuessSchema]);
+
+const AIJsonResponseSchema = z.object({
+  type: z.union([z.literal('question'), z.literal('guess')]),
+  content: z.string(),
+});
 
 const gameSessions = new Map<string, PlayerGuessSession | AIGuessSession>();
 
@@ -62,11 +117,7 @@ async function startPlayerGuessesGame() {
     chatHistory: [
       {
         role: 'user',
-        parts: [
-          {
-            text: `The secret game is ${secretGame}. The user will now ask questions.`,
-          },
-        ],
+        content: [{ text: `The secret game is ${secretGame}. The user will now ask questions.` }],
       },
     ],
     questionCount: 0,
@@ -103,21 +154,24 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     } as AnswerToGuess;
   }
 
-  const prompt = `The user asked: "${userInput}". The secret game is "${session.secretGame}".
-        Is it a guess or a question? If it's a guess, is it correct?
-        Your response MUST be a JSON object with a 'type' field ('answer' or 'guessResult') and a 'content' field.
-        If it's a question, content should be "Yes", "No", or "I don't know".
-        If it's a guess, content should be an object with 'correct' (true/false) and a 'response' string.
-        If the user guessed correctly, response string should contain only the name of the secret game.
-        If the user guessed incorrectly, response string should contain contain a message telling them they are incorrect. `;
+  // ---------------------------------------------------------------
+  // Build the prompt. The model itself decides if the answer needs a
+  // spoiler-free clarification – no fragile regex or extra metadata needed.
+  // ---------------------------------------------------------------
 
-  const jsonResponse = await callGeminiAPI<PlayerQAResponse>(
+  const prompt = PLAYER_QA_WITH_CLASSIFICATION_PROMPT(
+    userInput,
+    session.secretGame,
+  );
+
+  const jsonResponse = await generateStructured<PlayerQAResponse>(
+    PlayerQAResponseSchema,
     prompt,
     session.chatHistory,
   );
   session.chatHistory.push({
     role: 'model',
-    parts: [{ text: JSON.stringify(jsonResponse) }],
+    content: jsonResponse,
   });
 
   return jsonResponse;
@@ -132,22 +186,17 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
  */
 async function startAIGuessesGame() {
   const maxQuestions = MAX_QUESTIONS;
-  const initialPrompt = `You are Bot Boy, a friendly robot playing a "20 Questions" game to guess a video game the user is thinking of.
-        You will ask yes/no questions. If you are very confident, you can make a guess.
-        You have ${maxQuestions} questions in total. This is question 1.
-        Your response MUST be a JSON object with a 'type' field ("question" or "guess") and a 'content' field (the question text or the game guess).
-        Example: {"type": "question", "content": "Is your game an RPG?"}
-        Example: {"type": "guess", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
-        Start by asking your first question.`;
+  const initialPrompt = AI_GUESS_INITIAL_PROMPT(maxQuestions);
 
   const chatHistory: ChatMessage[] = [];
-  const jsonResponse = await callGeminiAPI<AIJsonResponse>(
+  const jsonResponse = await generateStructured<AIJsonResponse>(
+    AIJsonResponseSchema,
     initialPrompt,
     chatHistory,
   );
   chatHistory.push({
     role: 'model',
-    parts: [{ text: JSON.stringify(jsonResponse) }],
+    content: jsonResponse,
   });
 
   const sessionId = randomUUID();
@@ -182,26 +231,24 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
 
   session.chatHistory.push({
     role: 'user',
-    parts: [{ text: `User answered "${userAnswer}".` }],
+    content: [{ text: `User answered "${userAnswer}".` }],
   });
 
   if (!('maxQuestions' in session)) {
     throw new Error('Invalid session type for AI answer handler.');
   }
 
-  const nextTurnPrompt = `The user just answered "${userAnswer}". You have ${
-    session.maxQuestions - session.questionCount
-  } questions left. Remember that they must be thinking of a video game.
-        Based on this, ask your next yes/no question or make a guess if you are confident.
-        Your response MUST be a JSON object with 'type' and 'content'.`;
+  const questionsLeft = session.maxQuestions - session.questionCount;
+  const nextTurnPrompt = AI_GUESS_NEXT_PROMPT(userAnswer, questionsLeft);
 
-  const jsonResponse = await callGeminiAPI<AIJsonResponse>(
+  const jsonResponse = await generateStructured<AIJsonResponse>(
+    AIJsonResponseSchema,
     nextTurnPrompt,
     session.chatHistory,
   );
   session.chatHistory.push({
     role: 'model',
-    parts: [{ text: JSON.stringify(jsonResponse) }],
+    content: jsonResponse,
   });
 
   if (jsonResponse.type === 'question') {

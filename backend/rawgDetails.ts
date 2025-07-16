@@ -79,8 +79,14 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
       publisher,
       releaseYear: Number.isNaN(releaseYear) ? undefined : releaseYear,
     };
-  } catch {
-    // Network issues or parsing errors – return empty so caller can fall back.
+  } catch (err) {
+    // Network issues or parsing errors – log a warning so we have visibility
+    // in staging/production without crashing the request handler.
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn('[rawgDetails] Failed to fetch metadata:', err);
+    }
+
+    // Return empty so callers can gracefully handle missing data.
     return {};
   }
 }

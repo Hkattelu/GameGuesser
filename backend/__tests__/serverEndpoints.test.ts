@@ -176,13 +176,13 @@ describe('POST /player-guesses/question', () => {
   it('returns AI response', async () => {
     handlePlayerQuestionMock.mockResolvedValue({
       type: 'answer',
-      content: 'Yes',
+      content: { answer: 'Yes' },
       questionCount: 1,
     });
 
     await request.post('/player-guesses/question').send(payload).expect(200).expect({
       type: 'answer',
-      content: 'Yes',
+      content: { answer: 'Yes' },
       questionCount: 1,
     });
 

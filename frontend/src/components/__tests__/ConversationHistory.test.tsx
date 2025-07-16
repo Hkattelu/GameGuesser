@@ -35,7 +35,7 @@ describe('ConversationHistory', () => {
       role: 'model',
       parts: [
         {
-          text: JSON.stringify({ type: 'answer', content: 'No' }),
+          text: JSON.stringify({ type: 'answer', content: { answer: 'No' } }),
         },
       ],
     },
