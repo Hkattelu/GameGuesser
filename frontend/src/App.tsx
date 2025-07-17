@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 import ConfettiExplosion from "react-confetti-explosion";
 
 import AuthPage from './AuthPage';
@@ -18,11 +18,6 @@ interface AuthPayload {
 
 interface AppProps {
   /**
-   * Which game mode should be pre-selected when this component mounts.
-   * If omitted, defaults to `'ai-guesses'`.
-   */
-  initialMode?: GameMode;
-  /**
    * Optional callback to navigate back to the home / start screen. When
    * provided the component will call this callback on logout instead of
    * using React-Router's `useNavigate` to push `/`. This lets the component
@@ -33,7 +28,6 @@ interface AppProps {
 }
 
 function App({
-  initialMode = 'ai-guesses',
   onNavigateHome,
 }: AppProps) {
   // Authentication state
@@ -44,8 +38,11 @@ function App({
     typeof localStorage !== 'undefined' ? localStorage.getItem('username') : null,
   );
 
+  const location = useLocation();
+  const initialGameMode = location.pathname.includes('player-guesses') ? 'player-guesses' : 'ai-guesses';
+
   // Game-specific state
-  const [gameMode, setGameMode] = useState<GameMode>(initialMode);
+  const [gameMode, setGameMode] = useState<GameMode>(initialGameMode);
   const [preGame, setPreGame] = useState<boolean>(true);
   const [started, setStarted] = useState<boolean>(false);
   const [victory, setVictory] = useState<boolean | 'guess'>(false);
@@ -148,7 +145,10 @@ function App({
   }
 
   return (
-    <div className="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center">
+    <div
+      className="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center"
+      style={{ viewTransitionName: 'game-container' }}
+    >
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Hello, {username}!</h2>
         <button className="cursor-pointer text-sm text-blue-600 hover:underline" onClick={handleLogout}>

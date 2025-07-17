@@ -4,6 +4,39 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .hover-anim {
+    transition: all 0.2s ease-in-out;
+  }
+}
+
+@keyframes slide-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-to-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+::view-transition-old(game-container) {
+  animation: slide-to-left 0.5s ease-in-out;
+}
+
+::view-transition-new(game-container) {
+  animation: slide-from-right 0.5s ease-in-out;
+}
+
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -99,6 +132,29 @@ body {
   box-shadow: inset 0rem 0.5rem 2rem 0.25rem rgb(0 0 0 / 40%);
   animation: pan 240s linear infinite;
   will-change: background-position;
+}
+
+#stripe-pattern.shift-left {
+  animation: pan 6s linear infinite;
+}
+
+.hover-anim {
+  background:
+    linear-gradient(black 0 0) 0 0,
+    linear-gradient(black 0 0) 0 0,
+    linear-gradient(black 0 0) 0 100%,
+    linear-gradient(black 0 0) 0 100%,
+    linear-gradient(black 0 0) 100% 0,
+    linear-gradient(black 0 0) 100% 0,
+    linear-gradient(black 0 0) 100% 100%,
+    linear-gradient(black 0 0) 100% 100%;
+  background-size: var(--d, 0) 3px, 3px var(--d, 0);
+  background-repeat: no-repeat;
+  background-color: white;
+  transition: 0.5s;
+}
+.hover-anim:hover {
+  --d: 20px;
 }
 
 

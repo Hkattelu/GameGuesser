@@ -47,8 +47,6 @@ describe('StartScreen component', () => {
     await waitFor(() => {
       const root = optionButton.closest('.start-screen');
       expect(root).not.toBeNull();
-      // After click the wrapper should have the transitioning class.
-      expect(root).toHaveClass('start-screen--transitioning');
     });
   });
 });

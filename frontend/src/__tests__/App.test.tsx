@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { BrowserRouter } from 'react-router';
+import { MemoryRouter } from 'react-router';
 
 import App from '../App';
 
@@ -48,9 +48,9 @@ describe('App – logout flow', () => {
     const onNavigateHome = vi.fn();
 
     render(
-      <BrowserRouter>
-        <App hideTabs onNavigateHome={onNavigateHome} />
-      </BrowserRouter>,
+      <MemoryRouter initialEntries={['/ai-guesses']}>
+        <App onNavigateHome={onNavigateHome} />
+      </MemoryRouter>,
     );
 
     // The logout button should be rendered because the component sees a token.
@@ -62,3 +62,4 @@ describe('App – logout flow', () => {
     expect(localStorage.getItem('token')).toBeNull();
   });
 });
+

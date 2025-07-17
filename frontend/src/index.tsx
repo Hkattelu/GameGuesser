@@ -20,7 +20,7 @@ function Root() {
             path="/ai-guesses"
             element={
               <ProtectedRoute>
-                <App initialMode="ai-guesses" hideTabs />
+                <App />
               </ProtectedRoute>
             }
           />
@@ -28,7 +28,7 @@ function Root() {
             path="/player-guesses"
             element={
               <ProtectedRoute>
-                <App initialMode="player-guesses" hideTabs />
+                <App />
               </ProtectedRoute>
             }
           />
