@@ -3,8 +3,7 @@ import bcrypt from 'bcryptjs';
 
 import { createUser, findUserByUsername } from './db.js';
 
-export interface JWTPayload {
-  id: string; // Firestore doc ID (username)
+export interface UserJwtPayload {
   username: string;
 }
 
@@ -23,8 +22,8 @@ export async function register(username: string, password: string): Promise<stri
   if (existing) throw new Error('Username already taken');
 
   const passwordHash = bcrypt.hashSync(password, 10);
-  const userId = await createUser(username, passwordHash);
-  return generateToken({ id: userId, username });
+  await createUser(username, passwordHash);
+  return generateToken({ username });
 }
 
 export async function login(username: string, password: string): Promise<string> {
@@ -32,10 +31,10 @@ export async function login(username: string, password: string): Promise<string>
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
     throw new Error('Invalid credentials');
   }
-  return generateToken({ id: user.id, username: user.username });
+  return generateToken({ username: user.username });
 }
 
-function generateToken(payload: JWTPayload): string {
+function generateToken(payload: UserJwtPayload): string {
   // Token valid for 7 days, plenty for a casual web game.
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 }
@@ -62,7 +61,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err || !user) return res.status(401).json({ error: 'Invalid token' });
-    req.user = user as JWTPayload;
+    req.user = user as UserJwtPayload;
     next();
   });
 }

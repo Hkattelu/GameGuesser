@@ -57,7 +57,7 @@ export async function createUser(username: string, passwordHash: string): Promis
     password_hash: passwordHash,
     created_at: new Date().toISOString(),
   });
-  return username;
+  return docRef.id;
 }
 
 /** Returns a user by username or undefined when none exists. */

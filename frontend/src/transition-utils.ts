@@ -8,7 +8,7 @@ export type NavigateFunction = (
   to: string,
   options?: {
     replace?: boolean;
-    state?: any;
+    state?: unknown;
   }
 ) => void;
 
@@ -19,15 +19,13 @@ export type NavigateFunction = (
  * @returns {NavigateFunction} A navigation function that supports view-transitions
  */
 export const wrapNavigate = (
-  navigate: (...args: any) => any
+  navigate: (...args: unknown[]) => void
 ): NavigateFunction => {
   return (to, options) => {
-    // @ts-ignore
     if (!document.startViewTransition) {
       return navigate(to, options);
     }
 
-    // @ts-ignore
     document.startViewTransition(() => {
       flushSync(() => {
         navigate(to, options);

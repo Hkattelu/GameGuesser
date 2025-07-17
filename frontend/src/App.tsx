@@ -117,7 +117,7 @@ function App({
 
     const fetchHistory = async () => {
       try {
-        const response = await fetch(`${getApiUrl()}/conversations/history`, {
+        const response = await fetch(`${getApiUrl()}/conversations/history?date=${new Date().toISOString().slice(0, 10)}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

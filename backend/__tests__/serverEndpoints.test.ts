@@ -142,7 +142,7 @@ describe('GET /conversations/history', () => {
 
     await request.get('/conversations/history').expect(200).expect(history);
 
-    expect(getConversationHistoryMock).toHaveBeenCalledWith('user-123', undefined);
+    expect(getConversationHistoryMock).toHaveBeenCalledWith('tester', undefined);
     expect(authenticateTokenMock).toHaveBeenCalled();
   });
 
@@ -154,7 +154,7 @@ describe('GET /conversations/history', () => {
 
     await request.get('/conversations/history?date=2025-07-16').expect(200).expect(history);
 
-    expect(getConversationHistoryMock).toHaveBeenCalledWith('user-123', '2025-07-16');
+    expect(getConversationHistoryMock).toHaveBeenCalledWith('tester', '2025-07-16');
     expect(authenticateTokenMock).toHaveBeenCalled();
   });
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import type { Request, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 import {
   startPlayerGuessesGame,
   handlePlayerQuestion,
@@ -12,7 +12,7 @@ import {
 import { authenticateToken, register, login } from './auth.js';
 import { saveConversationMessage, getConversationHistory } from './db.js';
 
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
 
 // Restrict cross-origin requests to the trusted frontend URL. Default to the
@@ -73,7 +73,7 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 app.get('/conversations/history', authenticateToken, async (req: Request, res: Response) => {
   try {
     const date = req.query.date as string | undefined;
-    const rows = await getConversationHistory(req.user!.id, date);
+    const rows = await getConversationHistory(req.user!.username, date);
     return res.json(rows);
   } catch (err) {
     console.error('Error fetching history', err);
@@ -91,7 +91,7 @@ app.post('/player-guesses/start', authenticateToken, async (req: Request, res: R
   try {
     const result = await startPlayerGuessesGame();
     await saveConversationMessage(
-      req.user!.id,
+      req.user!.username,
       result.sessionId,
       'system',
       'Player-guesses game started',
@@ -114,13 +114,13 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
   const { sessionId, userInput } = req.body as { sessionId: string; userInput: string };
   try {
     // Persist user question
-    await saveConversationMessage(req.user!.id, sessionId, 'user', userInput);
+    await saveConversationMessage(req.user!.username, sessionId, 'user', userInput);
 
     const result = await handlePlayerQuestion(sessionId, userInput);
 
     // Persist model response as raw JSON string for readability
     await saveConversationMessage(
-      req.user!.id,
+      req.user!.username,
       sessionId,
       'model',
       JSON.stringify(result),
@@ -188,13 +188,13 @@ app.post('/ai-guesses/start', authenticateToken, async (req: Request, res: Respo
 
     // Persist system message and first AI question
     await saveConversationMessage(
-      req.user!.id,
+      req.user!.username,
       result.sessionId,
       'system',
       'AI-guesses game started',
     );
     await saveConversationMessage(
-      req.user!.id,
+      req.user!.username,
       result.sessionId,
       'model',
       JSON.stringify(result.aiResponse),
@@ -216,13 +216,13 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
   const { sessionId, userAnswer } = req.body as { sessionId: string; userAnswer: string };
   try {
     // Persist user answer
-    await saveConversationMessage(req.user!.id, sessionId, 'user', userAnswer);
+    await saveConversationMessage(req.user!.username, sessionId, 'user', userAnswer);
 
     const result = await handleAIAnswer(sessionId, userAnswer);
 
     // Persist model response
     await saveConversationMessage(
-      req.user!.id,
+      req.user!.username,
       sessionId,
       'model',
       JSON.stringify(result.aiResponse),
