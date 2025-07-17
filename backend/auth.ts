@@ -3,9 +3,7 @@ import bcrypt from 'bcryptjs';
 
 import { createUser, findUserByUsername } from './db.js';
 
-export interface UserJwtPayload {
-  username: string;
-}
+export type UserJwtPayload = Record<'username', string> & Record<string, string>;
 
 const isProd = process.env.NODE_ENV === 'production';
 

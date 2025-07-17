@@ -2,16 +2,10 @@
 import { jest, beforeAll, afterAll, afterEach, describe, it, expect } from '@jest/globals';
 import supertest from 'supertest';
 
-// ---------------------------------------------------------------------------
-// Stub collaborators used by `server.ts`
-// ---------------------------------------------------------------------------
-
-// Auth helpers ---------------------------------------------------------------
 const authenticateTokenMock = jest.fn((req: any, _res: any, next: () => void) => {
   req.user = { id: 'user-123', username: 'tester' };
   next();
 });
-
 jest.unstable_mockModule('../auth.js', () => ({
   __esModule: true,
   authenticateToken: authenticateTokenMock,
@@ -19,16 +13,13 @@ jest.unstable_mockModule('../auth.js', () => ({
   login: jest.fn(),
 }));
 
-// Database helpers -----------------------------------------------------------
 const saveConversationMessageMock = jest.fn();
-
 jest.unstable_mockModule('../db.js', () => ({
   __esModule: true,
   saveConversationMessage: saveConversationMessageMock,
   getConversationHistory: jest.fn(),
 }));
 
-// Game service helpers -------------------------------------------------------
 const getPlayerGuessHintMock = jest.fn();
 
 jest.unstable_mockModule('../game.js', () => ({
@@ -39,10 +30,6 @@ jest.unstable_mockModule('../game.js', () => ({
   handleAIAnswer: jest.fn(),
   getPlayerGuessHint: getPlayerGuessHintMock,
 }));
-
-// ---------------------------------------------------------------------------
-// Import the server AFTER all stubs are registered.
-// ---------------------------------------------------------------------------
 
 let request: supertest.SuperTest<supertest.Test>;
 
