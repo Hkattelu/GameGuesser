@@ -89,14 +89,14 @@ function AuthPage({ onAuth }: AuthPageProps) {
         {mode === 'login' ? (
           <>
             Don't have an account?{' '}
-            <button className="text-blue-600 hover:underline" onClick={() => setMode('register')}>
+            <button className="cursor-pointer text-blue-600 hover:underline" onClick={() => setMode('register')}>
               Register here
             </button>
           </>
         ) : (
           <>
             Already have an account?{' '}
-            <button className="text-blue-600 hover:underline" onClick={() => setMode('login')}>
+            <button className="cursor-pointer text-blue-600 hover:underline" onClick={() => setMode('login')}>
               Login here
             </button>
           </>

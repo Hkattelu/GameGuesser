@@ -54,7 +54,7 @@ function StartScreen() {
         <h1 className="text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
           {AI_NAME} 9000's Arcade
         </h1>
-        <p className="text-lg mb-8">Welcome, {username}! Choose a game mode:</p>
+        <p className="text-lg mb-8">Welcome, {username}! Choose a game to play!</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">

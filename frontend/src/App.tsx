@@ -6,6 +6,7 @@ import AuthPage from './AuthPage';
 import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
+import RulesIcon from './components/RulesIcon'; // Import RulesIcon
 
 import { ChatMessage, GameMode } from './types';
 import { MAX_QUESTIONS } from './constants';
@@ -149,6 +150,7 @@ function App({
       className="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center"
       style={{ viewTransitionName: 'game-container' }}
     >
+      {location.pathname !== '/' && <RulesIcon gameMode={gameMode} />}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Hello, {username}!</h2>
         <button className="cursor-pointer text-sm text-blue-600 hover:underline" onClick={handleLogout}>
