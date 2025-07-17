@@ -46,7 +46,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
       id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
       className={`${containerClasses} space-y-2`}
     >
-      {chatHistory.map((entry, index) => {
+      {chatHistory?.filter(entry => (entry.role !== 'system')).map((entry, index) => {
         let textContent = '';
         // Base styling for every message bubble.
         let className =

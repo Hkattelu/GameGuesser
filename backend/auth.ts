@@ -54,7 +54,7 @@ import type { Request, Response, NextFunction } from 'express';
  * @param {Response} res - The Express response object, used to send a response in case of error.
  * @param {NextFunction} next - The next middleware function in the stack.
  */
-export function authenticateToken(req: Request, res: Response, next: NextFunction) {
+export function authenticateToken(req: Request<UserJwtPayload>, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Missing token' });

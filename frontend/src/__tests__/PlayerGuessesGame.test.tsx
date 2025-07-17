@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import React from 'react';
+import { render, fireEvent, waitFor, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 import PlayerGuessesGame from '../PlayerGuessesGame';
 import { GameMode } from '../types';
 
@@ -127,7 +128,7 @@ describe('PlayerGuessesGame', () => {
 
     render(<PlayerGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
-
+    
     await waitFor(() => {
       expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error starting the game: Test error. Please try again.');
     });
@@ -204,7 +205,10 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Hint'));
 
     await waitFor(() => {
-      expect(screen.getByTestId('model-response')).toHaveTextContent('Developer: Nintendo');
+      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/hint'), expect.any(Object));
     });
+
+    expect(screen.getByText('Developer: Nintendo')).toBeInTheDocument();
   });
 });
+

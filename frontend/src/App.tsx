@@ -78,15 +78,15 @@ function App({
   };
 
   /** Returns the mascot image URL appropriate for the current UI state. */
-  const getMascotImage = () => {
+  const getMascotMood = () => {
     const base = '/bot_boy/';
-    if (loading) return `${base}thinking.png`;
-    if (preGame) return `${base}guy.png`;
+    if (loading) return 'thinking';
+    if (preGame) return 'default';
     if (!started) {
-      if (victory) return `${base}sadge.png`;
-      return `${base}guy.png`;
+      if (victory) return 'sad';
+      return 'default';
     }
-    return `${base}guy.png`;
+    return 'default';
   };
 
   const clearHighlights = () => setHighlightedResponse(null);
@@ -156,7 +156,7 @@ function App({
         </button>
       </div>
 
-      <MascotImage imageSrc={getMascotImage()} />
+      <MascotImage mood={getMascotMood()} />
 
       <p id="game-message" className="text-lg text-gray-600 mb-4">
         {gameMessage}

@@ -5,7 +5,7 @@ export interface ChatPart {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'model';
+  role: 'user' | 'model' | 'system';
   parts: ChatPart[];
 }
 

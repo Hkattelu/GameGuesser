@@ -267,16 +267,6 @@ function PlayerGuessesGame({
               }
             }}
           />
-          <div className="flex justify-start mt-4">
-            <button
-              id="btn-hint"
-              type="button"
-              className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-200"
-              onClick={handleGetHint}
-            >
-              Hint
-            </button>
-          </div>
         </div>
       )}
 
@@ -285,13 +275,25 @@ function PlayerGuessesGame({
       )}
 
       {started && !loading && (
-        <button
-          id="btn-submit-guess"
-          className="cursor-pointer px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
-          onClick={handlePlayerQuestion}
-        >
-          Submit
-        </button>
+        
+          <div className="flex justify-center gap-6 mt-4">
+            <button
+              id="btn-hint"
+              type="button"
+              className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-200"
+              onClick={handleGetHint}
+            >
+              Hint
+            </button>
+            <button
+              id="btn-submit-guess"
+              type="button"
+              className="cursor-pointer px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+              onClick={handlePlayerQuestion}
+            >
+              Submit
+            </button>
+          </div>
       )}
 
       {!started && (

@@ -81,11 +81,16 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh; /* Full viewport height */
+    min-height: 100vh;
     margin: 0;
-    padding: 20px; /* Padding around the content */
+    padding: 20px;
     box-sizing: border-box; /* Include padding in element's total width and height */
+
+    @media (max-width: 767px) {
+      padding: 12px;
+    }
 }
+
 
 .disclaimer {
     position: fixed;
