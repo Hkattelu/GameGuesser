@@ -110,6 +110,7 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     prompt,
     session.chatHistory,
   );
+  console.log(jsonResponse);
   session.chatHistory.push({
     role: 'model',
     content: jsonResponse,

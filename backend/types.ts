@@ -12,13 +12,13 @@ export const YesNoClarificationSchema = z.object({
 });
 
 export const AnswerToQuestionSchema = z.object({
-  type: z.literal('answer'),
+  type: z.enum(['answer']),
   questionCount: z.number(),
   content: YesNoClarificationSchema,
 });
 
 export const AnswerToGuessSchema = z.object({
-  type: z.literal('guessResult'),
+  type: z.enum(['guessResult']),
   questionCount: z.number(),
   content: z.object({
     correct: z.boolean(),
@@ -26,10 +26,10 @@ export const AnswerToGuessSchema = z.object({
   }),
 });
 
-export const PlayerQAResponseSchema = z.union([AnswerToQuestionSchema, AnswerToGuessSchema]);
+export const PlayerQAResponseSchema = AnswerToGuessSchema.or(AnswerToQuestionSchema);
 
 export const AIJsonResponseSchema = z.object({
-  type: z.union([z.literal('question'), z.literal('guess')]),
+  type: z.enum(['question', 'guess']),
   content: z.string(),
 });
 

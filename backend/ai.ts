@@ -1,6 +1,6 @@
 
 import { genkit, Part } from 'genkit';
-import { googleAI, gemini15Flash } from '@genkit-ai/googleai';
+import { googleAI, gemini15Flash, gemini20Flash } from '@genkit-ai/googleai';
 import { z, ZodType } from 'zod';
 import { PlayerQAResponse, AIJsonResponse } from './types.js';
 
@@ -22,7 +22,7 @@ import { PlayerQAResponse, AIJsonResponse } from './types.js';
 export const ai = genkit({
   plugins: [googleAI()],
   // If we need to switch to a different model later we can override per call.
-  model: gemini15Flash,
+  model: gemini20Flash,
 });
 
 // ---------------------------------------------------------------------------
