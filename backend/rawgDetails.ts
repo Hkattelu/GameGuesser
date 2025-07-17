@@ -22,12 +22,14 @@ interface SearchResponse {
 interface GameMetadataResponse {
   developers: Named[];
   publishers: Named[];
+  platforms: {platform: string}[];
   released: string;  // YYYY-MM-DD
 }
 
 export interface GameMetadata {
   id?: string;
   developer?: string;
+  platform?: string;
   publisher?: string;
   releaseYear?: number;
 }
@@ -71,11 +73,13 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
 
     const developer: string | undefined = detailJson?.developers?.[0]?.name;
     const publisher: string | undefined = detailJson?.publishers?.[0]?.name;
+    const platform: string | undefined = detailJson?.platforms?.[0]?.platform;
     const released: string | undefined = detailJson?.released;
     const releaseYear = released ? Number(released.split('-')[0]) : undefined;
 
     return {
       developer,
+      platform,
       publisher,
       releaseYear: Number.isNaN(releaseYear) ? undefined : releaseYear,
     };

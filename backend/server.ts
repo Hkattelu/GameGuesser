@@ -145,7 +145,8 @@ app.get('/player-guesses/:sessionId/hint', authenticateToken, async (req: Reques
   const { sessionId, hintType } = req.params as { sessionId: string, hintType?: HintType };
   try {
     const hint = await getPlayerGuessHint(sessionId, hintType);
-    return res.json(hint);
+    await saveConversationMessage(req.user!.username, sessionId, 'system', `Hint provided: ${hint}`);
+    return res.json({ hint });
   } catch (error: unknown) {
     const err = error as Error;
     if (err.message === 'Session not found.' || err.message === 'No hint data available') {
@@ -156,25 +157,7 @@ app.get('/player-guesses/:sessionId/hint', authenticateToken, async (req: Reques
   }
 });
 
-/**
- * Get a hint for the game name.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- */
-app.get('/player-guesses/:sessionId/hint', authenticateToken, async (req: Request, res: Response) => {
-  const { sessionId } = req.params as { sessionId: string };
-  try {
-    const hint = await getPlayerGuessHint(sessionId);
-    return res.json(hint);
-  } catch (error: unknown) {
-    const err = error as Error;
-    if (err.message === 'Session not found.' || err.message === 'No hint data available') {
-      return res.status(404).json({ error: err.message });
-    }
-    console.error('Error fetching hint:', err);
-    return res.status(500).json({ error: 'Internal Server Error', details: err.message });
-  }
-});
+
 
 /**
  * Starts a new game of 20 Questions where the AI thinks of an object and the
