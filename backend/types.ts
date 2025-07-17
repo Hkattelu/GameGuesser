@@ -41,3 +41,14 @@ export type AnswerToQuestion = z.infer<typeof AnswerToQuestionSchema>;
 export type AnswerToGuess = z.infer<typeof AnswerToGuessSchema>;
 export type PlayerQAResponse = z.infer<typeof PlayerQAResponseSchema>;
 export type AIJsonResponse = z.infer<typeof AIJsonResponseSchema>;
+
+declare global {
+  namespace Express {
+    export interface Request {
+      user?: {
+        id: number;
+        username: string;
+      };
+    }
+  }
+}
