@@ -8,14 +8,6 @@ export interface JWTPayload {
   username: string;
 }
 
-// Express augments the Request object with `user` once authentication succeeds.
-declare module 'express-serve-static-core' {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-  interface Request {
-    user?: JWTPayload;
-  }
-}
-
 const isProd = process.env.NODE_ENV === 'production';
 
 if (!process.env.JWT_SECRET && isProd) {

@@ -89,15 +89,28 @@ export async function saveConversationMessage(
 }
 
 /**
- * Retrieves the full conversation history for a user ordered by creation time.
+ * Retrieves the conversation history for a user, optionally filtered by day.
+ * If no date is provided, it fetches conversations from all time.
  */
 export async function getConversationHistory(
   userId: string,
+  date?: string,
 ): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[]> {
-  const snap = await conversationsCol
-    .where('user_id', '==', userId)
-    .orderBy('created_at', 'asc')
-    .get();
+  let query = conversationsCol.where('user_id', '==', userId);
+
+  if (date) {
+    const startOfDay = new Date(date);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setUTCHours(23, 59, 59, 999);
+
+    query = query
+      .where('created_at', '>=', Timestamp.fromDate(startOfDay))
+      .where('created_at', '<=', Timestamp.fromDate(endOfDay));
+  }
+
+  const snap = await query.orderBy('created_at', 'asc').get();
 
   return snap.docs.map((d) => {
     const data = d.data() as ConversationRow;

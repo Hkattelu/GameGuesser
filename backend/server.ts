@@ -65,13 +65,15 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 });
 
 /**
- * Fetches the full conversation history for the logged-in user.
+ * Fetches the conversation history for the logged-in user. Can be filtered by
+ * day by providing a `date=YYYY-MM-DD` query parameter.
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
  */
 app.get('/conversations/history', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const rows = await getConversationHistory(req.user!.id);
+    const date = req.query.date as string | undefined;
+    const rows = await getConversationHistory(req.user!.id, date);
     return res.json(rows);
   } catch (err) {
     console.error('Error fetching history', err);

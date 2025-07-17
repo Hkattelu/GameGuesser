@@ -142,7 +142,19 @@ describe('GET /conversations/history', () => {
 
     await request.get('/conversations/history').expect(200).expect(history);
 
-    expect(getConversationHistoryMock).toHaveBeenCalledWith('user-123');
+    expect(getConversationHistoryMock).toHaveBeenCalledWith('user-123', undefined);
+    expect(authenticateTokenMock).toHaveBeenCalled();
+  });
+
+  it('returns conversation history for a specific day', async () => {
+    const history = [
+      { session_id: 's2', role: 'user', content: 'Hello', created_at: '2025-07-16' },
+    ];
+    getConversationHistoryMock.mockResolvedValue(history);
+
+    await request.get('/conversations/history?date=2025-07-16').expect(200).expect(history);
+
+    expect(getConversationHistoryMock).toHaveBeenCalledWith('user-123', '2025-07-16');
     expect(authenticateTokenMock).toHaveBeenCalled();
   });
 
