@@ -28,6 +28,7 @@ export interface PlayerGuessesGameProps {
   setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
   setGameMessage: React.Dispatch<React.SetStateAction<string>>;
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
+  setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
   // Optional JWT token for authenticated API requests
   token?: string | null;
 }
@@ -62,6 +63,7 @@ function PlayerGuessesGame({
   setSessionId,
   setGameMessage,
   setVictory,
+  setShowResults,
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
@@ -220,6 +222,8 @@ function PlayerGuessesGame({
     setVictory(victoryStatus);
     setGameMessage(finalMessage);
     setModelResponseText('');
+    // Show results dialog after a short delay
+    setTimeout(() => setShowResults(true), 1500);
   };
 
   const handleSelectSuggestion = (question: string) => {

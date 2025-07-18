@@ -7,6 +7,7 @@ import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
 import RulesIcon from './components/RulesIcon'; // Import RulesIcon
+import GameResultsDialog from './components/GameResultsDialog';
 
 import { ChatMessage, GameMode } from './types';
 import { MAX_QUESTIONS } from './constants';
@@ -55,6 +56,7 @@ function App({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [gameMessage, setGameMessage] = useState<string>('');
   const [aiQuestion, setAiQuestion] = useState<string>('');
+  const [showResults, setShowResults] = useState<boolean>(false);
 
   // ---------------- Authentication helpers ----------------
   const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
@@ -101,6 +103,7 @@ function App({
     setLoading(false);
     clearHighlights();
     setSessionId(null);
+    setShowResults(false);
     setGameMessage(
       gameMode === 'ai-guesses'
         ? "Let's play! Think of a video game, and I'll try to guess it. Click \"Start Game\" when you're ready!"
@@ -172,6 +175,28 @@ function App({
           floorwidth={1600}
         />
       )}
+      
+      {(victory !== false && !started && !preGame) && (
+        <button
+          onClick={() => setShowResults(true)}
+          className="mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+        >
+          View Results
+        </button>
+      )}
+
+      {showResults && (
+        <GameResultsDialog
+          isOpen={showResults}
+          onClose={() => setShowResults(false)}
+          chatHistory={chatHistory}
+          gameMode={gameMode}
+          victory={victory}
+          maxQuestions={maxQuestions}
+          sessionId={sessionId}
+          username={username}
+        />
+      )}
 
       {gameMode === 'ai-guesses' && (
         <AIGuessesGame
@@ -195,6 +220,7 @@ function App({
           setGameMessage={setGameMessage}
           setAiQuestion={setAiQuestion}
           setVictory={setVictory}
+          setShowResults={setShowResults}
         />
       )}
 
@@ -219,6 +245,7 @@ function App({
           setSessionId={setSessionId}
           setGameMessage={setGameMessage}
           setVictory={setVictory}
+          setShowResults={setShowResults}
         />
       )}
     </div>

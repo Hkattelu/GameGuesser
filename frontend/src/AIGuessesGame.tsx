@@ -23,6 +23,7 @@ export interface AIGuessesGameProps {
   setGameMessage: React.Dispatch<React.SetStateAction<string>>;
   setAiQuestion: React.Dispatch<React.SetStateAction<string>>;
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
+  setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
   // Optional JWT token for authenticated API requests
   token?: string | null;
 }
@@ -48,6 +49,7 @@ function AIGuessesGame({
   setGameMessage,
   setAiQuestion,
   setVictory,
+  setShowResults,
 }: AIGuessesGameProps) {
 
   const startGameAI = async () => {
@@ -160,6 +162,8 @@ function AIGuessesGame({
     setHighlightedResponse(victoryStatus === 'guess' ? 'guess' : null); // Set highlight for guess, clear otherwise
     setAiQuestion(finalMessage);
     setVictory(victoryStatus);
+    // Show results dialog after a short delay
+    setTimeout(() => setShowResults(true), 1500);
   };
 
   return (
