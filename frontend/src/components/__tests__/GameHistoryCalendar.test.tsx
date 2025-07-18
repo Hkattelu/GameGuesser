@@ -102,7 +102,7 @@ describe('GameHistoryCalendar', () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:8080/games/history',
+        'http://localhost:8080/games/history?startDate=2025-07-01&endDate=2025-07-31',
         {
           headers: {
             Authorization: 'Bearer test-token',

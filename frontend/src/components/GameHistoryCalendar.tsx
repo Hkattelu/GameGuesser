@@ -29,7 +29,9 @@ const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen
 
     const fetchGameHistory = async () => {
       try {
-        const response = await fetch(`${getApiUrl()}/games/history`, {
+        const startOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1).toISOString().slice(0, 10);
+        const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).toISOString().slice(0, 10);
+        const response = await fetch(`${getApiUrl()}/games/history?startDate=${startOfMonth}&endDate=${endOfMonth}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -47,7 +49,7 @@ const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen
     };
 
     fetchGameHistory();
-  }, [token, isOpen]);
+  }, [token, isOpen, selectedMonth]);
 
   const getMonthlyStats = (month: Date) => {
     const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
