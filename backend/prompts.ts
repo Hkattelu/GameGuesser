@@ -61,6 +61,7 @@ export const PLAYER_QA_WITH_CLASSIFICATION_PROMPT = (
 
   Guidelines for *answer* objects:
   • **content.answer** must be exactly "Yes", "No", or "I don't know".
+  • questionCount should be the number of questions that the user has asked so far.
   • Include **content.clarification** only when a strict yes/no could be misleading.
   Example clarifications:
     – "It has a direct sequel."

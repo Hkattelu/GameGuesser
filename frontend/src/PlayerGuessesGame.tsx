@@ -68,7 +68,6 @@ function PlayerGuessesGame({
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
   const [suggestions, setSuggestions] = useState(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
-  const [hintText, setHintText] = useState<string | null>(null);
 
   const startGamePlayerGuesses = async () => {
     setPreGame(false);
@@ -77,7 +76,6 @@ function PlayerGuessesGame({
     setChatHistory([]);
     setLoading(true);
     setHighlightedResponse(null);
-    setHintText(null);
     setSessionId(null);
     setGameMessage("I'm thinking of a game. Please wait...");
 
@@ -233,14 +231,6 @@ function PlayerGuessesGame({
 
   return (
     <div id="player-guesses-game">
-      {started && !loading && (
-        <div id="response-buttons" className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4 mt-3 mb-3">
-          <div id="btn-yes" className={`response-yes px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'Yes' ? 'highlight-yes' : ''}`}>Yes</div>
-          <div id="btn-unsure" className={`response-unsure px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'Unsure' ? 'highlight-unsure' : ''}`}>Unsure</div>
-          <div id="btn-no" className={`response-no px-6 py-3 font-bold rounded-lg shadow-md ${highlightedResponse === 'No' ? 'highlight-no' : ''}`}>No</div>
-        </div>
-      )}
-
       {started && !loading && modelResponseText && (
         <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4" data-testid="model-response">
           {modelResponseText}

@@ -110,7 +110,10 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     prompt,
     session.chatHistory,
   );
-  console.log(jsonResponse);
+
+  // Just in case the model misses the question count, we provide it.
+  jsonResponse.questionCount = jsonResponse.questionCount || session.questionCount;
+
   session.chatHistory.push({
     role: 'model',
     content: jsonResponse,
