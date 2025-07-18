@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext"
+  },
+  "include": ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**/*.ts"]
+}

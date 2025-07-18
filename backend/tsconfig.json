@@ -20,13 +20,23 @@
     }
   },
   "include": [
-    "*.ts",
-    "**/*.ts"
+    "ai.ts",
+    "auth.ts",
+    "dailyGameStore.ts",
+    "db.ts",
+    "game.ts",
+    "prompts.ts",
+    "rawg.ts",
+    "rawgDetails.ts",
+    "server.ts",
+    "types.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "**/*Mock.ts"
+    "**/*Mock.ts",
+    "__tests__",
+    "jest.config.ts"
   ]
 }

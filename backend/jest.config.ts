@@ -16,8 +16,9 @@ const config: JestConfigWithTsJest = {
 
   // Configure how Jest should transform files
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
+    '^.+\.ts$': ['ts-jest', {
       useESM: true,
+      tsconfig: 'tsconfig.jest.json'
     }],
   },
   globals: {
@@ -47,7 +48,7 @@ const config: JestConfigWithTsJest = {
   // Without this, imports like "./db.js" fail because Jest looks for an actual
   // JavaScript file on disk instead of the source `.ts` file.
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^(\.{1,2}/.*)\.js$': '$1',
   },
 };
 
