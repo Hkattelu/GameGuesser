@@ -10,7 +10,7 @@ import {
   HintType,
 } from './game.js';
 import { authenticateToken, register, login } from './auth.js';
-import { saveConversationMessage, getConversationHistory, getConversationsBySession } from './db.js';
+import { saveConversationMessage, getConversationHistory, getConversationsBySession, getGameHistory } from './db.js';
 
 const app: Express = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
@@ -93,6 +93,22 @@ app.get('/conversations/session/:sessionId', authenticateToken, async (req: Requ
     return res.json(rows);
   } catch (err) {
     console.error('Error fetching session history', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+/**
+ * Fetches the game history and statistics for the logged-in user.
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ */
+app.get('/games/history', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+    const gameHistory = await getGameHistory(req.user!.username, startDate, endDate);
+    return res.json(gameHistory);
+  } catch (err) {
+    console.error('Error fetching game history', err);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });

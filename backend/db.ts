@@ -126,6 +126,119 @@ export async function getConversationHistory(
   });
 }
 
+export interface GameSession {
+  session_id: string;
+  date: string;
+  game_mode: 'player-guesses' | 'ai-guesses';
+  victory: boolean;
+  question_count: number;
+  total_questions: number;
+  game_name?: string;
+}
+
+/**
+ * Retrieves game session statistics for a user, optionally filtered by date range.
+ * Analyzes conversation history to extract game sessions and their outcomes.
+ */
+export async function getGameHistory(
+  userId: string,
+  startDate?: string,
+  endDate?: string,
+): Promise<GameSession[]> {
+  let query = conversationsCol.where('user_id', '==', userId);
+
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    start.setUTCHours(0, 0, 0, 0);
+    
+    const end = new Date(endDate);
+    end.setUTCHours(23, 59, 59, 999);
+
+    query = query
+      .where('created_at', '>=', Timestamp.fromDate(start))
+      .where('created_at', '<=', Timestamp.fromDate(end));
+  }
+
+  const snap = await query.orderBy('created_at', 'asc').get();
+  const conversations = snap.docs.map((d) => d.data() as ConversationRow);
+
+  // Group conversations by session_id
+  const sessionGroups = new Map<string, ConversationRow[]>();
+  conversations.forEach((conv) => {
+    if (!sessionGroups.has(conv.session_id)) {
+      sessionGroups.set(conv.session_id, []);
+    }
+    sessionGroups.get(conv.session_id)!.push(conv);
+  });
+
+  const gameSessions: GameSession[] = [];
+
+  // Analyze each session to extract game data
+  sessionGroups.forEach((messages, sessionId) => {
+    const systemMessage = messages.find(m => m.role === 'system');
+    if (!systemMessage) return;
+
+    const gameMode = systemMessage.content.includes('Player-guesses') 
+      ? 'player-guesses' as const
+      : 'ai-guesses' as const;
+
+    const userMessages = messages.filter(m => m.role === 'user');
+    const modelMessages = messages.filter(m => m.role === 'model');
+
+    let victory = false;
+    let gameName: string | undefined;
+    let questionCount = 0;
+
+    // Count actual questions (exclude system messages)
+    if (gameMode === 'player-guesses') {
+      questionCount = userMessages.filter(m => 
+        !m.content.includes('Game Started') && 
+        !m.content.includes('answered:')
+      ).length;
+    } else {
+      questionCount = userMessages.filter(m => 
+        !m.content.includes('Game Started')
+      ).length;
+    }
+
+    // Check for victory conditions
+    for (const msg of modelMessages) {
+      try {
+        const parsed = JSON.parse(msg.content);
+        if (parsed.type === 'guessResult' && parsed.content?.correct) {
+          victory = true;
+          gameName = parsed.content.response;
+          break;
+        }
+      } catch {
+        // Check plain text victory messages
+        if (msg.content.includes('You guessed it!') || msg.content.includes('correct')) {
+          victory = true;
+          break;
+        }
+      }
+    }
+
+    // Get the date from the first message
+    const firstMessage = messages[0];
+    const date = (firstMessage.created_at as any) instanceof Timestamp
+      ? (firstMessage.created_at as Timestamp).toDate().toISOString().split('T')[0]
+      : new Date(firstMessage.created_at).toISOString().split('T')[0];
+
+    gameSessions.push({
+      session_id: sessionId,
+      date,
+      game_mode: gameMode,
+      victory,
+      question_count: questionCount,
+      total_questions: 20,
+      game_name: gameName,
+    });
+  });
+
+  return gameSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
 
 /**
  * Retrieves the full conversation history for a user ordered by creation time.

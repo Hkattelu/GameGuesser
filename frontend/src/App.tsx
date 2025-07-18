@@ -8,6 +8,8 @@ import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
 import RulesIcon from './components/RulesIcon'; // Import RulesIcon
 import GameResultsDialog from './components/GameResultsDialog';
+import MonthlyStats from './components/MonthlyStats';
+import GameHistoryCalendar from './components/GameHistoryCalendar';
 
 import { ChatMessage, GameMode } from './types';
 import { MAX_QUESTIONS } from './constants';
@@ -57,6 +59,7 @@ function App({
   const [gameMessage, setGameMessage] = useState<string>('');
   const [aiQuestion, setAiQuestion] = useState<string>('');
   const [showResults, setShowResults] = useState<boolean>(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
 
   // ---------------- Authentication helpers ----------------
   const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
@@ -104,6 +107,7 @@ function App({
     clearHighlights();
     setSessionId(null);
     setShowResults(false);
+    setShowHistory(false);
     setGameMessage(
       gameMode === 'ai-guesses'
         ? "Let's play! Think of a video game, and I'll try to guess it. Click \"Start Game\" when you're ready!"
@@ -156,12 +160,25 @@ function App({
       {location.pathname !== '/' && <RulesIcon gameMode={gameMode} />}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Hello, {username}!</h2>
-        <button className="cursor-pointer text-sm text-blue-600 hover:underline" onClick={handleLogout}>
-          Logout
-        </button>
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => setShowHistory(true)}
+            className="cursor-pointer text-sm text-blue-600 hover:underline"
+          >
+            📊 History
+          </button>
+          <button className="cursor-pointer text-sm text-blue-600 hover:underline" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </div>
 
       <MascotImage mood={getMascotMood()} />
+      
+      {/* Monthly Stats */}
+      <div className="mb-4">
+        <MonthlyStats token={token} />
+      </div>
 
       <p id="game-message" className="text-lg text-gray-600 mb-4">
         {gameMessage}
@@ -195,6 +212,14 @@ function App({
           maxQuestions={maxQuestions}
           sessionId={sessionId}
           username={username}
+        />
+      )}
+      
+      {showHistory && (
+        <GameHistoryCalendar
+          token={token}
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
         />
       )}
 
