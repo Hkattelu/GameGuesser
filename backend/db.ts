@@ -221,9 +221,9 @@ export async function getGameHistory(
 
     // Get the date from the first message
     const firstMessage = messages[0];
-    const date = (firstMessage.created_at as any) instanceof Timestamp
+    const date = (firstMessage.created_at as any)?.toDate
       ? (firstMessage.created_at as Timestamp).toDate().toISOString().split('T')[0]
-      : new Date(firstMessage.created_at).toISOString().split('T')[0];
+      : new Date(firstMessage.created_at as string).toISOString().split('T')[0];
 
     gameSessions.push({
       session_id: sessionId,
@@ -258,7 +258,7 @@ export async function getConversationsBySession(
       role: data.role,
       content: data.content,
       created_at:
-        (data.created_at as any) instanceof Timestamp
+        (data.created_at as any)?.toDate
           ? (data.created_at as Timestamp).toDate().toISOString()
           : String(data.created_at),
     };

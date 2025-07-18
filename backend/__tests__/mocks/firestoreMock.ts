@@ -68,6 +68,16 @@ export class MockCollection {
     return new MockDocRef(this, id);
   }
 
+  /** Clear all documents from this collection */
+  clear(): void {
+    this.store.clear();
+  }
+
+  /** Add/replace a document with the given ID and data */
+  mockDoc(docId: string, data: any): void {
+    this.store.set(docId, data);
+  }
+
   /** `.add()` behaves like Firestore's – generates a random ID and returns a DocRef. */
   async add(data: any) {
     const id = randomId();
@@ -141,10 +151,38 @@ export class MockQuery {
   async get(): Promise<MockQuerySnapshot> {
     let docs: Array<[string, any]> = [...this.collection.store.entries()];
 
-    // Apply equality filters (the only op used by the codebase).
+    // Apply filters
     for (const f of this._filters) {
-      if (f.op !== '==') continue; // Unsupported ops are ignored for now.
-      docs = docs.filter(([, data]) => data?.[f.field] === f.value);
+      docs = docs.filter(([, data]) => {
+        let fieldValue = data?.[f.field];
+        let filterValue = f.value;
+        
+        // Handle date comparisons - convert objects with toDate() to Date instances
+        if (fieldValue && typeof fieldValue === 'object' && typeof fieldValue.toDate === 'function') {
+          fieldValue = fieldValue.toDate();
+        }
+        if (filterValue && typeof filterValue === 'object' && typeof filterValue.toDate === 'function') {
+          filterValue = filterValue.toDate();
+        }
+        
+        switch (f.op) {
+          case '==':
+            return fieldValue === filterValue;
+          case '>=':
+            return fieldValue >= filterValue;
+          case '<=':
+            return fieldValue <= filterValue;
+          case '>':
+            return fieldValue > filterValue;
+          case '<':
+            return fieldValue < filterValue;
+          case '!=':
+            return fieldValue !== filterValue;
+          default:
+            console.warn(`Unsupported filter operator: ${f.op}`);
+            return true; // Don't filter if operator is unsupported
+        }
+      });
     }
 
     // Apply ordering.
@@ -179,6 +217,21 @@ export class MockFirestore {
       this._collections.set(name, col);
     }
     return col;
+  }
+
+  /** 
+   * Mock helper to populate a collection with test data.
+   * Clears the collection first, then adds the provided documents.
+   */
+  mockCollection(name: string, documents: any[]): void {
+    const col = this.collection(name);
+    col.clear();
+    
+    for (const doc of documents) {
+      // If the document has an id field, use it as the document ID
+      const docId = doc.id || randomId();
+      col.mockDoc(docId, doc);
+    }
   }
 
   /** Purges *all* data – handy for `beforeEach` isolation. */

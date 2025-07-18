@@ -104,7 +104,7 @@ const MonthlyStats: React.FC<MonthlyStatsProps> = ({ token }) => {
   if (loading) {
     return (
       <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-        <div className="animate-pulse">
+        <div className="animate-pulse" data-testid="loading-animation">
           <div className="h-4 bg-blue-200 rounded w-1/2 mb-2"></div>
           <div className="h-6 bg-blue-200 rounded w-1/4"></div>
         </div>

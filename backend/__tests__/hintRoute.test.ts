@@ -1,6 +1,7 @@
 
 import { jest, beforeAll, afterAll, afterEach, describe, it, expect } from '@jest/globals';
 import supertest from 'supertest';
+import { getGameHistory } from '../db.js';
 
 const authenticateTokenMock = jest.fn((req: any, _res: any, next: () => void) => {
   req.user = { id: 'user-123', username: 'tester' };
@@ -17,7 +18,9 @@ const saveConversationMessageMock = jest.fn();
 jest.unstable_mockModule('../db.js', () => ({
   __esModule: true,
   saveConversationMessage: saveConversationMessageMock,
+  getGameHistory: jest.fn(),
   getConversationHistory: jest.fn(),
+  getConversationsBySession: jest.fn(),
 }));
 
 const getPlayerGuessHintMock = jest.fn();

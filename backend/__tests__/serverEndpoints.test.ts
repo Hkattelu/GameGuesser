@@ -25,11 +25,15 @@ jest.unstable_mockModule('../auth.js', () => ({
 // Database helpers -----------------------------------------------------------
 const saveConversationMessageMock = jest.fn();
 const getConversationHistoryMock = jest.fn();
+const getConversationsBySessionMock = jest.fn();
+const getGameHistoryMock = jest.fn();
 
 jest.unstable_mockModule('../db.js', () => ({
   __esModule: true,
   saveConversationMessage: saveConversationMessageMock,
   getConversationHistory: getConversationHistoryMock,
+  getConversationsBySession: getConversationsBySessionMock,
+  getGameHistory: getGameHistoryMock,
 }));
 
 // Game service helpers -------------------------------------------------------
@@ -260,5 +264,90 @@ describe('POST /ai-guesses/answer', () => {
     handleAIAnswerMock.mockRejectedValue(err);
 
     await request.post('/ai-guesses/answer').send(payload).expect(status);
+  });
+});
+
+describe('GET /conversations/session/:sessionId', () => {
+  it('returns conversation history for specific session', async () => {
+    const sessionHistory = [
+      { session_id: 'sess1', role: 'user', content: 'Hello', created_at: '2025-01-01' },
+      { session_id: 'sess1', role: 'model', content: 'Hi there!', created_at: '2025-01-01' },
+    ];
+    getConversationsBySessionMock.mockResolvedValue(sessionHistory);
+
+    await request.get('/conversations/session/sess1').expect(200).expect(sessionHistory);
+
+    expect(getConversationsBySessionMock).toHaveBeenCalledWith('sess1');
+    expect(authenticateTokenMock).toHaveBeenCalled();
+  });
+
+  it('returns 500 when db throws', async () => {
+    getConversationsBySessionMock.mockRejectedValue(new Error('db error'));
+
+    await request.get('/conversations/session/sess1').expect(500);
+  });
+});
+
+describe('GET /games/history', () => {
+  it('returns game history for authenticated user', async () => {
+    const gameHistory = [
+      {
+        session_id: 'game1',
+        date: '2025-07-01',
+        game_mode: 'player-guesses',
+        victory: true,
+        question_count: 5,
+        total_questions: 20,
+      },
+      {
+        session_id: 'game2',
+        date: '2025-07-02',
+        game_mode: 'ai-guesses',
+        victory: false,
+        question_count: 20,
+        total_questions: 20,
+      },
+    ];
+    getGameHistoryMock.mockResolvedValue(gameHistory);
+
+    await request.get('/games/history').expect(200).expect(gameHistory);
+
+    expect(getGameHistoryMock).toHaveBeenCalledWith('tester', undefined, undefined);
+    expect(authenticateTokenMock).toHaveBeenCalled();
+  });
+
+  it('returns game history with date filters', async () => {
+    const gameHistory = [
+      {
+        session_id: 'game1',
+        date: '2025-07-01',
+        game_mode: 'player-guesses',
+        victory: true,
+        question_count: 5,
+        total_questions: 20,
+      },
+    ];
+    getGameHistoryMock.mockResolvedValue(gameHistory);
+
+    await request
+      .get('/games/history?startDate=2025-07-01&endDate=2025-07-31')
+      .expect(200)
+      .expect(gameHistory);
+
+    expect(getGameHistoryMock).toHaveBeenCalledWith('tester', '2025-07-01', '2025-07-31');
+  });
+
+  it('handles partial date parameters', async () => {
+    getGameHistoryMock.mockResolvedValue([]);
+
+    await request.get('/games/history?startDate=2025-07-01').expect(200);
+
+    expect(getGameHistoryMock).toHaveBeenCalledWith('tester', '2025-07-01', undefined);
+  });
+
+  it('returns 500 when db throws', async () => {
+    getGameHistoryMock.mockRejectedValue(new Error('db error'));
+
+    await request.get('/games/history').expect(500);
   });
 });

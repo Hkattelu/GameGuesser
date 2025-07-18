@@ -32,7 +32,7 @@ const GameResultsGrid: React.FC<GameResultsGridProps> = ({
         const userInput = message.parts[0]?.text || '';
         
         // Skip system messages like "AI Game Started."
-        if (userInput.includes('Game Started') || userInput.includes('answered:')) {
+        if (userInput.includes('Game Started')) {
           continue;
         }
 
