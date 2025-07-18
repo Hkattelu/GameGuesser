@@ -76,7 +76,14 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
               jsonContent.type === 'guessResult' &&
               typeof jsonContent.content?.response === 'string'
             ) {
-              textContent = `${AI_NAME}: ${jsonContent.content.response}`;
+              const parts: string[] = [jsonContent.content.response];
+              if (jsonContent.content.score !== undefined) {
+                parts.push(`Score: ${jsonContent.content.score}`);
+              }
+              if (jsonContent.content.usedHint) {
+                parts.push('(Hint used)');
+              }
+              textContent = `${AI_NAME}: ${parts.join(' — ')}`;
             }
           } catch {
             textContent = `${AI_NAME}: ${entry.parts[0].text}`;

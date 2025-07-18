@@ -131,6 +131,38 @@ describe('ConversationHistory', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders partial score and hint usage in guessResult', () => {
+    const partialChatHistory: ChatMessage[] = [
+      {
+        role: 'model',
+        parts: [
+          {
+            text: JSON.stringify({
+              type: 'guessResult',
+              content: {
+                response: 'Close, but not quite!',
+                score: 0.5,
+                usedHint: true,
+              },
+            }),
+          },
+        ],
+      },
+    ];
+
+    render(
+      <ConversationHistory
+        chatHistory={partialChatHistory}
+        gameMode="player-guesses"
+        loading={false}
+      />,
+    );
+
+    expect(
+      screen.getByText('Quiz Bot: Close, but not quite! — Score: 0.5 — (Hint used)'),
+    ).toBeInTheDocument();
+  });
+
   it('sets the correct id for AI Guesses game mode', () => {
     const { container } = render(
       <ConversationHistory chatHistory={[]} gameMode="ai-guesses" loading={false} />,

@@ -15,12 +15,14 @@ import {
 import { getDailyGame } from './dailyGameStore.js';
 import { fetchGameMetadata } from './rawgDetails.js';
 import type { GameMetadata } from './rawgDetails.js';
+import { calculateScore } from './scoring.js';
 
 // In-memory store for game sessions – keyed by UUID
 export interface PlayerGuessSession {
   secretGame: string;
   chatHistory: ChatMessage[];
   questionCount: number;
+  usedHint: boolean;
 }
 
 interface AIGuessSession {
@@ -62,6 +64,7 @@ async function startPlayerGuessesGame() {
       },
     ],
     questionCount: 0,
+      usedHint: false,
   });
 
   return { sessionId };
@@ -113,6 +116,19 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
 
   // Just in case the model misses the question count, we provide it.
   jsonResponse.questionCount = jsonResponse.questionCount || session.questionCount;
+
+  // Inject partial score & hint usage metadata for guess results so that
+  // frontend clients can display nuanced feedback.
+  if (jsonResponse.type === 'guessResult' && typeof jsonResponse.content === 'object') {
+    // If the model marked the guess as correct we award full points. When the
+    // guess is wrong we attempt to derive a partial score by comparing the
+    // player's *raw* input to the secret game title.
+    const userGuess = userInput;
+    const score = jsonResponse.content.correct ? 1 : calculateScore(userGuess, session.secretGame);
+
+    (jsonResponse.content as any).score = score;
+    (jsonResponse.content as any).usedHint = session.usedHint;
+  }
 
   session.chatHistory.push({
     role: 'model',
@@ -224,6 +240,12 @@ async function getPlayerGuessHint(sessionId: string, hintType?: HintType): Promi
   const session = gameSessions.get(sessionId);
   if (!session || !('secretGame' in session)) {
     throw new Error('Session not found.');
+  }
+
+  // Mark that the player has used a hint so downstream logic can award reduced
+  // points or display an icon in the UI.
+  if ('usedHint' in session) {
+    session.usedHint = true;
   }
 
   let metadata = metadataCache.get(session.secretGame);
