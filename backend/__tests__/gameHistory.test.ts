@@ -87,6 +87,8 @@ describe('getGameHistory', () => {
       question_count: 3, // 3 user questions (excluding system message)
       total_questions: 20,
       game_name: 'Final Fantasy VII',
+      score: undefined,
+      used_hint: undefined,
     });
   });
 
@@ -130,6 +132,10 @@ describe('getGameHistory', () => {
       question_count: 2, // 2 user answers (excluding system message)
       total_questions: 20,
       game_name: undefined,
+      score: undefined,
+      used_hint: undefined,
+      score: undefined,
+      used_hint: undefined,
     });
   });
 

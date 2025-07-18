@@ -134,6 +134,10 @@ export interface GameSession {
   question_count: number;
   total_questions: number;
   game_name?: string;
+  /** Fractional score for the guess that resolved the session (if available) */
+  score?: number;
+  /** Whether the player used a hint in this session */
+  used_hint?: boolean;
 }
 
 /**
@@ -187,6 +191,8 @@ export async function getGameHistory(
 
     let victory = false;
     let gameName: string | undefined;
+    let score: number | undefined;
+    let usedHint: boolean | undefined;
     let questionCount = 0;
 
     // Count actual questions (exclude system messages)
@@ -205,10 +211,21 @@ export async function getGameHistory(
     for (const msg of modelMessages) {
       try {
         const parsed = JSON.parse(msg.content);
-        if (parsed.type === 'guessResult' && parsed.content?.correct) {
-          victory = true;
-          gameName = parsed.content.response;
-          break;
+        if (parsed.type === 'guessResult') {
+          // Capture score / hint regardless of correctness so that the frontend
+          // can render partial results.
+          if (typeof parsed.content?.score === 'number') {
+            score = parsed.content.score;
+          }
+          if (typeof parsed.content?.usedHint === 'boolean') {
+            usedHint = parsed.content.usedHint;
+          }
+
+          if (parsed.content?.correct) {
+            victory = true;
+            gameName = parsed.content.response;
+            break;
+          }
         }
       } catch {
         // Check plain text victory messages
@@ -233,6 +250,8 @@ export async function getGameHistory(
       question_count: questionCount,
       total_questions: 20,
       game_name: gameName,
+      score,
+      used_hint: usedHint,
     });
   });
 

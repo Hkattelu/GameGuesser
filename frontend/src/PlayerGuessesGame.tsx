@@ -163,17 +163,25 @@ function PlayerGuessesGame({
           endGame(`You're out of questions! The game was ${answerText}.`, false); // Backend will provide the game title in the final answer
         }
       } else if (type === 'guessResult') {
-        if (content.correct) {
-          endGame(`You guessed it! The game was ${content.response}.`, true);
+        const { correct, response, score, usedHint } = content as any;
+        if (correct) {
+          endGame(`You guessed it! The game was ${response}.`, true);
           setChatHistory((prevHistory) => [
             ...prevHistory,
-            { role: 'model', parts: [{ text: `You guessed it! The game was ${content.response}.` }] },
+            { role: 'model', parts: [{ text: `You guessed it! The game was ${response}.` }] },
+          ]);
+        } else if (typeof score === 'number' && score > 0) {
+          // Partial credit
+          setGameMessage(`Close! ${response} (${score} pts)${usedHint ? ' - Hint used' : ''}`);
+          setChatHistory((prevHistory) => [
+            ...prevHistory,
+            { role: 'model', parts: [{ text: `Close! ${response} (${score} pts).` }] },
           ]);
         } else {
-          setGameMessage(content.response);
+          setGameMessage(response);
           setChatHistory((prevHistory) => [
             ...prevHistory,
-            { role: 'model', parts: [{ text: content.response }] },
+            { role: 'model', parts: [{ text: response }] },
           ]);
         }
       }

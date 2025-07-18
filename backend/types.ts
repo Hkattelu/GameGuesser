@@ -23,6 +23,10 @@ export const AnswerToGuessSchema = z.object({
   content: z.object({
     correct: z.boolean(),
     response: z.string(),
+    // Fractional score awarded for this guess (1 = exact, 0.5 = near, 0 = wrong)
+    score: z.number().optional(),
+    // Whether the player had used a hint at the time of this guess
+    usedHint: z.boolean().optional(),
   }),
 });
 
