@@ -76,7 +76,15 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
               jsonContent.type === 'guessResult' &&
               typeof jsonContent.content?.response === 'string'
             ) {
-              textContent = `${AI_NAME}: ${jsonContent.content.response}`;
+              const { response, score, usedHint } = jsonContent.content as any;
+              let suffix = '';
+              if (typeof score === 'number') {
+                suffix += ` (${score} pts)`;
+              }
+              if (usedHint) {
+                suffix += suffix ? ' (hint)' : '(hint)';
+              }
+              textContent = `${AI_NAME}: ${response}${suffix}`;
             }
           } catch {
             textContent = `${AI_NAME}: ${entry.parts[0].text}`;
