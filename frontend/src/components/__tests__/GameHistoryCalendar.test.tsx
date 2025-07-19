@@ -21,6 +21,7 @@ Object.assign(navigator, {
 describe('GameHistoryCalendar', () => {
   const defaultProps = {
     token: 'test-token',
+    gameMode: 'player-guesses' as const,
     isOpen: true,
     onClose: vi.fn(),
   };
@@ -102,7 +103,7 @@ describe('GameHistoryCalendar', () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:8080/games/history?startDate=2025-07-01&endDate=2025-07-31',
+        'http://localhost:8080/games/history/player-guesses?startDate=2025-07-01&endDate=2025-07-31',
         {
           headers: {
             Authorization: 'Bearer test-token',

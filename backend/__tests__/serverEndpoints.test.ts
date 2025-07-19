@@ -288,51 +288,42 @@ describe('GET /conversations/session/:sessionId', () => {
   });
 });
 
-describe('GET /games/history', () => {
-  it('returns game history for authenticated user', async () => {
-    const gameHistory = [
-      {
-        session_id: 'game1',
-        date: '2025-07-01',
-        game_mode: 'player-guesses',
-        victory: true,
-        question_count: 5,
-        total_questions: 20,
-      },
-      {
-        session_id: 'game2',
-        date: '2025-07-02',
-        game_mode: 'ai-guesses',
-        victory: false,
-        question_count: 20,
-        total_questions: 20,
-      },
-    ];
-    getGameHistoryMock.mockResolvedValue(gameHistory);
+describe('GET /games/history/:gameType', () => {
+  const fullHistory = [
+    {
+      session_id: 'game1',
+      date: '2025-07-01',
+      game_mode: 'player-guesses' as const,
+      victory: true,
+      question_count: 5,
+      total_questions: 20,
+    },
+    {
+      session_id: 'game2',
+      date: '2025-07-02',
+      game_mode: 'ai-guesses' as const,
+      victory: false,
+      question_count: 20,
+      total_questions: 20,
+    },
+  ];
 
-    await request.get('/games/history').expect(200).expect(gameHistory);
+  it('returns only player-guesses history', async () => {
+    getGameHistoryMock.mockResolvedValue(fullHistory);
+
+    await request.get('/games/history/player-guesses').expect(200).expect([fullHistory[0]]);
 
     expect(getGameHistoryMock).toHaveBeenCalledWith('tester', undefined, undefined);
     expect(authenticateTokenMock).toHaveBeenCalled();
   });
 
-  it('returns game history with date filters', async () => {
-    const gameHistory = [
-      {
-        session_id: 'game1',
-        date: '2025-07-01',
-        game_mode: 'player-guesses',
-        victory: true,
-        question_count: 5,
-        total_questions: 20,
-      },
-    ];
-    getGameHistoryMock.mockResolvedValue(gameHistory);
+  it('returns only ai-guesses history with date filters', async () => {
+    getGameHistoryMock.mockResolvedValue(fullHistory);
 
     await request
-      .get('/games/history?startDate=2025-07-01&endDate=2025-07-31')
+      .get('/games/history/ai-guesses?startDate=2025-07-01&endDate=2025-07-31')
       .expect(200)
-      .expect(gameHistory);
+      .expect([fullHistory[1]]);
 
     expect(getGameHistoryMock).toHaveBeenCalledWith('tester', '2025-07-01', '2025-07-31');
   });
@@ -340,14 +331,18 @@ describe('GET /games/history', () => {
   it('handles partial date parameters', async () => {
     getGameHistoryMock.mockResolvedValue([]);
 
-    await request.get('/games/history?startDate=2025-07-01').expect(200);
+    await request.get('/games/history/player-guesses?startDate=2025-07-01').expect(200);
 
     expect(getGameHistoryMock).toHaveBeenCalledWith('tester', '2025-07-01', undefined);
+  });
+
+  it('returns 400 for invalid gameType', async () => {
+    await request.get('/games/history/invalid-type').expect(400);
   });
 
   it('returns 500 when db throws', async () => {
     getGameHistoryMock.mockRejectedValue(new Error('db error'));
 
-    await request.get('/games/history').expect(500);
+    await request.get('/games/history/player-guesses').expect(500);
   });
 });

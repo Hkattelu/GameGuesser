@@ -102,11 +102,35 @@ app.get('/conversations/session/:sessionId', authenticateToken, async (req: Requ
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
  */
-app.get('/games/history', authenticateToken, async (req: Request, res: Response) => {
+// ---------------------------------------------------------------------------
+// Game history – filterable by game type (player-guesses | ai-guesses)
+// ---------------------------------------------------------------------------
+
+/**
+* Fetches game history for the logged-in user filtered by the requested
+* `gameType` path parameter. Optional `startDate` and `endDate` query string
+* parameters (YYYY-MM-DD) further constrain the time range.
+*
+*  GET /games/history/:gameType
+*  e.g. /games/history/player-guesses?startDate=2025-07-01&endDate=2025-07-31
+*/
+app.get('/games/history/:gameType', authenticateToken, async (req: Request, res: Response) => {
+  const { gameType } = req.params as { gameType: string };
+  const validGameTypes = ['player-guesses', 'ai-guesses'] as const;
+
+  if (!validGameTypes.includes(gameType as any)) {
+    return res.status(400).json({ error: `Invalid gameType: ${gameType}` });
+  }
+
   try {
     const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
-    const gameHistory = await getGameHistory(req.user!.username, startDate, endDate);
-    return res.json(gameHistory);
+
+    // Delegate heavy lifting to the existing helper and then filter locally –
+    // avoids touching the DB layer for what is essentially a simple predicate.
+    const allHistory = await getGameHistory(req.user!.username, startDate, endDate);
+    const filtered = allHistory.filter((h) => h.game_mode === (gameType as typeof validGameTypes[number]));
+
+    return res.json(filtered);
   } catch (err) {
     console.error('Error fetching game history', err);
     return res.status(500).json({ error: 'Internal Server Error' });

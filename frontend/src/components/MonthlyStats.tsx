@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getApiUrl } from '../env_utils';
+import type { GameMode } from '../types';
 
 interface GameSession {
   session_id: string;
@@ -13,9 +14,10 @@ interface GameSession {
 
 interface MonthlyStatsProps {
   token: string | null;
+  gameMode?: GameMode;
 }
 
-const MonthlyStats: React.FC<MonthlyStatsProps> = ({ token }) => {
+const MonthlyStats: React.FC<MonthlyStatsProps> = ({ token, gameMode = 'player-guesses' }) => {
   const [stats, setStats] = useState<{
     wins: number;
     total: number;
@@ -41,7 +43,9 @@ const MonthlyStats: React.FC<MonthlyStatsProps> = ({ token }) => {
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
         const response = await fetch(
-          `${getApiUrl()}/games/history?startDate=${startOfMonth.toISOString().split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}`,
+          `${getApiUrl()}/games/history/${gameMode}?startDate=${startOfMonth
+            .toISOString()
+            .split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -99,7 +103,7 @@ const MonthlyStats: React.FC<MonthlyStatsProps> = ({ token }) => {
     };
 
     fetchMonthlyStats();
-  }, [token]);
+  }, [token, gameMode]);
 
   if (loading) {
     return (
