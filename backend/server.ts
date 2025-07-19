@@ -116,9 +116,7 @@ app.get('/conversations/session/:sessionId', authenticateToken, async (req: Requ
 */
 app.get('/games/history/:gameType', authenticateToken, async (req: Request, res: Response) => {
   const { gameType } = req.params as { gameType: string };
-  // -------------------------------------------------------------------------
   // Runtime validation – keep it type-safe
-  // -------------------------------------------------------------------------
 
   // The allowed literal values – inferred as a readonly tuple.
   const validGameTypes = ['player-guesses', 'ai-guesses'] as const;
