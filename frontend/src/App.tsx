@@ -8,7 +8,6 @@ import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
 import RulesIcon from './components/RulesIcon'; // Import RulesIcon
 import GameResultsDialog from './components/GameResultsDialog';
-import MonthlyStats from './components/MonthlyStats';
 import GameHistoryCalendar from './components/GameHistoryCalendar';
 
 import { ChatMessage, GameMode } from './types';
@@ -173,16 +172,11 @@ function App({
         </div>
       </div>
 
-      <MascotImage mood={getMascotMood()} />
-      
-      {/* Monthly Stats */}
-      <div className="mb-4">
-        <MonthlyStats token={token} />
+      <div className="flex justify-center items-center ml-4 mr-4">
+        <MascotImage mood={getMascotMood()} />
+        <p id="game-message" className="text-lg text-gray-600 mb-4">{gameMessage}</p>
       </div>
 
-      <p id="game-message" className="text-lg text-gray-600 mb-4">
-        {gameMessage}
-      </p>
       {victory && (
         <ConfettiExplosion
           force={0.6}
@@ -259,14 +253,12 @@ function App({
           questionCount={questionCount}
           maxQuestions={maxQuestions}
           chatHistory={chatHistory}
-          highlightedResponse={highlightedResponse}
           sessionId={sessionId}
           setPreGame={setPreGame}
           setStarted={setStarted}
           setQuestionCount={setQuestionCount}
           setChatHistory={setChatHistory}
           setLoading={setLoading}
-          setHighlightedResponse={setHighlightedResponse}
           setSessionId={setSessionId}
           setGameMessage={setGameMessage}
           setVictory={setVictory}

@@ -29,8 +29,7 @@ const moodToUrl = (mood: MascotMood) => {
 function MascotImage({ mood }: MascotImageProps) {
   return (
     <div className="flex justify-center mb-4">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={moodToUrl(mood)} alt="Game Boy mascot" className="w-40 h-40" />
+      <img src={moodToUrl(mood)} alt="Game Boy mascot" />
     </div>
   );
 }

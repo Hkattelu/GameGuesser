@@ -17,14 +17,12 @@ export interface PlayerGuessesGameProps {
   questionCount: number;
   maxQuestions: number;
   chatHistory: ChatMessage[];
-  highlightedResponse: string | null;
   sessionId: string | null;
   setPreGame: React.Dispatch<React.SetStateAction<boolean>>;
   setStarted: React.Dispatch<React.SetStateAction<boolean>>;
   setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
   setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setHighlightedResponse: React.Dispatch<React.SetStateAction<string | null>>;
   setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
   setGameMessage: React.Dispatch<React.SetStateAction<string>>;
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
@@ -51,7 +49,6 @@ function PlayerGuessesGame({
   questionCount,
   maxQuestions,
   chatHistory,
-  highlightedResponse,
   sessionId,
   token,
   setPreGame,
@@ -59,7 +56,6 @@ function PlayerGuessesGame({
   setQuestionCount,
   setChatHistory,
   setLoading,
-  setHighlightedResponse,
   setSessionId,
   setGameMessage,
   setVictory,
@@ -69,13 +65,18 @@ function PlayerGuessesGame({
   const [modelResponseText, setModelResponseText] = useState('');
   const [suggestions, setSuggestions] = useState(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
 
+  /**
+   * Starts a new game of 20 Questions where the AI thinks of a game
+   * and the player tries to guess what it is.
+   * @return {Promise<void>} - A promise resolving when the game has
+   *   started.
+   */
   const startGamePlayerGuesses = async () => {
     setPreGame(false);
     setStarted(true);
     setQuestionCount(0);
     setChatHistory([]);
     setLoading(true);
-    setHighlightedResponse(null);
     setSessionId(null);
     setGameMessage("I'm thinking of a game. Please wait...");
 
@@ -108,7 +109,6 @@ function PlayerGuessesGame({
     if (!playerGuessInput || !sessionId) return;
 
     setLoading(true);
-    setHighlightedResponse(null);
     setChatHistory((prevHistory) => [
       ...prevHistory,
       { role: "user", parts: [{ text: playerGuessInput }] },
@@ -148,11 +148,7 @@ function PlayerGuessesGame({
           answerText = (content as any).answer + ((content as any).clarification ? ` - ${(content as any).clarification}` : '');
         }
 
-        // Map "I don't know" -> "Unsure" to match button label.
-        const normalizedHighlight = answerLiteral === "I don't know" ? 'Unsure' : answerLiteral;
-
         setModelResponseText(answerText);
-        setHighlightedResponse(normalizedHighlight);
         setChatHistory((prevHistory) => [
           ...prevHistory,
           { role: "model", parts: [{ text: answerText }] },

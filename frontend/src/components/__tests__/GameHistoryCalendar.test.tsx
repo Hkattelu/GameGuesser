@@ -122,8 +122,8 @@ describe('GameHistoryCalendar', () => {
 
     await waitFor(() => {
       expect(screen.getByText('2/3')).toBeInTheDocument(); // Games Won
-      expect(screen.getByText('67%')).toBeInTheDocument(); // Win Rate
-      expect(screen.getAllByText('3')).toHaveLength(2); // Days Played
+      expect(screen.getByText('Win Rate: 67%')).toBeInTheDocument(); // Win Rate
+      expect(screen.getByText('Best: 1')).toBeInTheDocument(); // Streak
     });
   });
 
@@ -282,6 +282,19 @@ describe('GameHistoryCalendar', () => {
     render(<GameHistoryCalendar {...defaultProps} />);
     
     expect(screen.getByTestId('loading-animation')).toHaveClass('animate-pulse');
+  });
+
+  it('displays notice when no games played', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ([]),
+    } as Response);
+
+    render(<GameHistoryCalendar {...defaultProps} />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('You haven\'t played this month!'));
+    });
   });
 
   it('does not fetch when not open', () => {

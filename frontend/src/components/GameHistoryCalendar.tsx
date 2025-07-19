@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getApiUrl } from '../env_utils';
 import { AI_NAME } from '../constants';
+import MonthlyStats from './MonthlyStats';
 
 interface GameSession {
   session_id: string;
@@ -22,7 +23,7 @@ const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen
   const [history, setHistory] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);  
 
   useEffect(() => {
     if (!token || !isOpen) return;
@@ -47,7 +48,6 @@ const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen
         setLoading(false);
       }
     };
-
     fetchGameHistory();
   }, [token, isOpen, selectedMonth]);
 
@@ -155,7 +155,6 @@ Play at: ${window.location.origin}`;
 
   if (!isOpen) return null;
 
-  const { wins, total, winRate } = getMonthlyStats(selectedMonth);
   const monthName = selectedMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
@@ -199,22 +198,8 @@ Play at: ${window.location.origin}`;
               </button>
             </div>
 
-            {/* Monthly Stats */}
-            <div className="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-xl font-bold text-blue-600">{wins}/{total}</div>
-                  <div className="text-sm text-blue-600">Games Won</div>
-                </div>
-                <div>
-                  <div className="text-xl font-bold text-blue-600">{winRate}%</div>
-                  <div className="text-sm text-blue-600">Win Rate</div>
-                </div>
-                <div>
-                  <div className="text-xl font-bold text-blue-600">{total}</div>
-                  <div className="text-sm text-blue-600">Days Played</div>
-                </div>
-              </div>
+            <div className="mb-4">
+              <MonthlyStats games={history} />
             </div>
 
             {/* Calendar Grid */}

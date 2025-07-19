@@ -27,14 +27,12 @@ const mockProps = {
   questionCount: 0,
   maxQuestions: 20,
   chatHistory: [],
-  highlightedResponse: null,
   sessionId: null,
   setPreGame: vi.fn(),
   setStarted: vi.fn(),
   setQuestionCount: vi.fn(),
   setChatHistory: vi.fn(),
   setLoading: vi.fn(),
-  setHighlightedResponse: vi.fn(),
   setSessionId: vi.fn(),
   setGameMessage: vi.fn(),
   setVictory: vi.fn(),
@@ -92,7 +90,6 @@ describe('PlayerGuessesGame', () => {
     expect(mockProps.setLoading).toHaveBeenCalledWith(true);
 
     await waitFor(() => {
-      expect(mockProps.setHighlightedResponse).toHaveBeenCalledWith('Yes');
       expect(mockProps.setChatHistory).toHaveBeenCalled();
       expect(mockProps.setLoading).toHaveBeenCalledWith(false);
     });

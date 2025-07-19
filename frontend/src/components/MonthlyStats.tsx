@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { getApiUrl } from '../env_utils';
 
 interface GameSession {
   session_id: string;
@@ -12,10 +11,9 @@ interface GameSession {
 }
 
 interface MonthlyStatsProps {
-  token: string | null;
+  games: GameSession[];
 }
-
-const MonthlyStats: React.FC<MonthlyStatsProps> = ({ token }) => {
+const MonthlyStats: React.FC<MonthlyStatsProps> = ({ games }) => {
   const [stats, setStats] = useState<{
     wins: number;
     total: number;
@@ -29,94 +27,63 @@ const MonthlyStats: React.FC<MonthlyStatsProps> = ({ token }) => {
     currentStreak: 0,
     bestStreak: 0,
   });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
+    setStats(gamesToStats(games));
+  }, [games]);
 
-    const fetchMonthlyStats = async () => {
-      try {
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const gamesToStats = (games: GameSession[]) => {
+    const wins = games.filter(g => g.victory).length;
+    const total = games.length;
+    const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
-        const response = await fetch(
-          `${getApiUrl()}/games/history?startDate=${startOfMonth.toISOString().split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+    // Calculate streaks
+    let currentStreak = 0;
+    let bestStreak = 0;
+    let tempStreak = 0;
 
-        if (!response.ok) throw new Error('Failed to fetch game history');
+    // Sort games by date (most recent first)
+    const sortedGames = games.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        const games: GameSession[] = await response.json();
-        
-        const wins = games.filter(g => g.victory).length;
-        const total = games.length;
-        const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
-
-        // Calculate streaks
-        let currentStreak = 0;
-        let bestStreak = 0;
-        let tempStreak = 0;
-
-        // Sort games by date (most recent first)
-        const sortedGames = games.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        // Calculate current streak from most recent games
-        for (const game of sortedGames) {
-          if (game.victory) {
-            currentStreak++;
-          } else {
-            break;
-          }
-        }
-
-        // Calculate best streak
-        for (const game of sortedGames.reverse()) {
-          if (game.victory) {
-            tempStreak++;
-            bestStreak = Math.max(bestStreak, tempStreak);
-          } else {
-            tempStreak = 0;
-          }
-        }
-
-        setStats({
-          wins,
-          total,
-          winRate,
-          currentStreak,
-          bestStreak,
-        });
-      } catch (error) {
-        console.error('Error fetching monthly stats:', error);
-      } finally {
-        setLoading(false);
+    // Calculate current streak from most recent games
+    for (const game of sortedGames) {
+      if (game.victory) {
+        currentStreak++;
+      } else {
+        break;
       }
+    }
+
+    // Calculate best streak
+    for (const game of sortedGames.reverse()) {
+      if (game.victory) {
+        tempStreak++;
+        bestStreak = Math.max(bestStreak, tempStreak);
+      } else {
+        tempStreak = 0;
+      }
+    }
+
+    return {
+      wins,
+      total,
+      winRate,
+      currentStreak,
+      bestStreak,
     };
+  }
 
-    fetchMonthlyStats();
-  }, [token]);
-
-  if (loading) {
+  if (stats.total === 0) {
     return (
       <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-        <div className="animate-pulse" data-testid="loading-animation">
-          <div className="h-4 bg-blue-200 rounded w-1/2 mb-2"></div>
-          <div className="h-6 bg-blue-200 rounded w-1/4"></div>
-        </div>
+      <h3 className="text-sm font-semibold text-blue-800 mb-2">You haven't played this month!</h3>
       </div>
     );
   }
 
-  const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
   return (
     <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-      <h3 className="text-sm font-semibold text-blue-800 mb-2">{currentMonth} Stats</h3>
+      <h3 className="text-sm font-semibold text-blue-800 mb-2">This Month's Stats</h3>
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div className="text-center">
           <div className="text-2xl font-bold text-blue-600">{stats.wins}/{stats.total}</div>
