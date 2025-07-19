@@ -177,7 +177,7 @@ function App({
       
       {/* Monthly Stats */}
       <div className="mb-4">
-        <MonthlyStats token={token} />
+        <MonthlyStats token={token} gameMode={gameMode} />
       </div>
 
       <p id="game-message" className="text-lg text-gray-600 mb-4">
@@ -218,6 +218,7 @@ function App({
       {showHistory && (
         <GameHistoryCalendar
           token={token}
+          gameMode={gameMode}
           isOpen={showHistory}
           onClose={() => setShowHistory(false)}
         />
