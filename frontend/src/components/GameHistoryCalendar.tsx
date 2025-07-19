@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getApiUrl } from '../env_utils';
 import { AI_NAME } from '../constants';
+import type { GameMode } from '../types';
 
 interface GameSession {
   session_id: string;
@@ -16,9 +17,10 @@ interface GameHistoryCalendarProps {
   token: string | null;
   isOpen: boolean;
   onClose: () => void;
+  gameType?: GameMode;
 }
 
-const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen, onClose }) => {
+const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen, onClose, gameType = 'player-guesses' }) => {
   const [history, setHistory] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
@@ -31,7 +33,7 @@ const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen
       try {
         const startOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1).toISOString().slice(0, 10);
         const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).toISOString().slice(0, 10);
-        const response = await fetch(`${getApiUrl()}/games/history?startDate=${startOfMonth}&endDate=${endOfMonth}`, {
+        const response = await fetch(`${getApiUrl()}/games/history?startDate=${startOfMonth}&endDate=${endOfMonth}&gameType=${gameType}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -49,7 +51,7 @@ const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen
     };
 
     fetchGameHistory();
-  }, [token, isOpen, selectedMonth]);
+  }, [token, isOpen, selectedMonth, gameType]);
 
   const getMonthlyStats = (month: Date) => {
     const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);

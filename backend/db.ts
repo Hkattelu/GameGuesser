@@ -144,10 +144,23 @@ export interface GameSession {
  * Retrieves game session statistics for a user, optionally filtered by date range.
  * Analyzes conversation history to extract game sessions and their outcomes.
  */
+/**
+* Retrieves game session statistics for a user, optionally filtered by date
+* range **and** game type.
+*
+* @param userId    The username of the authenticated user.
+* @param startDate Optional YYYY-MM-DD inclusive lower bound.
+* @param endDate   Optional YYYY-MM-DD inclusive upper bound.
+* @param gameType  Optional game mode filter – either
+*                  `'player-guesses' | 'ai-guesses'`. When omitted the
+*                  endpoint returns sessions from *all* game types to preserve
+*                  backwards-compatibility.
+*/
 export async function getGameHistory(
   userId: string,
   startDate?: string,
   endDate?: string,
+  gameType?: 'player-guesses' | 'ai-guesses',
 ): Promise<GameSession[]> {
   let query = conversationsCol.where('user_id', '==', userId);
 
@@ -175,7 +188,7 @@ export async function getGameHistory(
     sessionGroups.get(conv.session_id)!.push(conv);
   });
 
-  const gameSessions: GameSession[] = [];
+  let gameSessions: GameSession[] = [];
 
   // Analyze each session to extract game data
   sessionGroups.forEach((messages, sessionId) => {
@@ -254,6 +267,12 @@ export async function getGameHistory(
       used_hint: usedHint,
     });
   });
+
+  // Apply gameType filter (post analysis step keeps Firestore read paths
+  // simple – we avoid additional compound indexes).
+  if (gameType) {
+    gameSessions = gameSessions.filter((s) => s.game_mode === gameType);
+  }
 
   return gameSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }

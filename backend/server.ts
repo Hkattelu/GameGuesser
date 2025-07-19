@@ -104,8 +104,26 @@ app.get('/conversations/session/:sessionId', authenticateToken, async (req: Requ
  */
 app.get('/games/history', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
-    const gameHistory = await getGameHistory(req.user!.username, startDate, endDate);
+    const { startDate, endDate, gameType } = req.query as {
+      startDate?: string;
+      endDate?: string;
+      gameType?: string;
+    };
+
+    // Validate `gameType` when provided – it must be one of the two supported
+    // modes. A 400 is returned for unknown values to make client errors
+    // explicit.
+    const allowedGameTypes = ['player-guesses', 'ai-guesses'];
+    if (gameType && !allowedGameTypes.includes(gameType)) {
+      return res.status(400).json({ error: 'Invalid gameType parameter' });
+    }
+
+    const gameHistory = await getGameHistory(
+      req.user!.username,
+      startDate,
+      endDate,
+      gameType as 'player-guesses' | 'ai-guesses' | undefined,
+    );
     return res.json(gameHistory);
   } catch (err) {
     console.error('Error fetching game history', err);

@@ -257,7 +257,7 @@ describe('MonthlyStats', () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:8080/games/history?startDate=2025-07-01&endDate=2025-07-31',
+        'http://localhost:8080/games/history?startDate=2025-07-01&endDate=2025-07-31&gameType=player-guesses',
         {
           headers: {
             Authorization: 'Bearer test-token',
