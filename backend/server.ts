@@ -116,9 +116,23 @@ app.get('/conversations/session/:sessionId', authenticateToken, async (req: Requ
 */
 app.get('/games/history/:gameType', authenticateToken, async (req: Request, res: Response) => {
   const { gameType } = req.params as { gameType: string };
+  // -------------------------------------------------------------------------
+  // Runtime validation – keep it type-safe
+  // -------------------------------------------------------------------------
+
+  // The allowed literal values – inferred as a readonly tuple.
   const validGameTypes = ['player-guesses', 'ai-guesses'] as const;
 
-  if (!validGameTypes.includes(gameType as any)) {
+  // Type derived from the tuple: 'player-guesses' | 'ai-guesses'.
+  type ValidGameType = typeof validGameTypes[number];
+
+  /** Returns true when the provided string is a recognised `gameType`. */
+  function isValidGameType(t: string): t is ValidGameType {
+    // Cast to readonly string[] to satisfy the includes signature on Node 18.
+    return (validGameTypes as readonly string[]).includes(t);
+  }
+
+  if (!isValidGameType(gameType)) {
     return res.status(400).json({ error: `Invalid gameType: ${gameType}` });
   }
 
@@ -128,7 +142,7 @@ app.get('/games/history/:gameType', authenticateToken, async (req: Request, res:
     // Delegate heavy lifting to the existing helper and then filter locally –
     // avoids touching the DB layer for what is essentially a simple predicate.
     const allHistory = await getGameHistory(req.user!.username, startDate, endDate);
-    const filtered = allHistory.filter((h) => h.game_mode === (gameType as typeof validGameTypes[number]));
+    const filtered = allHistory.filter((h) => h.game_mode === gameType);
 
     return res.json(filtered);
   } catch (err) {
