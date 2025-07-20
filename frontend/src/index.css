@@ -42,18 +42,6 @@
   100% { transform: rotate(360deg); }
 }
 
-@keyframes background-pan {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
 @keyframes pan {
   0% {
     background-position: 0% 0%;
@@ -63,22 +51,71 @@
   }
 }
 
-:root {
-  --glow-rgb: 245 245 245;
-  
-  --light-gold-rgb: 249 181 51;
-  --dark-gold-rgb: 215 147 23;
-  
-  --primary-stripe-rgb: 230 230 230;
-  --secondary-stripe-rgb: 240 240 240;
+#icons-container {
+  height: 100%;  
+  width: 100vw;
+  overflow: hidden;
+  z-index: -1;
+  position: absolute;
+}
+
+.icons-pattern {
+  background-image: url("/icons/combined.svg");
+  background-size: 10%;  
+  position: absolute;
+  left: 50%;
+  top: 0px;
+  translate: -50% 0%;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  min-width: 1200px;
+  opacity: 0.10;
+  animation: pan 180s linear infinite;
+  will-change: background-position;
+}
+
+/* .steam-icon {
+  background-image: url("/icons/steam.svg");
+  background-repeat: space repeat;
+  background-position: right center, left center;
+}
+
+.switch-icon {
+  background-image: url("/icons/switch.svg");
+  background-repeat: no-repeat, no-repeat;
+  background-position: right center, left center;
+}
+
+.xbox-icon {
+  background-image: url("/icons/xbox.svg");
+  background-repeat: no-repeat, no-repeat;
+  background-position: right center, left center;
+}
+
+.playstation-icon {
+  background-image: url("/icons/playstation.svg");
+  background-repeat: no-repeat, no-repeat;
+  background-position: right center, left center;
+} */
+
+#icons-gradient-overlay {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  opacity: 0.9;
+  z-index: 2;
 }
 
 body {
     font-family: 'Inter', sans-serif;
     background: linear-gradient(90deg, #f0f2f5, #e6e9ee, #f0f2f5);
     background-size: 200% 200%;
-    animation: background-pan 30s ease-in-out infinite;
     display: flex;
+    height: 100vh;
+    position: relative;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -109,40 +146,6 @@ body {
     text-decoration: underline;
 }
 
-#stripe-container {
-  position: absolute;
-  z-index: -1;
-  left: 50%;
-  bottom: 0px;
-  translate: -50% 0%;
-  height: 100%;
-  width: 100%;
-  background-color: rgb(var(--stripe-primary-rgb));
-}
-
-#stripe-pattern {
-  height: 100%;
-  width: 100%;
-  background-size: 18px 18px;
-  background-image: linear-gradient(
-    -45deg,
-    rgb(var(--primary-stripe-rgb)) 25%,
-    rgb(var(--secondary-stripe-rgb)) 25%,
-    rgb(var(--secondary-stripe-rgb)) 50%,
-    rgb(var(--primary-stripe-rgb)) 50%,
-    rgb(var(--primary-stripe-rgb)) 75%,
-    rgb(var(--secondary-stripe-rgb)) 75%,
-    rgb(var(--secondary-stripe-rgb)) 100%
-  );
-  box-shadow: inset 0rem 0.5rem 2rem 0.25rem rgb(0 0 0 / 40%);
-  animation: pan 240s linear infinite;
-  will-change: background-position;
-}
-
-#stripe-pattern.shift-left {
-  animation: pan 6s linear infinite;
-}
-
 .hover-anim {
   background:
     linear-gradient(black 0 0) 0 0,
@@ -162,7 +165,6 @@ body {
   --d: 20px;
 }
 
-
 /* Ensure the main container grows to fit content but stays centered */
 .game-container {
     max-width: 600px; /* Max width for readability */
@@ -172,25 +174,6 @@ body {
 #mascot-image {
     width: 150px;
     height: 150px;
-}
-
-.tabs {
-    display: flex;
-    justify-content: center;
-    border-bottom: 2px solid #e5e7eb;
-    margin-bottom: 1.5rem;
-}
-
-.tab-btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #6b7280;
-    transition: color 0.2s, border-bottom 0.2s;
-    border-bottom: 2px solid transparent;
 }
 
 .tab-btn.active {
@@ -223,25 +206,6 @@ body {
 
 .response-unsure {
     border: 2px solid #FFA000;
-}
-
-/* New highlighting classes */
-.highlight-yes {
-    background-color: #4CAF50; /* Darker green */
-    color: white;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-}
-
-.highlight-no {
-    background-color: #F44336; /* Darker red */
-    color: white;
-    box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
-}
-
-.highlight-unsure {
-    background-color: #FFC107; /* Darker yellow */
-    color: white;
-    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
 }
 
 .loading-spinner {

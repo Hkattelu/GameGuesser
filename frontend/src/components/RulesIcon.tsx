@@ -17,7 +17,7 @@ const RulesIcon: React.FC<RulesIconProps> = ({ gameMode }) => {
     <>
       <button
         onClick={openRulesDialog}
-        className="absolute top-4 left-4 text-gray-600 hover:text-blue-600 focus:outline-none"
+        className="cursor-pointer absolute top-4 left-4 text-gray-600 hover:text-blue-600 focus:outline-none"
         aria-label="Game Rules"
       >
         <FaQuestionCircle size={24} />
