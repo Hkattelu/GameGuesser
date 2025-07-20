@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getApiUrl } from '../env_utils';
+import type { GameMode } from '../types';
 
 interface GameSession {
   session_id: string;
@@ -13,11 +14,12 @@ interface GameSession {
 
 interface GameHistoryProps {
   token: string | null;
+  gameMode?: GameMode;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const GameHistory: React.FC<GameHistoryProps> = ({ token, isOpen, onClose }) => {
+const GameHistory: React.FC<GameHistoryProps> = ({ token, gameMode = 'player-guesses', isOpen, onClose }) => {
   const [history, setHistory] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +28,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({ token, isOpen, onClose }) => 
 
     const fetchGameHistory = async () => {
       try {
-        const response = await fetch(`${getApiUrl()}/games/history`, {
+        const response = await fetch(`${getApiUrl()}/games/history/${gameMode}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -44,7 +46,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({ token, isOpen, onClose }) => 
     };
 
     fetchGameHistory();
-  }, [token]);
+  }, [token, gameMode]);
 
   if (!isOpen) return null;
 

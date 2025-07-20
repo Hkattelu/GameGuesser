@@ -169,8 +169,96 @@ describe('MonthlyStats', () => {
   });
 
   it('handles empty game history', async () => {
+<<<<<<< HEAD
     render(<MonthlyStats games={[]} />);
     expect(screen.queryByText('You haven\t played this month!')).not.toBeInTheDocument();
+=======
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<MonthlyStats token="test-token" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('0/0')).toBeInTheDocument();
+      expect(screen.getByText('Win Rate: 0%')).toBeInTheDocument();
+      expect(screen.getByText('🔥 0')).toBeInTheDocument();
+    });
+
+    // Should not show "Best:" when there are no games
+    expect(screen.queryByText('Best:')).not.toBeInTheDocument();
+  });
+
+  it('handles API error gracefully', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('API Error'));
+    
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<MonthlyStats token="test-token" />);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Error fetching monthly stats:', expect.any(Error));
+    });
+
+    // Should still render the component structure
+    expect(screen.getByText('July 2025 Stats')).toBeInTheDocument();
+    
+    consoleSpy.mockRestore();
+  });
+
+  it('fetches data for correct date range', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<MonthlyStats token="test-token" />);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:8080/games/history/player-guesses?startDate=2025-07-01&endDate=2025-07-31',
+        {
+          headers: {
+            Authorization: 'Bearer test-token',
+          },
+        }
+      );
+    });
+  });
+
+  it('handles non-ok response', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+    } as Response);
+    
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(<MonthlyStats token="test-token" />);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Error fetching monthly stats:', expect.any(Error));
+    });
+    
+    consoleSpy.mockRestore();
+  });
+
+  it('renders current month name correctly', async () => {
+    // Test different month
+    vi.setSystemTime(new Date('2025-12-15'));
+    
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<MonthlyStats token="test-token" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('December 2025 Stats')).toBeInTheDocument();
+    });
+>>>>>>> adb4e7d770617ea754c22914ae65b1500a77018c
   });
 
   it('rounds win rate correctly', async () => {

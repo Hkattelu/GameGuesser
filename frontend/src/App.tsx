@@ -212,6 +212,7 @@ function App({
       {showHistory && (
         <GameHistoryCalendar
           token={token}
+          gameMode={gameMode}
           isOpen={showHistory}
           onClose={() => setShowHistory(false)}
         />

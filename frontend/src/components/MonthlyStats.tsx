@@ -1,4 +1,9 @@
 import React, { useState, useEffect } from 'react';
+<<<<<<< HEAD
+=======
+import { getApiUrl } from '../env_utils';
+import type { GameMode } from '../types';
+>>>>>>> adb4e7d770617ea754c22914ae65b1500a77018c
 
 interface GameSession {
   session_id: string;
@@ -11,9 +16,17 @@ interface GameSession {
 }
 
 interface MonthlyStatsProps {
+<<<<<<< HEAD
   games: GameSession[];
 }
 const MonthlyStats: React.FC<MonthlyStatsProps> = ({ games }) => {
+=======
+  token: string | null;
+  gameMode?: GameMode;
+}
+
+const MonthlyStats: React.FC<MonthlyStatsProps> = ({ token, gameMode = 'player-guesses' }) => {
+>>>>>>> adb4e7d770617ea754c22914ae65b1500a77018c
   const [stats, setStats] = useState<{
     wins: number;
     total: number;
@@ -37,10 +50,23 @@ const MonthlyStats: React.FC<MonthlyStatsProps> = ({ games }) => {
     const total = games.length;
     const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
+<<<<<<< HEAD
     // Calculate streaks
     let currentStreak = 0;
     let bestStreak = 0;
     let tempStreak = 0;
+=======
+        const response = await fetch(
+          `${getApiUrl()}/games/history/${gameMode}?startDate=${startOfMonth
+            .toISOString()
+            .split('T')[0]}&endDate=${endOfMonth.toISOString().split('T')[0]}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+>>>>>>> adb4e7d770617ea754c22914ae65b1500a77018c
 
     // Sort games by date (most recent first)
     const sortedGames = games.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -73,7 +99,14 @@ const MonthlyStats: React.FC<MonthlyStatsProps> = ({ games }) => {
     };
   }
 
+<<<<<<< HEAD
   if (stats.total === 0) {
+=======
+    fetchMonthlyStats();
+  }, [token, gameMode]);
+
+  if (loading) {
+>>>>>>> adb4e7d770617ea754c22914ae65b1500a77018c
     return (
       <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
       <h3 className="text-sm font-semibold text-blue-800 mb-2">You haven't played this month!</h3>

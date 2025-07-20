@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getApiUrl } from '../env_utils';
 import { AI_NAME } from '../constants';
 import MonthlyStats from './MonthlyStats';
+import type { GameMode } from '../types';
 
 interface GameSession {
   session_id: string;
@@ -15,11 +16,12 @@ interface GameSession {
 
 interface GameHistoryCalendarProps {
   token: string | null;
+  gameMode: GameMode;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen, onClose }) => {
+const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, gameMode, isOpen, onClose }) => {
   const [history, setHistory] = useState<GameSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date());
@@ -32,11 +34,14 @@ const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen
       try {
         const startOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1).toISOString().slice(0, 10);
         const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).toISOString().slice(0, 10);
-        const response = await fetch(`${getApiUrl()}/games/history?startDate=${startOfMonth}&endDate=${endOfMonth}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${getApiUrl()}/games/history/${gameMode}?startDate=${startOfMonth}&endDate=${endOfMonth}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) throw new Error('Failed to fetch game history');
 
@@ -49,7 +54,7 @@ const GameHistoryCalendar: React.FC<GameHistoryCalendarProps> = ({ token, isOpen
       }
     };
     fetchGameHistory();
-  }, [token, isOpen, selectedMonth]);
+  }, [token, gameMode, isOpen, selectedMonth]);
 
   const getMonthlyStats = (month: Date) => {
     const startOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
