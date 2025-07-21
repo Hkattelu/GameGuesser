@@ -17,6 +17,10 @@ import {
   randomId,
 } from './mocks/firestoreMock.js'; // side-effect: jest.unstable_mockModule()
 
+// Game type literals reused across tests – keeps typos at bay.
+const PLAYER = 'player-guesses' as const;
+const AI = 'ai-guesses' as const;
+
 // ---------------------------------------------------------------------------
 // Stub heavy game-layer functions – we only care about persistence here.
 // ---------------------------------------------------------------------------
@@ -109,7 +113,7 @@ describe('conversation history persistence – /player-guesses flow', () => {
       .send({ sessionId, userInput: 'Is it an RPG?' })
       .expect(200);
 
-    const rows = await db.getConversationsBySession(sessionId);
+    const rows = await db.getConversationsBySession(sessionId, 'player-guesses');
 
     expect(rows).toHaveLength(3);
     expect(rows[0]).toMatchObject({ role: 'system', content: 'Player-guesses game started' });
@@ -143,7 +147,7 @@ describe('conversation history persistence – /ai-guesses flow', () => {
       .send({ sessionId, userAnswer: 'Yes' })
       .expect(200);
 
-    const rows = await db.getConversationsBySession(sessionId);
+    const rows = await db.getConversationsBySession(sessionId, 'ai-guesses');
 
     expect(rows).toHaveLength(4);
 
@@ -163,12 +167,57 @@ describe('uses RAWG tool', () => {
     await db.saveConversationMessage(
       userId,
       sessionId,
+      'player-guesses',
       'system',
       JSON.stringify({ tool: 'RAWG', endpoint: 'games', id: 12345 }),
     );
 
-    const rows = await db.getConversationsBySession(sessionId);
+    const rows = await db.getConversationsBySession(sessionId, 'player-guesses');
     expect(rows).toHaveLength(1);
     expect(rows[0].content).toContain('RAWG');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// New regression tests – ensure conversation history is *scoped* by gameType.
+// ---------------------------------------------------------------------------
+
+describe('conversation history scoping by gameType', () => {
+  it('returns only messages that match the requested gameType', async () => {
+    const userId = 'scope-user';
+    const sessionId = 'shared-' + randomId();
+
+    // Write two messages under the *same* session ID but with *different* gameType.
+    await db.saveConversationMessage(userId, sessionId, PLAYER, 'system', 'Player game start');
+    await db.saveConversationMessage(userId, sessionId, AI, 'system', 'AI game start');
+
+    const playerRows = await db.getConversationsBySession(sessionId, PLAYER);
+    const aiRows = await db.getConversationsBySession(sessionId, AI);
+
+    expect(playerRows).toHaveLength(1);
+    expect(playerRows[0].content).toBe('Player game start');
+
+    expect(aiRows).toHaveLength(1);
+    expect(aiRows[0].content).toBe('AI game start');
+  });
+
+  it('returns an empty array when no messages exist for the given gameType', async () => {
+    const userId = 'empty-user';
+    const sessionId = 'empty-' + randomId();
+
+    // Save a message only for PLAYER type.
+    await db.saveConversationMessage(userId, sessionId, PLAYER, 'system', 'Only player');
+
+    const aiRows = await db.getConversationsBySession(sessionId, AI);
+    expect(aiRows).toHaveLength(0);
+  });
+
+  it('returns empty array for invalid gameType', async () => {
+    // The DB layer is fully typed, so passing an invalid literal is a compile
+    // error. At runtime, the collection filter just returns zero rows. This
+    // test ensures the behaviour is graceful.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const rows = await db.getConversationsBySession('noop', 'invalid' as any);
+    expect(rows).toEqual([]);
   });
 });

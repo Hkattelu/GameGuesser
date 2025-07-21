@@ -28,6 +28,7 @@
     "prompts.ts",
     "rawg.ts",
     "rawgDetails.ts",
+    "gameType.ts",
     "server.ts",
     "types.ts"
   ],

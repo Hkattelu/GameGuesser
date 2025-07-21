@@ -1,4 +1,5 @@
 import { Firestore, Timestamp } from '@google-cloud/firestore';
+import type { GameType } from './gameType.js';
 
 export const firestore = new Firestore({
   /** GCP project ID */
@@ -36,6 +37,14 @@ export interface ConversationRow {
   id: string; // Firestore document ID
   user_id: string;
   session_id: string;
+  /**
+   * Distinguishes between the two currently supported game modes so that the
+   * conversation history shown in the frontend is scoped to the *specific*
+   * game the player is interacting with. Without this field the UI mixes
+   * messages from *player-guesses* and *AI-guesses* sessions that happen to
+   * share the same `session_id`.
+   */
+  game_type: GameType;
   role: 'user' | 'model' | 'system';
   content: string;
   created_at: string | Timestamp; // Stored as Firestore Timestamp, returned as ISO string
@@ -76,12 +85,14 @@ export async function findUserByUsername(username: string): Promise<UserRow | un
 export async function saveConversationMessage(
   userId: string,
   sessionId: string,
+  gameType: GameType,
   role: ConversationRow['role'],
   content: string,
 ): Promise<void> {
   await conversationsCol.add({
     user_id: userId,
     session_id: sessionId,
+    game_type: gameType,
     role,
     content,
     created_at: Timestamp.now(),
@@ -129,7 +140,7 @@ export async function getConversationHistory(
 export interface GameSession {
   session_id: string;
   date: string;
-  game_mode: 'player-guesses' | 'ai-guesses';
+  game_mode: GameType;
   victory: boolean;
   question_count: number;
   total_questions: number;
@@ -264,9 +275,11 @@ export async function getGameHistory(
  */
 export async function getConversationsBySession(
   sessionId: string,
+  gameType: GameType,
 ): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[]> {
   const snap = await conversationsCol
     .where('session_id', '==', sessionId)
+    .where('game_type', '==', gameType)
     .orderBy('created_at', 'asc')
     .get();
 
