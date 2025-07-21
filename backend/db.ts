@@ -1,4 +1,5 @@
 import { Firestore, Timestamp } from '@google-cloud/firestore';
+import type { GameType } from './gameType.js';
 
 export const firestore = new Firestore({
   /** GCP project ID */
@@ -43,7 +44,7 @@ export interface ConversationRow {
    * messages from *player-guesses* and *AI-guesses* sessions that happen to
    * share the same `session_id`.
    */
-  game_type: 'player-guesses' | 'ai-guesses';
+  game_type: GameType;
   role: 'user' | 'model' | 'system';
   content: string;
   created_at: string | Timestamp; // Stored as Firestore Timestamp, returned as ISO string
@@ -84,7 +85,7 @@ export async function findUserByUsername(username: string): Promise<UserRow | un
 export async function saveConversationMessage(
   userId: string,
   sessionId: string,
-  gameType: ConversationRow['game_type'],
+  gameType: GameType,
   role: ConversationRow['role'],
   content: string,
 ): Promise<void> {
@@ -139,7 +140,7 @@ export async function getConversationHistory(
 export interface GameSession {
   session_id: string;
   date: string;
-  game_mode: 'player-guesses' | 'ai-guesses';
+  game_mode: GameType;
   victory: boolean;
   question_count: number;
   total_questions: number;
@@ -274,7 +275,7 @@ export async function getGameHistory(
  */
 export async function getConversationsBySession(
   sessionId: string,
-  gameType: ConversationRow['game_type'],
+  gameType: GameType,
 ): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[]> {
   const snap = await conversationsCol
     .where('session_id', '==', sessionId)

@@ -12,7 +12,15 @@ import {
   HintType,
 } from './game.js';
 import { authenticateToken, register, login } from './auth.js';
-import { saveConversationMessage, getConversationHistory, getConversationsBySession, getGameHistory } from './db.js';
+import {
+  saveConversationMessage,
+  getConversationHistory,
+  getConversationsBySession,
+  getGameHistory,
+} from './db.js';
+
+// Centralised game type helpers
+import { isValidGameType, type GameType } from './gameType.js';
 
 const app: Express = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
@@ -93,18 +101,13 @@ app.get('/conversations/session/:sessionId', authenticateToken, async (req: Requ
     const { sessionId } = req.params;
     const { gameType } = req.query as { gameType?: string };
 
-    const validGameTypes = ['player-guesses', 'ai-guesses'] as const;
-    type ValidGameType = typeof validGameTypes[number];
-
-    function isValidGameType(t: string): t is ValidGameType {
-      return (validGameTypes as readonly string[]).includes(t);
-    }
-
     if (!gameType || !isValidGameType(gameType)) {
       return res.status(400).json({ error: 'Missing or invalid `gameType` query parameter' });
     }
 
-    const rows = await getConversationsBySession(sessionId, gameType);
+    // `isValidGameType` refines the type at runtime, letting the compiler know
+    // `gameType` is a valid `GameType` here.
+    const rows = await getConversationsBySession(sessionId, gameType as GameType);
     return res.json(rows);
   } catch (err) {
     console.error('Error fetching session history', err);
@@ -131,19 +134,6 @@ app.get('/conversations/session/:sessionId', authenticateToken, async (req: Requ
 */
 app.get('/games/history/:gameType', authenticateToken, async (req: Request, res: Response) => {
   const { gameType } = req.params as { gameType: string };
-  // Runtime validation – keep it type-safe
-
-  // The allowed literal values – inferred as a readonly tuple.
-  const validGameTypes = ['player-guesses', 'ai-guesses'] as const;
-
-  // Type derived from the tuple: 'player-guesses' | 'ai-guesses'.
-  type ValidGameType = typeof validGameTypes[number];
-
-  /** Returns true when the provided string is a recognised `gameType`. */
-  function isValidGameType(t: string): t is ValidGameType {
-    // Cast to readonly string[] to satisfy the includes signature on Node 18.
-    return (validGameTypes as readonly string[]).includes(t);
-  }
 
   if (!isValidGameType(gameType)) {
     return res.status(400).json({ error: `Invalid gameType: ${gameType}` });
