@@ -50,12 +50,12 @@ function StartScreen() {
   }
 
   useEffect(() => {
-    if (!token) return;
-
     const moveEye = (eye: HTMLElement, event: MouseEvent) => {
-      const moveX = 30*(event.clientX - mouseWatchArea.current.offsetLeft)/mouseWatchArea.current.clientWidth - 20;
-      const moveY = 15*(event.clientY - mouseWatchArea.current.offsetTop)/mouseWatchArea.current.clientHeight - 5;
-      eye.style.transform = `translate(${moveX}px, ${moveY}px)`;
+      if (mouseWatchArea.current) {
+        const moveX = 30*(event.clientX - mouseWatchArea.current.offsetLeft)/mouseWatchArea.current.clientWidth - 20;
+        const moveY = 15*(event.clientY - mouseWatchArea.current.offsetTop)/mouseWatchArea.current.clientHeight - 5;
+        eye.style.transform = `translate(${moveX}px, ${moveY}px)`;
+      }
     };
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -73,7 +73,7 @@ function StartScreen() {
         document.removeEventListener('mousemove', handleMouseMove);
       }
     };
-  }, [token]);
+  });
 
   return (
     <div
