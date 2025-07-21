@@ -77,6 +77,7 @@ describe('GET /player-guesses/:sessionId/hint', () => {
     expect(saveConversationMessageMock).toHaveBeenCalledWith(
       'tester',
       sessionId,
+      'player-guesses',
       'system',
       'Hint provided: This is a hint.',
     );

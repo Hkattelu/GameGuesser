@@ -91,7 +91,20 @@ app.get('/conversations/history', authenticateToken, async (req: Request, res: R
 app.get('/conversations/session/:sessionId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;
-    const rows = await getConversationsBySession(sessionId);
+    const { gameType } = req.query as { gameType?: string };
+
+    const validGameTypes = ['player-guesses', 'ai-guesses'] as const;
+    type ValidGameType = typeof validGameTypes[number];
+
+    function isValidGameType(t: string): t is ValidGameType {
+      return (validGameTypes as readonly string[]).includes(t);
+    }
+
+    if (!gameType || !isValidGameType(gameType)) {
+      return res.status(400).json({ error: 'Missing or invalid `gameType` query parameter' });
+    }
+
+    const rows = await getConversationsBySession(sessionId, gameType);
     return res.json(rows);
   } catch (err) {
     console.error('Error fetching session history', err);
@@ -163,6 +176,7 @@ app.post('/player-guesses/start', authenticateToken, async (req: Request, res: R
     await saveConversationMessage(
       req.user!.username,
       result.sessionId,
+      'player-guesses',
       'system',
       'Player-guesses game started',
     );
@@ -184,7 +198,13 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
   const { sessionId, userInput } = req.body as { sessionId: string; userInput: string };
   try {
     // Persist user question
-    await saveConversationMessage(req.user!.username, sessionId, 'user', userInput);
+    await saveConversationMessage(
+      req.user!.username,
+      sessionId,
+      'player-guesses',
+      'user',
+      userInput,
+    );
 
     const result = await handlePlayerQuestion(sessionId, userInput);
 
@@ -192,6 +212,7 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
     await saveConversationMessage(
       req.user!.username,
       sessionId,
+      'player-guesses',
       'model',
       JSON.stringify(result),
     );
@@ -215,7 +236,13 @@ app.get('/player-guesses/:sessionId/hint', authenticateToken, async (req: Reques
   const { sessionId, hintType } = req.params as { sessionId: string, hintType?: HintType };
   try {
     const hint = await getPlayerGuessHint(sessionId, hintType);
-    await saveConversationMessage(req.user!.username, sessionId, 'system', `Hint provided: ${hint}`);
+    await saveConversationMessage(
+      req.user!.username,
+      sessionId,
+      'player-guesses',
+      'system',
+      `Hint provided: ${hint}`,
+    );
     return res.json({ hint });
   } catch (error: unknown) {
     const err = error as Error;
@@ -243,12 +270,14 @@ app.post('/ai-guesses/start', authenticateToken, async (req: Request, res: Respo
     await saveConversationMessage(
       req.user!.username,
       result.sessionId,
+      'ai-guesses',
       'system',
       'AI-guesses game started',
     );
     await saveConversationMessage(
       req.user!.username,
       result.sessionId,
+      'ai-guesses',
       'model',
       JSON.stringify(result.aiResponse),
     );
@@ -269,7 +298,13 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
   const { sessionId, userAnswer } = req.body as { sessionId: string; userAnswer: string };
   try {
     // Persist user answer
-    await saveConversationMessage(req.user!.username, sessionId, 'user', userAnswer);
+    await saveConversationMessage(
+      req.user!.username,
+      sessionId,
+      'ai-guesses',
+      'user',
+      userAnswer,
+    );
 
     const result = await handleAIAnswer(sessionId, userAnswer);
 
@@ -277,6 +312,7 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
     await saveConversationMessage(
       req.user!.username,
       sessionId,
+      'ai-guesses',
       'model',
       JSON.stringify(result.aiResponse),
     );

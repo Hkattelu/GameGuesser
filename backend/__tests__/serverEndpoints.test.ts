@@ -275,16 +275,19 @@ describe('GET /conversations/session/:sessionId', () => {
     ];
     getConversationsBySessionMock.mockResolvedValue(sessionHistory);
 
-    await request.get('/conversations/session/sess1').expect(200).expect(sessionHistory);
+    await request
+      .get('/conversations/session/sess1?gameType=player-guesses')
+      .expect(200)
+      .expect(sessionHistory);
 
-    expect(getConversationsBySessionMock).toHaveBeenCalledWith('sess1');
+    expect(getConversationsBySessionMock).toHaveBeenCalledWith('sess1', 'player-guesses');
     expect(authenticateTokenMock).toHaveBeenCalled();
   });
 
   it('returns 500 when db throws', async () => {
     getConversationsBySessionMock.mockRejectedValue(new Error('db error'));
 
-    await request.get('/conversations/session/sess1').expect(500);
+    await request.get('/conversations/session/sess1?gameType=player-guesses').expect(500);
   });
 });
 
