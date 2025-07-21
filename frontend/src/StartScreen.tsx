@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 
 import AuthPage from './AuthPage';
@@ -30,6 +30,9 @@ function StartScreen() {
   const [username, setUsername] = useState<string | null>(
     typeof localStorage !== 'undefined' ? localStorage.getItem('username') : null,
   );
+  const mouseWatchArea = useRef(null);
+  const leftEye = useRef(null);
+  const rightEye = useRef(null);
 
   const navigate = wrapNavigate(useNavigate());
 
@@ -46,10 +49,44 @@ function StartScreen() {
     return <AuthPage onAuth={handleAuth} />;
   }
 
+  useEffect(() => {
+    if (!token) return;
+
+    const moveEye = (eye: HTMLElement, event: MouseEvent) => {
+      let x = (eye.offsetLeft) + (eye.clientWidth / 2);
+      let y = (eye.offsetTop) + (eye.clientHeight / 2);
+      let moveX = (event.clientX - (3*x))/12
+      let moveY = (event.clientY - (2*y))/32;
+      eye.style.transform = `translate(${moveX}px, ${moveY}px)`;
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      moveEye(leftEye.current, event);
+      moveEye(rightEye.current, event);
+    };
+
+    if (mouseWatchArea.current) {
+      mouseWatchArea.current.addEventListener('mousemove', handleMouseMove);
+    }
+
+    // Clean up the event listener when the component unmounts or the ref changes
+    return () => {
+      if (mouseWatchArea.current) {
+        mouseWatchArea.current.removeEventListener('mousemove', handleMouseMove);
+      }
+    };
+  }, [token]);
+
   return (
     <div
       className={`start-screen flex flex-col items-center justify-center px-4 text-center`}
+      ref={mouseWatchArea}
     >
+      <div className="quiz-bot-head">
+        <div className="eye ml-12" ref={leftEye}><div className="pupil"></div></div>
+        <div className="eye mr-12" ref={rightEye}><div className="pupil"></div></div>
+        <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />
+      </div>
       <div className="p-6 bg-white rounded-xl drop-shadow mb-6 pt-12">
         <h1 className="text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
           {AI_NAME} 9000's Arcade
@@ -73,7 +110,7 @@ function StartScreen() {
         <button
           type="button"
           onClick={() => handleSelectGame('/player-guesses')}
-          className="cursor-pointer game-option-card hover-anim cursor-pointer bg-white p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
+          className="game-option-card hover-anim cursor-pointer bg-white p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
           style={{ viewTransitionName: 'player-guesses-card' }}
         >
           <h2 className="text-2xl font-bold mb-2 text-gray-800">You guess</h2>

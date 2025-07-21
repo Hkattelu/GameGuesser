@@ -107,6 +107,34 @@ body {
   z-index: 2;
 }
 
+.quiz-bot-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .eye {
+    position: absolute;
+    margin-top: 32px;
+    display: inline-block;
+    border-radius: 50%;
+    z-index: 3;
+    height: 45px;
+    width: 30px;
+    background: #000;
+  }
+  .pupil {
+    position: absolute;
+    bottom: 27px;
+    right: 10px;
+    width: 10px;
+    height: 8px;
+    background: #ccc;
+    border-radius: 50%;
+    content: " ";
+  }
+}
+
+
 .disclaimer {
     position: fixed;
     bottom: 10px;
