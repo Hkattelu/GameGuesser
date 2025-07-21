@@ -212,7 +212,7 @@ describe('conversation history scoping by gameType', () => {
     expect(aiRows).toHaveLength(0);
   });
 
-  it('ignores invalid gameType values by throwing', async () => {
+  it('returns empty array for invalid gameType', async () => {
     // The DB layer is fully typed, so passing an invalid literal is a compile
     // error. At runtime, the collection filter just returns zero rows. This
     // test ensures the behaviour is graceful.
