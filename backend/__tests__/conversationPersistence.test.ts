@@ -165,10 +165,67 @@ describe('uses RAWG tool', () => {
       sessionId,
       'system',
       JSON.stringify({ tool: 'RAWG', endpoint: 'games', id: 12345 }),
+      'player-guesses',
     );
 
     const rows = await db.getConversationsBySession(sessionId);
     expect(rows).toHaveLength(1);
     expect(rows[0].content).toContain('RAWG');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// New tests – gameType field and filtering logic
+// ---------------------------------------------------------------------------
+
+describe('conversation history per-game segregation', () => {
+  it('persists game_type with the correct value', async () => {
+    const userId = 'check-game-type-user';
+
+    // Direct DB write keeps the test concise
+    const sessionId = 'sess-' + randomId();
+    await db.saveConversationMessage(
+      userId,
+      sessionId,
+      'system',
+      'Testing game_type field',
+      'ai-guesses',
+    );
+
+    const rows = await db.getConversationsBySession(sessionId);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ game_type: 'ai-guesses' });
+  });
+
+  it('getConversationHistory filters by gameType', async () => {
+    const userId = 'filter-user';
+
+    // Two sessions – one per game type
+    const pgSession = 'pg-' + randomId();
+    const aiSession = 'ai-' + randomId();
+
+    await db.saveConversationMessage(
+      userId,
+      pgSession,
+      'system',
+      'PG message',
+      'player-guesses',
+    );
+
+    await db.saveConversationMessage(
+      userId,
+      aiSession,
+      'system',
+      'AI message',
+      'ai-guesses',
+    );
+
+    const pgHistory = await db.getConversationHistory(userId, undefined, 'player-guesses');
+    expect(pgHistory).toHaveLength(1);
+    expect(pgHistory[0]).toMatchObject({ session_id: pgSession, game_type: 'player-guesses' });
+
+    const aiHistory = await db.getConversationHistory(userId, undefined, 'ai-guesses');
+    expect(aiHistory).toHaveLength(1);
+    expect(aiHistory[0]).toMatchObject({ session_id: aiSession, game_type: 'ai-guesses' });
   });
 });

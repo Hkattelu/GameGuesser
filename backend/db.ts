@@ -38,6 +38,12 @@ export interface ConversationRow {
   session_id: string;
   role: 'user' | 'model' | 'system';
   content: string;
+  /**
+   * Type of game the message belongs to. Adding this field allows us to keep
+   * conversation history isolated per–game so opening the *AI-guesses* game no
+   * longer shows messages from *player-guesses* sessions (and vice-versa).
+   */
+  game_type: 'player-guesses' | 'ai-guesses';
   created_at: string | Timestamp; // Stored as Firestore Timestamp, returned as ISO string
 }
 
@@ -73,17 +79,21 @@ export async function findUserByUsername(username: string): Promise<UserRow | un
  * `conversations` collection keyed by Firestore's auto-id. This avoids deep
  * sub-collection queries and keeps indexes simple.
  */
+export type GameType = 'player-guesses' | 'ai-guesses';
+
 export async function saveConversationMessage(
   userId: string,
   sessionId: string,
   role: ConversationRow['role'],
   content: string,
+  gameType: GameType,
 ): Promise<void> {
   await conversationsCol.add({
     user_id: userId,
     session_id: sessionId,
     role,
     content,
+    game_type: gameType,
     created_at: Timestamp.now(),
   });
 }
@@ -95,7 +105,8 @@ export async function saveConversationMessage(
 export async function getConversationHistory(
   userId: string,
   date?: string,
-): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[]> {
+  gameType?: GameType,
+): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at' | 'game_type'>[]> {
   let query = conversationsCol.where('user_id', '==', userId);
 
   if (date) {
@@ -110,6 +121,10 @@ export async function getConversationHistory(
       .where('created_at', '<=', Timestamp.fromDate(endOfDay));
   }
 
+  if (gameType) {
+    query = query.where('game_type', '==', gameType);
+  }
+
   const snap = await query.orderBy('created_at', 'asc').get();
 
   return snap.docs.map((d) => {
@@ -118,6 +133,7 @@ export async function getConversationHistory(
       session_id: data.session_id,
       role: data.role,
       content: data.content,
+      game_type: data.game_type,
       created_at:
         (data.created_at as any) instanceof Timestamp
           ? (data.created_at as Timestamp).toDate().toISOString()
@@ -264,7 +280,7 @@ export async function getGameHistory(
  */
 export async function getConversationsBySession(
   sessionId: string,
-): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[]> {
+): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at' | 'game_type'>[]> {
   const snap = await conversationsCol
     .where('session_id', '==', sessionId)
     .orderBy('created_at', 'asc')
@@ -276,6 +292,7 @@ export async function getConversationsBySession(
       session_id: data.session_id,
       role: data.role,
       content: data.content,
+      game_type: data.game_type,
       created_at:
         (data.created_at as any)?.toDate
           ? (data.created_at as Timestamp).toDate().toISOString()

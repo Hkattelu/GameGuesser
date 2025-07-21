@@ -125,11 +125,16 @@ function App({
 
     const fetchHistory = async () => {
       try {
-        const response = await fetch(`${getApiUrl()}/conversations/history?date=${new Date().toISOString().slice(0, 10)}`, {
+        const response = await fetch(
+          `${getApiUrl()}/conversations/history?date=${new Date()
+            .toISOString()
+            .slice(0, 10)}&gameType=${gameMode}`,
+          {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
+          },
+        );
         if (!response.ok) throw new Error('Failed to load conversation history');
 
         type HistoryRow = { role: string; content: string };
@@ -146,7 +151,7 @@ function App({
     };
 
     fetchHistory();
-  }, [token]);
+  }, [token, gameMode]);
 
   if (!token) {
     return <AuthPage onAuth={handleAuth} />;

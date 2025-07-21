@@ -79,6 +79,7 @@ describe('GET /player-guesses/:sessionId/hint', () => {
       sessionId,
       'system',
       'Hint provided: This is a hint.',
+      'player-guesses',
     );
   });
 
