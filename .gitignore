@@ -23,8 +23,8 @@ backend/database.sqlite
 backend/dist/*
 backend/coverage
 backend/coverage/*
-backend/.env.development
-backend/.env.production
+backend/.development.env
+backend/.production.env
 backend/pnpm-lock.yaml
 
 # Daily Game persistence file

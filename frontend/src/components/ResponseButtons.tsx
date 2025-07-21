@@ -10,14 +10,14 @@ export interface ResponseButtonsProps {
 function ResponseButtons({ onAnswer, highlightedResponse }: ResponseButtonsProps) {
   const getButtonClass = (buttonType: ResponseOption) => {
     let baseClasses =
-      'px-6 py-3 text-white font-bold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-75 transition duration-200 transform hover:scale-105';
+      'cursor-pointer px-6 py-3 text-white font-bold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-opacity-75 transition duration-200 transform hover:scale-105 ';
 
     if (buttonType === 'Yes') {
-      baseClasses += ' bg-green-600 hover:bg-green-700 focus:ring-green-500';
+      baseClasses += 'bg-green-600 hover:bg-green-700 focus:ring-green-500';
     } else if (buttonType === 'No') {
-      baseClasses += ' bg-red-600 hover:bg-red-700 focus:ring-red-500';
+      baseClasses += 'bg-red-600 hover:bg-red-700 focus:ring-red-500';
     } else if (buttonType === 'Unsure') {
-      baseClasses += ' bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-400';
+      baseClasses += 'bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-400';
     }
 
     if (highlightedResponse === buttonType) {

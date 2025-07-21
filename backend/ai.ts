@@ -1,7 +1,7 @@
 
-import { genkit, Part } from 'genkit';
-import { googleAI, gemini15Flash, gemini20Flash } from '@genkit-ai/googleai';
-import { z, ZodType } from 'zod';
+import { genkit, Genkit } from 'genkit';
+import { googleAI, gemini20Flash } from '@genkit-ai/googleai';
+import { ZodType } from 'zod';
 import { PlayerQAResponse, AIJsonResponse } from './types.js';
 
 /**
@@ -19,7 +19,7 @@ import { PlayerQAResponse, AIJsonResponse } from './types.js';
 // account credentials from the standard Firebase env vars (GOOGLE_APPLICATION_CREDENTIALS
 // or the Cloud Functions runtime). No explicit API key handling is required.
 
-export const ai = genkit({
+export const ai: Genkit = genkit({
   plugins: [googleAI()],
   // If we need to switch to a different model later we can override per call.
   model: gemini20Flash,

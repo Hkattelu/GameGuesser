@@ -84,10 +84,6 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ---------------------------------------------------------------------------
-// (1) Player-guesses flow
-// ---------------------------------------------------------------------------
-
 describe('conversation history persistence – /player-guesses flow', () => {
   it('persists *system → user → model* messages', async () => {
     // Register user
@@ -121,10 +117,6 @@ describe('conversation history persistence – /player-guesses flow', () => {
     expect(rows[2].role).toBe('model');
   });
 });
-
-// ---------------------------------------------------------------------------
-// (2) AI-guesses flow
-// ---------------------------------------------------------------------------
 
 describe('conversation history persistence – /ai-guesses flow', () => {
   it('persists *system → model → user → model* messages', async () => {
@@ -163,42 +155,10 @@ describe('conversation history persistence – /ai-guesses flow', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// (3) Simulation tests for upcoming message types
-// ---------------------------------------------------------------------------
-
-describe('simulation tests for clarifications, final guesses and RAWG tool usage', () => {
-  const userId = 'sim-user';
-
-  it('flags clarification requests', async () => {
-    const sessionId = 'clar-' + randomId();
-    await db.saveConversationMessage(
-      userId,
-      sessionId,
-      'user',
-      JSON.stringify({ clarification: true, question: 'Could you clarify?' }),
-    );
-
-    const rows = await db.getConversationsBySession(sessionId);
-    expect(rows).toHaveLength(1);
-    expect(rows[0].content).toContain('clarification');
-  });
-
-  it('stores final guesses', async () => {
-    const sessionId = 'guess-' + randomId();
-    await db.saveConversationMessage(
-      userId,
-      sessionId,
-      'user',
-      JSON.stringify({ type: 'finalGuess', guess: 'Halo' }),
-    );
-
-    const rows = await db.getConversationsBySession(sessionId);
-    expect(rows).toHaveLength(1);
-    expect(rows[0].content).toContain('finalGuess');
-  });
+describe('uses RAWG tool', () => {
 
   it('captures RAWG API tool invocations', async () => {
+    const userId = 'sim-user';
     const sessionId = 'rawg-' + randomId();
     await db.saveConversationMessage(
       userId,

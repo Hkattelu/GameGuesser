@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "node --env-file .env.development dist/server.js",
+    "dev": "node dist/server.js",
     "build": "tsc -p ./tsconfig.json",
     "start": "node dist/server.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
@@ -27,6 +27,7 @@
     "@types/node": "^20.10.7",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
     "express": "^4.18.2",
     "genkit": "^1.11.1",
     "jsonwebtoken": "^9.0.2",

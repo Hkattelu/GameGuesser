@@ -171,14 +171,6 @@ function AIGuessesGame({
       {/* Conversation History */}
       <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
 
-      {/* AI's Question Display */}
-      {started && (
-        <div id="question-display">
-          <p className="text-xl font-semibold text-gray-800 mb-4">AI's Question:</p>
-          <p id="ai-question" className="text-2xl font-bold text-blue-700 bg-blue-50 p-4 rounded-lg shadow-inner mb-6"></p>
-        </div>
-      )}
-
       {/* User Response Buttons */}
       {started && !loading && (
         <ResponseButtons onAnswer={handleAnswer} highlightedResponse={highlightedResponse} />
@@ -188,7 +180,7 @@ function AIGuessesGame({
       {!started && (
         <button
           id="btn-start-game"
-          className="mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+          className="cursor-pointer mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
           onClick={startGameAI}
         >
           Start Game

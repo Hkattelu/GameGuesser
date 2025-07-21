@@ -73,7 +73,7 @@ function StartScreen() {
         <button
           type="button"
           onClick={() => handleSelectGame('/player-guesses')}
-          className="game-option-card hover-anim cursor-pointer bg-white p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
+          className="cursor-pointer game-option-card hover-anim cursor-pointer bg-white p-6 sm:p-8 shadow-lg hover:scale-105 active:scale-100 transition transform w-full sm:w-1/2"
           style={{ viewTransitionName: 'player-guesses-card' }}
         >
           <h2 className="text-2xl font-bold mb-2 text-gray-800">You guess</h2>
