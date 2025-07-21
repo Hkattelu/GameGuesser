@@ -24,7 +24,7 @@ const HintDialog: React.FC<HintDialogProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg">
         <h2 className="text-2xl font-bold mb-4">Need a hint?</h2>
         <p className="mb-4">

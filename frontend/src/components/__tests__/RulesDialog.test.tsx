@@ -64,7 +64,7 @@ describe('RulesDialog', () => {
     );
     
     const modal = container.firstChild;
-    expect(modal).toHaveClass('fixed', 'inset-0', 'bg-gray-600', 'bg-opacity-50');
+    expect(modal).toHaveClass('fixed', 'inset-0', 'bg-gray-600/50');
   });
 
   it('has proper dialog buttonstyling', () => {

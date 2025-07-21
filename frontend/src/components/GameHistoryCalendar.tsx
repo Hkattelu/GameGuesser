@@ -163,13 +163,13 @@ Play at: ${window.location.origin}`;
   const monthName = selectedMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
+    <div className="fixed inset-0 bg-gray-600/50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
       <div className="relative p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-2xl font-bold text-gray-800">Game History Calendar</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+            className="cursor-pointer text-gray-400 hover:text-gray-600 text-xl font-bold"
           >
             ×
           </button>
