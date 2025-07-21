@@ -25,7 +25,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
   // it overflows. `space-y-*` utilities add consistent vertical rhythm between
   // messages.
   const containerClasses =
-    'text-left mb-6 p-4 bg-gray-50 rounded-lg max-h-60 overflow-y-auto';
+    'text-left mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg max-h-60 overflow-y-auto';
 
   if (loading) {
     // While loading, centre the spinner and avoid showing stale messages so it

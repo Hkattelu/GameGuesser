@@ -76,12 +76,22 @@ body {
   }
 }
 
+/* Dark mode body background */
+html.dark body {
+  background: linear-gradient(90deg, #1f2937, #111827, #1f2937);
+}
+
+html.dark #icons-container {
+  filter: brightness(5);
+}
+
 #icons-container {
   height: 100%;  
   width: 200vw;
   overflow: hidden;
   z-index: -1;
   position: absolute;
+
 }
 
 .icons-pattern {
@@ -112,6 +122,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+
   .eye {
     position: absolute;
     margin-top: 32px;
@@ -122,6 +133,7 @@ body {
     width: 30px;
     background: #000;
   }
+
   .pupil {
     position: absolute;
     bottom: 27px;
@@ -134,25 +146,8 @@ body {
   }
 }
 
-
-.disclaimer {
-    position: fixed;
-    bottom: 10px;
-    left: 10px;
-    font-size: 0.8rem;
-    color: #111621;
-}
-
-.disclaimer a {
-    color: #1d4ed8;
-    text-decoration: none;
-}
-
-.disclaimer a:hover {
-    text-decoration: underline;
-}
-
 .hover-anim {
+  width: 100%;
   background:
     linear-gradient(black 0 0) 0 0,
     linear-gradient(black 0 0) 0 0,
@@ -164,7 +159,7 @@ body {
     linear-gradient(black 0 0) 100% 100%;
   background-size: var(--d, 0) 3px, 3px var(--d, 0);
   background-repeat: no-repeat;
-  background-color: white;
+  background-color: unset;
   transition: 0.5s;
 }
 .hover-anim:hover {

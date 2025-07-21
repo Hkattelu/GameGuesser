@@ -9,6 +9,7 @@ import MascotImage from './components/MascotImage';
 import RulesIcon from './components/RulesIcon'; // Import RulesIcon
 import GameResultsDialog from './components/GameResultsDialog';
 import GameHistoryCalendar from './components/GameHistoryCalendar';
+import SettingsButton from './components/SettingsButton';
 
 import { ChatMessage, GameMode } from './types';
 import { MAX_QUESTIONS } from './constants';
@@ -152,21 +153,41 @@ function App({
   }
 
   return (
-    <div
-      className="game-container bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center"
-      style={{ viewTransitionName: 'game-container' }}
-    >
+    <>
+      <SettingsButton />
+      <div
+        className="game-container bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 text-center text-gray-900 dark:text-white"
+        style={{ viewTransitionName: 'game-container' }}
+      >
       {location.pathname !== '/' && <RulesIcon gameMode={gameMode} />}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Hello, {username}!</h2>
+        <button 
+          onClick={() => navigate('/')}
+          className="cursor-pointer flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+        >
+          <svg 
+            className="w-5 h-5 mr-2" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M15 19l-7-7 7-7" 
+            />
+          </svg>
+          Back to Games
+        </button>
         <div className="flex items-center space-x-4">
           <button 
             onClick={() => setShowHistory(true)}
-            className="cursor-pointer text-sm text-blue-600 hover:underline"
+            className="cursor-pointer text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
           >
             📊 History
           </button>
-          <button className="cursor-pointer text-sm text-blue-600 hover:underline" onClick={handleLogout}>
+          <button className="cursor-pointer text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline" onClick={handleLogout}>
             Logout
           </button>
         </div>
@@ -174,7 +195,7 @@ function App({
 
       <div className="flex justify-center items-center ml-4 mr-4">
         <MascotImage mood={getMascotMood()} />
-        <p id="game-message" className="text-lg text-gray-600 mb-4">{gameMessage}</p>
+        <p id="game-message" className="text-lg text-gray-600 dark:text-gray-300 mb-4">{gameMessage}</p>
       </div>
 
       {victory && (
@@ -244,6 +265,7 @@ function App({
         />
       )}
 
+
       {gameMode === 'player-guesses' && (
         <PlayerGuessesGame
           token={token}
@@ -266,7 +288,8 @@ function App({
           setShowResults={setShowResults}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

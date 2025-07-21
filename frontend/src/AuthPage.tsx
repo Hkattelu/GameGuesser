@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getApiUrl } from './env_utils';
+import SettingsButton from './components/SettingsButton';
 
 export interface AuthPageProps {
   onAuth: (payload: { token: string; username: string }) => void;
@@ -41,20 +42,22 @@ function AuthPage({ onAuth }: AuthPageProps) {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg border-gray-200 mt-12">
+    <>
+      <SettingsButton />
+      <div className="max-w-md mx-auto bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-8 rounded-xl shadow-lg border-gray-200 dark:border-gray-700 mt-12">
       <h2 className="text-3xl font-bold text-center mb-6">
         {mode === 'login' ? 'Login' : 'Register'}
       </h2>
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+          <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="username">
             Username
           </label>
           <input
             id="username"
             type="text"
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-white dark:bg-gray-700 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -62,13 +65,13 @@ function AuthPage({ onAuth }: AuthPageProps) {
         </div>
 
         <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+          <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
             Password
           </label>
           <input
             id="password"
             type="password"
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-white dark:bg-gray-700 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -102,7 +105,8 @@ function AuthPage({ onAuth }: AuthPageProps) {
           </>
         )}
       </p>
-    </div>
+      </div>
+    </>
   );
 }
 
