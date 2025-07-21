@@ -53,10 +53,8 @@ function StartScreen() {
     if (!token) return;
 
     const moveEye = (eye: HTMLElement, event: MouseEvent) => {
-      let x = (eye.offsetLeft) + (eye.clientWidth / 2);
-      let y = (eye.offsetTop) + (eye.clientHeight / 2);
-      let moveX = (event.clientX - (3*x))/12
-      let moveY = (event.clientY - (2*y))/32;
+      const moveX = 30*(event.clientX - mouseWatchArea.current.offsetLeft)/mouseWatchArea.current.clientWidth - 20;
+      const moveY = 15*(event.clientY - mouseWatchArea.current.offsetTop)/mouseWatchArea.current.clientHeight - 5;
       eye.style.transform = `translate(${moveX}px, ${moveY}px)`;
     };
 
@@ -66,13 +64,13 @@ function StartScreen() {
     };
 
     if (mouseWatchArea.current) {
-      mouseWatchArea.current.addEventListener('mousemove', handleMouseMove);
+     document.addEventListener('mousemove', handleMouseMove);
     }
 
     // Clean up the event listener when the component unmounts or the ref changes
     return () => {
       if (mouseWatchArea.current) {
-        mouseWatchArea.current.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mousemove', handleMouseMove);
       }
     };
   }, [token]);
