@@ -84,8 +84,8 @@ function StartScreen() {
         ref={mouseWatchArea}
       >
       <div className="quiz-bot-head">
-        <div className="eye ml-12" ref={leftEye}><div className="pupil"></div></div>
-        <div className="eye mr-12" ref={rightEye}><div className="pupil"></div></div>
+        <div className="eye ml-14" ref={leftEye}><div className="pupil"></div></div>
+        <div className="eye mr-14" ref={rightEye}><div className="pupil"></div></div>
         <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />
       </div>
       <div className="p-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">

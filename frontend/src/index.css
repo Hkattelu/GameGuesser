@@ -71,14 +71,14 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 20px;
-  box-sizing: border-box; /* Include padding in element's total width and height */
+  box-sizing: border-box;
 
   @media (max-width: 767px) {
     padding: 12px;
   }
 }
 
-/* Dark mode body background */
+/** A couple of custom dark mode rules */
 html.dark body {
   background: linear-gradient(90deg, #1f2937, #111827, #1f2937);
 }
@@ -184,6 +184,7 @@ html.dark #icons-container {
   justify-content: center;
 
   .eye {
+    filter: blur(1px);
     position: absolute;
     margin-top: 32px;
     display: inline-block;
@@ -228,33 +229,33 @@ html.dark #icons-container {
 
 /* Ensure the main container grows to fit content but stays centered */
 .game-container {
-    max-width: 600px; /* Max width for readability */
-    width: 100%; /* Full width on smaller screens */
+  max-width: 600px; /* Max width for readability */
+  width: 100%; /* Full width on smaller screens */
 }
 
 #mascot-image {
-    width: 150px;
-    height: 150px;
+  width: 150px;
+  height: 150px;
 }
 
 .tab-btn.active {
-    color: #1d4ed8;
-    border-bottom: 2px solid #1d4ed8;
+  color: #1d4ed8;
+  border-bottom: 2px solid #1d4ed8;
 }
 
 .suggestion-chip {
-    background-color: #e5e7eb;
-    color: #4b5563;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    border: 1px solid #d1d5db;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+  background-color: #e5e7eb;
+  color: #4b5563;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .suggestion-chip:hover {
-    background-color: #d1d5db;
-    color: #1f2937;
+  background-color: #d1d5db;
+  color: #1f2937;
 }
 
 .loading-spinner {
