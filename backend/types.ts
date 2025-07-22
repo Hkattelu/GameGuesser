@@ -32,13 +32,19 @@ export const AnswerToGuessSchema = z.object({
 
 export const PlayerQAResponseSchema = AnswerToGuessSchema.or(AnswerToQuestionSchema);
 
-export const AIJsonResponseSchema = z.object({
-  type: z.enum(['question', 'guess']),
+export const AIQuestionSchema = z.object({
+  type: z.enum(['question']),
   content: z.string(),
 });
 
+export const AIGuessesGameSchema = z.object({
+  type: z.enum(['guess']),
+  content: z.boolean(),
+});
 
-// -------------------------- Inferred Types --------------------------
+export const AIJsonResponseSchema = AIQuestionSchema.or(AIGuessesGameSchema);
+
+// -------------------------- Typescript types --------------------------
 
 export type YesNoClarification = z.infer<typeof YesNoClarificationSchema>;
 export type AnswerToQuestion = z.infer<typeof AnswerToQuestionSchema>;

@@ -27,6 +27,7 @@ const saveConversationMessageMock = jest.fn();
 const getConversationHistoryMock = jest.fn();
 const getConversationsBySessionMock = jest.fn();
 const getGameHistoryMock = jest.fn();
+const getLatestSessionMock = jest.fn();
 
 jest.unstable_mockModule('../db.js', () => ({
   __esModule: true,
@@ -34,6 +35,7 @@ jest.unstable_mockModule('../db.js', () => ({
   getConversationHistory: getConversationHistoryMock,
   getConversationsBySession: getConversationsBySessionMock,
   getGameHistory: getGameHistoryMock,
+  getLatestSession: getLatestSessionMock
 }));
 
 // Game service helpers -------------------------------------------------------

@@ -69,7 +69,7 @@ export const PLAYER_QA_WITH_CLASSIFICATION_PROMPT = (
     - "It is a standalone game."
     
   Guidelines for *guessResult* objects:
-    • If the guess is correct, set **content.correct** = true and **content.response** to exactly the secret game title.
+    • If the guess is correct, set **content.correct** = true and **content.response** to a congratulations message.
     • If incorrect, set **content.correct** = false and use **content.response** to politely inform the user without revealing the real title.`;
 };
 
@@ -81,9 +81,13 @@ export const AI_GUESS_INITIAL_PROMPT = (maxQuestions: number): string =>
   `You are Bot Boy, a friendly robot playing a "20 Questions" game to guess a video game the user is thinking of.
 You will ask yes/no questions. If you are very confident, you can make a guess.
 You have ${maxQuestions} questions in total. This is question 1.
+If the user responds indicating that you are correct, then you win, and the user loses. If you win, you will respond
+with the guess type and content true. Otherwise keep asking questions.
 Your response MUST be a JSON object with a 'type' field ("question" or "guess") and a 'content' field (the question text or the game guess).
 Example: {"type": "question", "content": "Is your game an RPG?"}
-Example: {"type": "guess", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
+Example: {"type": "question", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
+Example: {"type": "guess", "content": true}
+
 Start by asking your first question.`;
 
 /**

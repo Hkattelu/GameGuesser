@@ -19,19 +19,34 @@ export interface ConversationHistoryProps {
  * @param messages The list of chat messages
  * @return The reformatted response
  */
-function formatMessages(messages: ChatMessage[]): ChatTurn[] {
+function formatMessages(messages: ChatMessage[], gameMode: GameMode): ChatTurn[] {
   const turns: ChatTurn[] = [];
 
   const filteredMessages = messages.filter(message => message.role !== 'system');
-  for (let i = 0; i < filteredMessages.length; i++) {
-    if (filteredMessages[i].role === 'user' && i + 1 < filteredMessages.length && filteredMessages[i + 1].role === 'model') {
-      turns.push({
-        user: filteredMessages[i].parts[0].text,
-        model: filteredMessages[i + 1].parts[0].text,
-      });
-      i++;
-    } else {
-      turns.push({ user: filteredMessages[i].parts[0].text });
+
+  if (gameMode === 'player-guesses') {
+    for (let i = 0; i < filteredMessages.length; i++) {
+      if (filteredMessages[i].role === 'user' && i + 1 < filteredMessages.length && filteredMessages[i + 1].role === 'model') {
+        turns.push({
+          user: filteredMessages[i].parts[0].text,
+          model: filteredMessages[i + 1].parts[0].text,
+        });
+        i++;
+      } else {
+        turns.push({ user: filteredMessages[i].parts[0].text });
+      }
+    }
+  } else if (gameMode === 'ai-guesses') {
+    for (let i = 0; i < filteredMessages.length; i++) {
+      if (filteredMessages[i].role === 'model' && i + 1 < filteredMessages.length && filteredMessages[i + 1].role === 'user') {
+        turns.push({
+          model: filteredMessages[i].parts[0].text,
+          user: filteredMessages[i + 1].parts[0].text,
+        });
+        i++;
+      } else {
+        turns.push({ model: filteredMessages[i].parts[0].text });
+      }
     }
   }
   return turns;
@@ -68,7 +83,7 @@ function formatJsonContent(maybeJsonString: any): string {
   if (jsonContent.type === 'question') {
     return jsonContent.content;
   } else if (jsonContent.type === 'guess') {
-    return `(Guess): ${jsonContent.content}`;
+    return 'Victory!'; // This only ever happens if the AI guesses the correct answer.
   } else if (jsonContent.type === 'answer') {
     if (typeof jsonContent.content === 'string') {
       return jsonContent.content;
@@ -128,16 +143,16 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
     >
       <thead>
         <tr>
-          <th scope="col">You</th>
-          <th scope="col" className="text-right">Quiz Bot</th>
+          <th scope="col">{gameMode === 'player-guesses' ? 'You' : 'Quiz Bot'}</th>
+          <th scope="col" className="text-right">{gameMode === 'player-guesses' ? 'Quiz Bot' : 'You'}</th>
         </tr>
       </thead>
       <tbody>
-      {formatMessages(chatHistory).map((turn, index) => {
+      {formatMessages(chatHistory, gameMode).map((turn, index) => {
         return (
           <tr key={index}>
-            <td>{turn.user}</td>
-            <td className="text-right">{turn.model ? formatJsonContent(turn.model) : '-'}</td>
+            <td>{gameMode === 'player-guesses' ? formatJsonContent(turn.user) :  formatJsonContent(turn.model)}</td>
+            <td className="text-right">{gameMode === 'player-guesses' ? (turn.model ? formatJsonContent(turn.model) : '-') : (turn.user ? formatJsonContent(turn.user) : '-')}</td>
           </tr>
         );
       })}

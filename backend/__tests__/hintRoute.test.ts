@@ -2,6 +2,7 @@
 import { jest, beforeAll, afterAll, afterEach, describe, it, expect } from '@jest/globals';
 import supertest from 'supertest';
 import { getGameHistory } from '../db.js';
+import { HintType } from '../game.js';
 
 const authenticateTokenMock = jest.fn((req: any, _res: any, next: () => void) => {
   req.user = { id: 'user-123', username: 'tester' };
@@ -21,6 +22,7 @@ jest.unstable_mockModule('../db.js', () => ({
   getGameHistory: jest.fn(),
   getConversationHistory: jest.fn(),
   getConversationsBySession: jest.fn(),
+  getLatestSession: jest.fn()
 }));
 
 const getPlayerGuessHintMock = jest.fn();
@@ -61,25 +63,27 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('GET /player-guesses/:sessionId/hint', () => {
+describe('GET /player-guesses/:sessionId/hint/:hintType', () => {
   const sessionId = 'pg1';
+  const hintType: HintType = 'developer';
 
   it('returns a hint on success', async () => {
-    getPlayerGuessHintMock.mockResolvedValue('This is a hint.');
+    const hintResponse = { hintType: 'developer', hintText: 'The developer is Kojima Productions.' };
+    getPlayerGuessHintMock.mockResolvedValue(hintResponse);
 
     await request
-      .get(`/player-guesses/${sessionId}/hint`)
+      .get(`/player-guesses/${sessionId}/hint/${hintType}`)
       .expect(200)
-      .expect({ hint: 'This is a hint.' });
+      .expect({ hint: hintResponse });
 
-    expect(getPlayerGuessHintMock).toHaveBeenCalledWith(sessionId, undefined);
+    expect(getPlayerGuessHintMock).toHaveBeenCalledWith(sessionId, hintType);
     expect(saveConversationMessageMock).toHaveBeenCalledTimes(1);
     expect(saveConversationMessageMock).toHaveBeenCalledWith(
       'tester',
       sessionId,
       'player-guesses',
       'system',
-      'Hint provided: This is a hint.',
+      hintResponse.hintText,
     );
   });
 
@@ -87,11 +91,11 @@ describe('GET /player-guesses/:sessionId/hint', () => {
     getPlayerGuessHintMock.mockRejectedValue(new Error('Session not found.'));
 
     await request
-      .get(`/player-guesses/${sessionId}/hint`)
+      .get(`/player-guesses/${sessionId}/hint/${hintType}`)
       .expect(404)
       .expect({ error: 'Session not found.' });
 
-    expect(getPlayerGuessHintMock).toHaveBeenCalledWith(sessionId, undefined);
+    expect(getPlayerGuessHintMock).toHaveBeenCalledWith(sessionId, hintType);
     expect(saveConversationMessageMock).not.toHaveBeenCalled();
   });
 
@@ -99,11 +103,11 @@ describe('GET /player-guesses/:sessionId/hint', () => {
     getPlayerGuessHintMock.mockRejectedValue(new Error('Something went wrong.'));
 
     await request
-      .get(`/player-guesses/${sessionId}/hint`)
+      .get(`/player-guesses/${sessionId}/hint/${hintType}`)
       .expect(500)
       .expect({ error: 'Internal Server Error', details: 'Something went wrong.' });
 
-    expect(getPlayerGuessHintMock).toHaveBeenCalledWith(sessionId, undefined);
+    expect(getPlayerGuessHintMock).toHaveBeenCalledWith(sessionId, hintType);
     expect(saveConversationMessageMock).not.toHaveBeenCalled();
   });
 
@@ -111,11 +115,11 @@ describe('GET /player-guesses/:sessionId/hint', () => {
     getPlayerGuessHintMock.mockRejectedValue(new Error('No hint data available'));
 
     await request
-      .get(`/player-guesses/${sessionId}/hint`)
+      .get(`/player-guesses/${sessionId}/hint/${hintType}`)
       .expect(404)
       .expect({ error: 'No hint data available' });
 
-    expect(getPlayerGuessHintMock).toHaveBeenCalledWith(sessionId, undefined);
+    expect(getPlayerGuessHintMock).toHaveBeenCalledWith(sessionId, hintType);
     expect(saveConversationMessageMock).not.toHaveBeenCalled();
   });
 });

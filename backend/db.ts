@@ -328,3 +328,53 @@ export async function getRecentDailyGames(n: number): Promise<DailyGameRow[]> {
     return { id: d.id, ...data } satisfies DailyGameRow;
   });
 }
+
+export async function getLatestSession(
+  userId: string,
+  gameType: GameType,
+  date: string,
+): Promise<{ sessionId: string; questionCount: number; chatHistory: ConversationRow[] } | null> {
+  const startOfDay = new Date(date);
+  startOfDay.setUTCHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(date);
+  endOfDay.setUTCHours(23, 59, 59, 999);
+
+  const query = conversationsCol
+    .where('user_id', '==', userId)
+    .where('game_type', '==', gameType)
+    .where('created_at', '>=', Timestamp.fromDate(startOfDay))
+    .where('created_at', '<=', Timestamp.fromDate(endOfDay))
+    .orderBy('created_at', 'desc')
+    .limit(1);
+
+  const snap = await query.get();
+
+  if (snap.empty) {
+    return null;
+  }
+
+  const latestMessage = snap.docs[0].data() as ConversationRow;
+  const sessionId = latestMessage.session_id;
+
+  const sessionMessages = await getConversationsBySession(sessionId, gameType);
+
+  const questionCount = sessionMessages.filter(
+    (m) => m.role === 'user' && m.content !== 'AI Game Started.' && m.content !== 'Player-guesses game started',
+  ).length;
+
+  return {
+    sessionId,
+    questionCount,
+    chatHistory: sessionMessages.map((row) => ({
+      ...row,
+      id: '', // Add a placeholder id
+      user_id: userId, // Add the user_id
+      game_type: gameType, // Add the game_type
+      created_at:
+        (row.created_at as any) instanceof Timestamp
+          ? (row.created_at as Timestamp).toDate().toISOString()
+          : String(row.created_at),
+    })),
+  };
+}

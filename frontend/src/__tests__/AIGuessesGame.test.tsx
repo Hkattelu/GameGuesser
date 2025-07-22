@@ -42,7 +42,6 @@ const mockProps = {
   setHighlightedResponse: vi.fn(),
   setSessionId: vi.fn(),
   setGameMessage: vi.fn(),
-  setAiQuestion: vi.fn(),
   setVictory: vi.fn(),
 };
 
@@ -76,7 +75,6 @@ describe('AIGuessesGame', () => {
 
     await waitFor(() => {
       expect(mockProps.setSessionId).toHaveBeenCalledWith('test-session-id');
-      expect(mockProps.setAiQuestion).toHaveBeenCalledWith('(1/20) Is your game a strategy game?');
       expect(mockProps.setLoading).toHaveBeenCalledWith(false);
     });
   });
@@ -98,7 +96,6 @@ describe('AIGuessesGame', () => {
     expect(mockProps.setLoading).toHaveBeenCalledWith(true);
 
     await waitFor(() => {
-      expect(mockProps.setAiQuestion).toHaveBeenCalledWith('(2/20) Is it a real-time strategy game?');
       expect(mockProps.setLoading).toHaveBeenCalledWith(false);
     });
   });
@@ -107,7 +104,7 @@ describe('AIGuessesGame', () => {
     (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
-        aiResponse: { type: 'guess', content: 'Starcraft' },
+        aiResponse: { type: 'guess', content: true },
         questionCount: 3,
       }),
     });
@@ -118,8 +115,7 @@ describe('AIGuessesGame', () => {
     fireEvent.click(screen.getByText('Yes'));
 
     await waitFor(() => {
-      expect(mockProps.setVictory).toHaveBeenCalledWith('guess');
-      expect(mockProps.setAiQuestion).toHaveBeenCalledWith('My guess is: Starcraft. Am I right?');
+      expect(mockProps.setVictory).toHaveBeenCalledWith(false);
     });
   });
 
@@ -133,7 +129,6 @@ describe('AIGuessesGame', () => {
     fireEvent.click(screen.getByText('Start Game'));
 
     await waitFor(() => {
-      expect(mockProps.setAiQuestion).toHaveBeenCalledWith('Error: Could not start AI game. Check backend and network.');
       expect(mockProps.setGameMessage).toHaveBeenCalledWith('Please try again. Error: Test error');
     });
   });
@@ -149,8 +144,7 @@ describe('AIGuessesGame', () => {
     fireEvent.click(screen.getByText('Yes'));
 
     await waitFor(() => {
-      expect(mockProps.setAiQuestion).toHaveBeenCalledWith('Bot Boy encountered an error. Please try again.');
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error communicating with Bot Boy: Test error');
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error communicating with Quiz Bot: Test error');
     });
   });
 
@@ -168,8 +162,7 @@ describe('AIGuessesGame', () => {
     fireEvent.click(screen.getByText('Yes'));
 
     await waitFor(() => {
-      expect(mockProps.setVictory).toHaveBeenCalledWith(false);
-      expect(mockProps.setAiQuestion).toHaveBeenCalledWith("I couldn't guess your game in 20 questions! You win!");
+      expect(mockProps.setVictory).toHaveBeenCalledWith(true);
     });
   });
 });

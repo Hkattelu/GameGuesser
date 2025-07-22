@@ -161,11 +161,6 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     } as AnswerToGuess;
   }
 
-  // ---------------------------------------------------------------
-  // Build the prompt. The model itself decides if the answer needs a
-  // spoiler-free clarification – no fragile regex or extra metadata needed.
-  // ---------------------------------------------------------------
-
   const prompt = PLAYER_QA_WITH_CLASSIFICATION_PROMPT(
     userInput,
     session.secretGame,
@@ -219,6 +214,9 @@ async function startAIGuessesGame() {
     chatHistory,
   );
   chatHistory.push({
+    role: 'user',
+    content: 'Start the game.',
+  }, {
     role: 'model',
     content: jsonResponse,
   });
@@ -253,11 +251,6 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
     throw new Error('Session not found.');
   }
 
-  session.chatHistory.push({
-    role: 'user',
-    content: `User answered "${userAnswer}".`,
-  });
-
   if (!('maxQuestions' in session)) {
     throw new Error('Invalid session type for AI answer handler.');
   }
@@ -271,6 +264,9 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
     session.chatHistory,
   );
   session.chatHistory.push({
+    role: 'user',
+    content: `User answered "${userAnswer}".`,
+  }, {
     role: 'model',
     content: jsonResponse,
   });

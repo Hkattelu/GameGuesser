@@ -49,15 +49,13 @@ function App({
   const [gameMode, setGameMode] = useState<GameMode>(initialGameMode);
   const [preGame, setPreGame] = useState<boolean>(true);
   const [started, setStarted] = useState<boolean>(false);
-  const [victory, setVictory] = useState<boolean | 'guess'>(false);
+  const [victory, setVictory] = useState<boolean>(false);
   const [questionCount, setQuestionCount] = useState<number>(0);
   const [maxQuestions] = useState<number>(MAX_QUESTIONS);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [highlightedResponse, setHighlightedResponse] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [gameMessage, setGameMessage] = useState<string>('');
-  const [aiQuestion, setAiQuestion] = useState<string>('');
   const [showResults, setShowResults] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
 
@@ -95,7 +93,6 @@ function App({
     return 'default';
   };
 
-  const clearHighlights = () => setHighlightedResponse(null);
 
   const resetGame = () => {
     setPreGame(true);
@@ -104,16 +101,16 @@ function App({
     setQuestionCount(0);
     setChatHistory([]);
     setLoading(false);
-    clearHighlights();
     setSessionId(null);
     setShowResults(false);
     setShowHistory(false);
-    setGameMessage(
-      gameMode === 'ai-guesses'
-        ? "Let's play! Think of a video game, and I'll try to guess it. Click \"Start Game\" when you're ready!"
-        : "I'm thinking of a game. You have 20 questions to guess it. Click \"Start Game\" to begin!",
-    );
-    setAiQuestion('');
+    if (!started) {
+      setGameMessage(
+        gameMode === 'ai-guesses'
+          ? "Let's play! Think of a video game, and I'll try to guess it. Click \"Start Game\" when you're ready!"
+          : "I'm thinking of a game. You have 20 questions to guess it. Click \"Start Game\" to begin!",
+      );
+    }
   };
 
   // Reset whenever the mode changes
@@ -123,30 +120,36 @@ function App({
   useEffect(() => {
     if (!token) return;
 
-    const fetchHistory = async () => {
+    const fetchGameState = async () => {
       try {
-        const response = await fetch(`${getApiUrl()}/conversations/history?date=${new Date().toISOString().slice(0, 10)}`, {
+        const response = await fetch(`${getApiUrl()}/game-state?gameMode=${gameMode}&date=${new Date().toISOString().slice(0, 10)}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (!response.ok) throw new Error('Failed to load conversation history');
+        if (!response.ok) throw new Error('Failed to load game state');
 
-        type HistoryRow = { role: string; content: string };
-        const rows: HistoryRow[] = await response.json();
-        const history: ChatMessage[] = rows.map((r) => ({
-          role: r.role as Role,
-          parts: [{ text: r.content }],
-        }));
-        setChatHistory(history);
+        const gameState = await response.json();
+
+        if (gameState) {
+          const history: ChatMessage[] = gameState.chatHistory.map((r: any) => ({
+            role: r.role,
+            parts: [{ text: r.content }],
+          }));
+          setChatHistory(history);
+          setSessionId(gameState.sessionId);
+          setQuestionCount(gameState.questionCount);
+          setStarted(true);
+          setPreGame(false);
+        }
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error('Error fetching conversation history', err);
+        console.error('Error fetching game state', err);
       }
     };
 
-    fetchHistory();
-  }, [token]);
+    fetchGameState();
+  }, [token, gameMode]);
 
   if (!token) {
     return <AuthPage onAuth={handleAuth} />;
@@ -249,17 +252,14 @@ function App({
           questionCount={questionCount}
           maxQuestions={maxQuestions}
           chatHistory={chatHistory}
-          highlightedResponse={highlightedResponse}
           sessionId={sessionId}
           setPreGame={setPreGame}
           setStarted={setStarted}
           setQuestionCount={setQuestionCount}
           setChatHistory={setChatHistory}
           setLoading={setLoading}
-          setHighlightedResponse={setHighlightedResponse}
           setSessionId={setSessionId}
           setGameMessage={setGameMessage}
-          setAiQuestion={setAiQuestion}
           setVictory={setVictory}
           setShowResults={setShowResults}
         />

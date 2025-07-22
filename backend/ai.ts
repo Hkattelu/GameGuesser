@@ -75,6 +75,7 @@ export async function generateStructured<T>(
 
   const { output } = await ai.generate({
     messages,
+    prompt: [{text: prompt}],
     output: { schema },
   });
 
@@ -85,6 +86,4 @@ export async function generateStructured<T>(
   return output;
 }
 
-// Convenience alias that mirrors the old `callGeminiAPI<T>()` signature to
-// minimize churn in the codebase. New code should prefer `generateStructured`.
 export const callAI = generateStructured;

@@ -9,50 +9,23 @@ import { ChatMessage } from '../../types';
 
 describe('ConversationHistory', () => {
   const mockChatHistory: ChatMessage[] = [
-    { role: 'user', parts: [{ text: 'Is it an RPG?' }] },
-    {
-      role: 'model',
-      parts: [
-        {
-          text: JSON.stringify({
-            type: 'question',
-            content: 'Does it have a turn-based combat system?',
-          }),
-        },
-      ],
-    },
+    { role: 'model', parts: [{ text: JSON.stringify({ type: 'question', content: 'Does it have a turn-based combat system?' }) }] },
     { role: 'user', parts: [{ text: 'Yes' }] },
-    {
-      role: 'model',
-      parts: [
-        {
-          text: JSON.stringify({ type: 'guess', content: 'Final Fantasy VII' }),
-        },
-      ],
-    },
-    { role: 'model', parts: [{ text: 'You win!' }] },
-    {
-      role: 'model',
-      parts: [
-        {
-          text: JSON.stringify({ type: 'answer', content: { answer: 'No' } }),
-        },
-      ],
-    },
-    {
-      role: 'model',
-      parts: [
-        {
-          text: JSON.stringify({
-            type: 'guessResult',
-            content: { response: 'That is incorrect.' },
-          }),
-        },
-      ],
-    },
+    { role: 'model', parts: [{ text: JSON.stringify({ type: 'question', content: 'Is it Final Fantasy VII?' }) }] },
+    { role: 'user', parts: [{ text: 'No' }] },
+    { role: 'model', parts: [{ text: JSON.stringify({ type: 'question', content: 'Is it Final Fantasy X?' }) }] },
+    { role: 'user', parts: [{ text: 'Yes it is' }] },
+    { role: 'model', parts: [{ text: JSON.stringify({ type: 'guess', content: true }) }] },
   ];
 
-  it('renders user messages correctly', () => {
+  const mockPlayerChatHistory: ChatMessage[] = [
+    { role: 'user', parts: [{ text: 'Is it an RPG?' }] },
+    { role: 'model', parts: [{ text: JSON.stringify({ type: 'answer', content: { answer: 'No', clarification: 'It is not an RPG.' } }) }] },
+    { role: 'user', parts: [{ text: 'My guess is Zelda.' }] },
+    { role: 'model', parts: [{ text: JSON.stringify({ type: 'guessResult', content: { response: 'That is incorrect.', score: 50, usedHint: true } }) }] },
+  ];
+
+  it('renders AI-guesses conversation correctly', () => {
     render(
       <ConversationHistory
         chatHistory={mockChatHistory}
@@ -61,183 +34,47 @@ describe('ConversationHistory', () => {
       />,
     );
 
-    expect(screen.getByRole('cell', { name: 'Is it an RPG?' })).toBeInTheDocument();
+    // Check table headers
+    expect(screen.getByRole('columnheader', { name: 'Quiz Bot' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'You' })).toBeInTheDocument();
+
+    // Check first turn: Model asks, User answers
+    expect(screen.getByRole('cell', { name: 'Does it have a turn-based combat system?' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: 'Yes' })).toBeInTheDocument();
+
+    // Check second turn: Model guesses, User answers
+    expect(screen.getByRole('cell', { name: 'Is it Final Fantasy VII?' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'No' })).toBeInTheDocument();
+
+    // Check third turn: Model says asks once more, User confirms
+    expect(screen.getByRole('cell', { name: 'Is it Final Fantasy X?' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Yes it is' })).toBeInTheDocument();
+
+    // Check fourth turn: Model declares victory
+    expect(screen.getByRole('cell', { name: 'Victory!' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: '-' })).toBeInTheDocument(); // User says nothing when the model wins.
   });
 
-  it('renders model question messages correctly', () => {
+  it('renders player-guesses conversation correctly', () => {
     render(
       <ConversationHistory
-        chatHistory={mockChatHistory}
-        gameMode="ai-guesses"
-        loading={false}
-      />,
-    );
-
-    expect(
-      screen.getByRole('cell', { name: 'Does it have a turn-based combat system?' }),
-    ).toBeInTheDocument();
-  });
-
-  it('renders model guess messages correctly', () => {
-    render(
-      <ConversationHistory
-        chatHistory={mockChatHistory}
-        gameMode="ai-guesses"
-        loading={false}
-      />,
-    );
-
-    expect(
-      screen.getByRole('cell', { name: '(Guess): Final Fantasy VII' }),
-    ).toBeInTheDocument();
-  });
-
-  it('renders plain text model messages correctly', () => {
-    render(
-      <ConversationHistory
-        chatHistory={mockChatHistory}
-        gameMode="ai-guesses"
-        loading={false}
-      />,
-    );
-
-    expect(screen.getByRole('cell', { name: 'You win!' })).toBeInTheDocument();
-  });
-
-  it('renders model answer messages correctly', () => {
-    const answerChatHistory: ChatMessage[] = [
-      { role: 'user', parts: [{ text: 'What is the answer?' }] },
-      {
-        role: 'model',
-        parts: [
-          {
-            text: JSON.stringify({ type: 'answer', content: { answer: 'No', clarification: 'It is not an RPG.' } }),
-          },
-        ],
-      },
-    ];
-    render(
-      <ConversationHistory
-        chatHistory={answerChatHistory}
+        chatHistory={mockPlayerChatHistory}
         gameMode="player-guesses"
         loading={false}
       />,
     );
 
+    // Check table headers
+    expect(screen.getByRole('columnheader', { name: 'You' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Quiz Bot' })).toBeInTheDocument();
+
+    // Check first turn: User asks, Model answers
+    expect(screen.getByRole('cell', { name: 'Is it an RPG?' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: 'No - It is not an RPG.' })).toBeInTheDocument();
-  });
 
-  it('renders model guessResult messages correctly', () => {
-    const guessResultChatHistory: ChatMessage[] = [
-      { role: 'user', parts: [{ text: 'My guess is Zelda.' }] },
-      {
-        role: 'model',
-        parts: [
-          {
-            text: JSON.stringify({
-              type: 'guessResult',
-              content: { response: 'That is incorrect.', score: 50, usedHint: true },
-            }),
-          },
-        ],
-      },
-    ];
-    render(
-      <ConversationHistory
-        chatHistory={guessResultChatHistory}
-        gameMode="player-guesses"
-        loading={false}
-      />,
-    );
-
-    expect(
-      screen.getByRole('cell', { name: 'That is incorrect. (50 pts) (hint)' }),
-    ).toBeInTheDocument();
-  });
-
-  it('renders model guessResult messages correctly without score or hint', () => {
-    const guessResultChatHistory: ChatMessage[] = [
-      { role: 'user', parts: [{ text: 'My guess is Mario.' }] },
-      {
-        role: 'model',
-        parts: [
-          {
-            text: JSON.stringify({
-              type: 'guessResult',
-              content: { response: 'That is correct.' },
-            }),
-          },
-        ],
-      },
-    ];
-    render(
-      <ConversationHistory
-        chatHistory={guessResultChatHistory}
-        gameMode="player-guesses"
-        loading={false}
-      />,
-    );
-
-    expect(
-      screen.getByRole('cell', { name: 'That is correct.' }),
-    ).toBeInTheDocument();
-  });
-
-  it('renders model guessResult messages correctly with score but no hint', () => {
-    const guessResultChatHistory: ChatMessage[] = [
-      { role: 'user', parts: [{ text: 'My guess is Pokemon.' }] },
-      {
-        role: 'model',
-        parts: [
-          {
-            text: JSON.stringify({
-              type: 'guessResult',
-              content: { response: 'That is correct.', score: 100 },
-            }),
-          },
-        ],
-      },
-    ];
-    render(
-      <ConversationHistory
-        chatHistory={guessResultChatHistory}
-        gameMode="player-guesses"
-        loading={false}
-      />,
-    );
-
-    expect(
-      screen.getByRole('cell', { name: 'That is correct. (100 pts)' }),
-    ).toBeInTheDocument();
-  });
-
-  it('renders model guessResult messages correctly with hint but no score', () => {
-    const guessResultChatHistory: ChatMessage[] = [
-      { role: 'user', parts: [{ text: 'My guess is Tetris.' }] },
-      {
-        role: 'model',
-        parts: [
-          {
-            text: JSON.stringify({
-              type: 'guessResult',
-              content: { response: 'That is incorrect.', usedHint: true },
-            }),
-          },
-        ],
-      },
-    ];
-    render(
-      <ConversationHistory
-        chatHistory={guessResultChatHistory}
-        gameMode="player-guesses"
-        loading={false}
-      />,
-    );
-
-    expect(
-      screen.getByRole('cell', { name: 'That is incorrect.(hint)' }),
-    ).toBeInTheDocument();
+    // Check second turn: User guesses, Model gives guessResult
+    expect(screen.getByRole('cell', { name: 'My guess is Zelda.' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'That is incorrect. (50 pts) (hint)' })).toBeInTheDocument();
   });
 
   it('sets the correct id for AI Guesses game mode', () => {

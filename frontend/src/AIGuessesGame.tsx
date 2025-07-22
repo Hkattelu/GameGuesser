@@ -18,11 +18,9 @@ export interface AIGuessesGameProps {
   setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
   setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setHighlightedResponse: React.Dispatch<React.SetStateAction<string | null>>;
   setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
   setGameMessage: React.Dispatch<React.SetStateAction<string>>;
-  setAiQuestion: React.Dispatch<React.SetStateAction<string>>;
-  setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
+  setVictory: React.Dispatch<React.SetStateAction<boolean>>;
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
   // Optional JWT token for authenticated API requests
   token?: string | null;
@@ -44,10 +42,8 @@ function AIGuessesGame({
   setQuestionCount,
   setChatHistory,
   setLoading,
-  setHighlightedResponse,
   setSessionId,
   setGameMessage,
-  setAiQuestion,
   setVictory,
   setShowResults,
 }: AIGuessesGameProps) {
@@ -59,7 +55,6 @@ function AIGuessesGame({
     setChatHistory([]);
     setLoading(true);
     setGameMessage("Okay, let's begin! I'll ask my first question.");
-    setHighlightedResponse(null);
 
     try {
       const response = await fetch(`${getApiUrl()}/ai-guesses/start`, {
@@ -80,19 +75,15 @@ function AIGuessesGame({
 
       setSessionId(newSessionId);
       setQuestionCount(newQuestionCount);
-      setAiQuestion(`(${newQuestionCount}/${maxQuestions}) ${aiResponse.content}`);
       setGameMessage("Your turn to answer!");
 
-      // Update client-side chat history for display
       setChatHistory((prevHistory) => [
         ...prevHistory,
-        { role: "user", parts: [{ text: "AI Game Started." }] },
         { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
 
     } catch (error: unknown) {
       const err = error as Error;
-      setAiQuestion('Error: Could not start AI game. Check backend and network.');
       setGameMessage(`Please try again. Error: ${err.message}`);
     } finally {
       setLoading(false);
@@ -103,11 +94,10 @@ function AIGuessesGame({
     if (!started || !sessionId) return;
 
     setLoading(true);
-    setHighlightedResponse(null);
     setGameMessage(`You answered "${answer}". Thinking...`);
     setChatHistory((prevHistory) => [
       ...prevHistory,
-      { role: "user", parts: [{ text: `User answered: ${answer}` }] },
+      { role: "user", parts: [{ text: answer }] },
     ]);
 
     try {
@@ -136,44 +126,46 @@ function AIGuessesGame({
 
       if (aiResponse.type === "question") {
         if (newQuestionCount > maxQuestions) {
-          endGame("I couldn't guess your game in 20 questions! You win!", false);
+          endGame("I couldn't guess your game in 20 questions! You win!", true);
           return;
         }
-        setAiQuestion(`(${newQuestionCount}/${maxQuestions}) ${aiResponse.content}`);
         setGameMessage("Your turn to answer!");
-      } else if (aiResponse.type === "guess") {
-        endGame(`My guess is: ${aiResponse.content}. Am I right?`, 'guess');
+      } else if (aiResponse.type === "guess" && aiResponse.content === true) {
+        endGame('Hooray, I win! That was fun! Let\'s play again!', false);
       } else {
-        setAiQuestion("Error: Unexpected response type from Bot Boy.");
         setGameMessage("Please try again.");
       }
     } catch (error: unknown) {
       const err = error as Error;
-      setAiQuestion('Bot Boy encountered an error. Please try again.');
-      setGameMessage(`Error communicating with Bot Boy: ${err.message}`);
+      setGameMessage(`Error communicating with Quiz Bot: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const endGame = (finalMessage: string, victoryStatus: boolean | 'guess') => {
+  const endGame = (finalMessage: string, victoryStatus: boolean) => {
     setStarted(false);
     setLoading(false);
-    setHighlightedResponse(victoryStatus === 'guess' ? 'guess' : null); // Set highlight for guess, clear otherwise
-    setAiQuestion(finalMessage);
     setVictory(victoryStatus);
+    setGameMessage(victoryStatus ? 'Congratulations, you win!' : 'Victory!');
     // Show results dialog after a short delay
-    setTimeout(() => setShowResults(true), 1500);
+    setTimeout(() => setShowResults(true), 1000);
   };
 
   return (
     <div id="ai-guesses-game">
+      {started && (
+        <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
+          Questions left: {maxQuestions - questionCount}/{maxQuestions}
+        </div>
+      )}
+
       {/* Conversation History */}
       <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
 
       {/* User Response Buttons */}
       {started && !loading && (
-        <ResponseButtons onAnswer={handleAnswer} highlightedResponse={highlightedResponse} />
+        <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
       )}
 
       {/* Start Game Button */}

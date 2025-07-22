@@ -17,6 +17,7 @@ import {
   getConversationHistory,
   getConversationsBySession,
   getGameHistory,
+  getLatestSession,
 } from './db.js';
 
 // Centralised game type helpers
@@ -147,6 +148,27 @@ app.get('/games/history/:gameType', authenticateToken, async (req: Request, res:
   }
 });
 
+app.get('/game-state', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { gameMode, date } = req.query as { gameMode?: GameType; date?: string };
+
+    if (!gameMode || !isValidGameType(gameMode) || !date) {
+      return res.status(400).json({ error: 'Missing or invalid `gameMode` or `date` query parameter' });
+    }
+
+    const gameState = await getLatestSession(req.user!.username, gameMode, date);
+
+    if (!gameState) {
+      return res.json(null);
+    }
+
+    return res.json(gameState);
+  } catch (err) {
+    console.error('Error fetching game state', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 /**
  * Starts a new game of 20 Questions where the player thinks of an object and
  * the AI tries to guess what it is.
@@ -224,7 +246,7 @@ app.get('/player-guesses/:sessionId/hint/:hintType', authenticateToken, async (r
       sessionId,
       'player-guesses',
       'system',
-      `Hint provided: ${hint}`,
+      hint.hintText,
     );
     return res.json({ hint });
   } catch (error: unknown) {
