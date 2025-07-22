@@ -13,6 +13,7 @@ describe('StartScreen component', () => {
   afterEach(() => {
     // Reset localStorage between tests so state doesn't leak.
     localStorage.clear();
+    vi.restoreAllMocks();
   });
 
   it('renders AuthPage when the user is not authenticated', () => {
@@ -30,6 +31,19 @@ describe('StartScreen component', () => {
     localStorage.setItem('token', 'test-token');
     localStorage.setItem('username', 'test-user');
 
+    global.fetch = vi.fn()
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          chatHistory: [],
+          questionCount: 20,
+        }),
+      }))
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(null),
+      }));
+
     render(
       <MemoryRouter>
         <StartScreen />
@@ -37,16 +51,42 @@ describe('StartScreen component', () => {
     );
 
     // The heading and option buttons should be visible.
-    expect(screen.getByText("Quiz Bot 9000's Arcade")).toBeInTheDocument();
-    expect(screen.getByText('Quiz Bot guesses')).toBeInTheDocument();
-    expect(screen.getByText('You guess')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Quiz Bot's Arcade")).toBeInTheDocument();
+      expect(screen.getByText('Quiz Bot guesses')).toBeInTheDocument();
+      expect(screen.getByText('You guess')).toBeInTheDocument();
+    });
+  });
 
-    const optionButton = screen.getByText('Quiz Bot guesses');
-    fireEvent.click(optionButton);
+  it('shows indicator if already completed for today but does not disable button', async () => {
+    localStorage.setItem('token', 'test-token');
+    localStorage.setItem('username', 'test-user');
+    // Mock fetch to return a completed session for ai-guesses, not for player-guesses
+    global.fetch = vi.fn()
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          chatHistory: [
+            { role: 'model', content: JSON.stringify({ type: 'guess', content: true }) },
+          ],
+          questionCount: 20,
+        }),
+      }))
+      .mockImplementationOnce(() => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(null),
+      }));
+
+    render(
+      <MemoryRouter>
+        <StartScreen />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
-      const root = optionButton.closest('.start-screen');
-      expect(root).not.toBeNull();
+      expect(screen.getByText('Quiz Bot guesses').closest('button')).not.toBeDisabled();
+      expect(screen.getByText('You guess').closest('button')).not.toBeDisabled();
+      expect(screen.getAllByText('Already played today')[0]).toBeInTheDocument();
     });
   });
 });

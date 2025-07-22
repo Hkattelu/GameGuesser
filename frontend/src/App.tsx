@@ -31,6 +31,33 @@ interface AppProps {
   onNavigateHome?: () => void;
 }
 
+function isGameCompleted(gameMode: GameMode, chatHistory: ChatMessage[], questionCount: number, maxQuestions: number) {
+  if (!chatHistory || chatHistory.length === 0) return false;
+  // For player-guesses: look for model message with type guessResult, or out of questions
+  if (gameMode === 'player-guesses') {
+    const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
+    if (lastModelMsg) {
+      try {
+        const parsed = JSON.parse(lastModelMsg.parts[0]?.text || '');
+        if (parsed.type === 'guessResult') return true;
+      } catch {}
+    }
+    if (questionCount >= maxQuestions) return true;
+  }
+  // For ai-guesses: look for model message with type guess and content true, or out of questions
+  if (gameMode === 'ai-guesses') {
+    const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
+    if (lastModelMsg) {
+      try {
+        const parsed = JSON.parse(lastModelMsg.parts[0]?.text || '');
+        if (parsed.type === 'guess' && parsed.content === true) return true;
+      } catch {}
+    }
+    if (questionCount >= maxQuestions) return true;
+  }
+  return false;
+}
+
 function App({
   onNavigateHome,
 }: AppProps) {
@@ -57,6 +84,8 @@ function App({
   const [gameMessage, setGameMessage] = useState<string>('');
   const [showResults, setShowResults] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [aiGuessesCompletedToday, setAIGuessesCompletedToday] = useState<boolean>(false);
+  const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
 
   // ---------------- Authentication helpers ----------------
   const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
@@ -113,7 +142,7 @@ function App({
   // Reset whenever the mode changes
   useEffect(resetGame, [gameMode]);
 
-  // Load conversation history when the user logs-in
+  // Load conversation history and check completion when the user logs-in or game mode changes
   useEffect(() => {
     if (!token) return;
 
@@ -129,23 +158,41 @@ function App({
         const gameState = await response.json();
 
         if (gameState) {
-          const history: ChatMessage[] = gameState.chatHistory.map((r: any) => ({
+          const history = gameState.chatHistory.map((r) => ({
             role: r.role,
             parts: [{ text: r.content }],
+            content: r.content, // for easier parsing
           }));
           setChatHistory(history);
           setSessionId(gameState.sessionId);
           setQuestionCount(gameState.questionCount);
           setStarted(true);
+          // Check completion for both game types
+          const completed = isGameCompleted(gameMode, gameState.chatHistory, gameState.questionCount, maxQuestions);
+          if (gameMode === 'ai-guesses') setAIGuessesCompletedToday(completed);
+          if (gameMode === 'player-guesses') setPlayerGuessesCompletedToday(completed);
+        } else {
+          setChatHistory([]);
+          setSessionId(null);
+          setQuestionCount(0);
+          setStarted(false);
+          if (gameMode === 'ai-guesses') setAIGuessesCompletedToday(false);
+          if (gameMode === 'player-guesses') setPlayerGuessesCompletedToday(false);
         }
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Error fetching game state', err);
+        setChatHistory([]);
+        setSessionId(null);
+        setQuestionCount(0);
+        setStarted(false);
+        if (gameMode === 'ai-guesses') setAIGuessesCompletedToday(false);
+        if (gameMode === 'player-guesses') setPlayerGuessesCompletedToday(false);
       }
     };
 
     fetchGameState();
-  }, [token, gameMode]);
+  }, [token, gameMode, maxQuestions]);
 
   if (!token) {
     return <AuthPage onAuth={handleAuth} />;
@@ -210,7 +257,7 @@ function App({
       {(victory !== false && !started) && (
         <button
           onClick={() => setShowResults(true)}
-          className="mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+          className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
         >
           View Results
         </button>
@@ -242,11 +289,13 @@ function App({
         <AIGuessesGame
           token={token}
           gameMode={gameMode}
+          preGame={false}
           started={started}
           loading={loading}
           questionCount={questionCount}
           maxQuestions={maxQuestions}
           chatHistory={chatHistory}
+          highlightedResponse={null}
           sessionId={sessionId}
           setStarted={setStarted}
           setQuestionCount={setQuestionCount}
@@ -256,14 +305,15 @@ function App({
           setGameMessage={setGameMessage}
           setVictory={setVictory}
           setShowResults={setShowResults}
+          gameCompletedToday={aiGuessesCompletedToday}
         />
       )}
-
 
       {gameMode === 'player-guesses' && (
         <PlayerGuessesGame
           token={token}
           gameMode={gameMode}
+          preGame={false}
           started={started}
           loading={loading}
           questionCount={questionCount}
@@ -278,6 +328,7 @@ function App({
           setGameMessage={setGameMessage}
           setVictory={setVictory}
           setShowResults={setShowResults}
+          gameCompletedToday={playerGuessesCompletedToday}
         />
       )}
       </div>
