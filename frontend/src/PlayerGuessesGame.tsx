@@ -4,10 +4,9 @@ import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
 import { MAX_SUGGESTIONS, SUGGESTIONS } from './constants';
 import { ChatMessage, GameMode } from './types';
+import HintIcon from './components/HintIcon';
+import HintDialog from './components/HintDialog';
 
-interface Hint {
-  hintText: string;
-}
 
 export interface PlayerGuessesGameProps {
   gameMode: GameMode;
@@ -64,6 +63,7 @@ function PlayerGuessesGame({
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
   const [suggestions, setSuggestions] = useState(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
+  const [isHintDialogOpen, setIsHintDialogOpen] = useState(false);
 
   /**
    * Starts a new game of 20 Questions where the AI thinks of a game
@@ -190,33 +190,7 @@ function PlayerGuessesGame({
     }
   };
 
-  // Fetch a textual hint for the current secret game
-  const handleGetHint = async () => {
-    if (!sessionId) return;
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${getApiUrl()}/player-guesses/${sessionId}/hint`, {
-        method: 'GET',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch hint.');
-      }
-
-      const data = (await response.json()) as Hint;
-      setModelResponseText(data.hintText);
-    } catch (error: unknown) {
-      const err = error as Error;
-      setGameMessage(`Error fetching hint: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   const endGame = (finalMessage: string, victoryStatus: boolean) => {
     setStarted(false);
@@ -233,8 +207,20 @@ function PlayerGuessesGame({
     setSuggestions(suggestions.filter(suggestion => suggestion !== question));
   };
 
+  const openHintDialog = () => setIsHintDialogOpen(true);
+  const closeHintDialog = () => setIsHintDialogOpen(false);
+
   return (
     <div id="player-guesses-game">
+      <HintDialog
+        isOpen={isHintDialogOpen}
+        onClose={closeHintDialog}
+        sessionId={sessionId}
+        token={token}
+        setQuestionCount={setQuestionCount}
+        setChatHistory={setChatHistory}
+      />
+      {started && !loading && <HintIcon onClick={openHintDialog} />}
       {started && !loading && modelResponseText && (
         <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4" data-testid="model-response">
           {modelResponseText}
@@ -244,7 +230,7 @@ function PlayerGuessesGame({
       <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
 
       {started && (
-        <div id="player-question-count" className="text-lg font-semibold text-gray-700 mb-4">
+        <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
           Questions left: {maxQuestions - questionCount}/{maxQuestions}
         </div>
       )}
@@ -275,14 +261,6 @@ function PlayerGuessesGame({
       {started && !loading && (
         
           <div className="flex justify-center gap-6 mt-4">
-            <button
-              id="btn-hint"
-              type="button"
-              className="cursor-pointer px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition duration-200"
-              onClick={handleGetHint}
-            >
-              Hint
-            </button>
             <button
               id="btn-submit-guess"
               type="button"

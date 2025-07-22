@@ -62,7 +62,7 @@ body {
   font-family: 'Inter', sans-serif;
   background: linear-gradient(90deg, #f0f2f5, #e6e9ee, #f0f2f5);
   background-size: 200% 200%;
-  overflow: hidden;
+  overflow-x: hidden;
   display: flex;
   height: 100vh;
   position: relative;

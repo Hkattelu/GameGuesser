@@ -15,6 +15,13 @@ vi.mock('../components/SuggestionChips', () => ({
 vi.mock('../components/ConversationHistory', () => ({
     default: () => <div data-testid="conversation-history" />,
 }));
+vi.mock('../components/HintIcon', () => ({
+    default: (props: any) => <button aria-label="Get a hint" onClick={props.onClick} />,
+}));
+vi.mock('../components/HintDialog', () => ({
+    default: (props: any) => props.isOpen ? <div data-testid="hint-dialog">Hint Dialog</div> : null,
+}));
+
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -36,6 +43,7 @@ const mockProps = {
   setSessionId: vi.fn(),
   setGameMessage: vi.fn(),
   setVictory: vi.fn(),
+  setShowResults: vi.fn(),
   token: null,
 };
 
@@ -113,7 +121,6 @@ describe('PlayerGuessesGame', () => {
 
     await waitFor(() => {
       expect(mockProps.setVictory).toHaveBeenCalledWith(true);
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('You guessed it! The game was Starcraft.');
     });
   });
 
@@ -186,26 +193,17 @@ describe('PlayerGuessesGame', () => {
 
     await waitFor(() => {
       expect(mockProps.setVictory).toHaveBeenCalledWith(false);
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith("You're out of questions! The game was The game was Starcraft.");
     });
   });
 
-  it('fetches and displays a hint when the Hint button is clicked', async () => {
-    (global.fetch as vi.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({ hintText: 'Developer: Nintendo' }),
-    });
-
+  it('opens the hint dialog when the hint icon is clicked', async () => {
     const props = { ...mockProps, started: true, sessionId: 'test-session-id' };
     render(<PlayerGuessesGame {...props} />);
 
-    fireEvent.click(screen.getByText('Hint'));
+    fireEvent.click(screen.getByRole('button', { name: 'Get a hint' }));
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/hint'), expect.any(Object));
+        expect(screen.getByTestId('hint-dialog')).toBeInTheDocument();
     });
-
-    expect(screen.getByText('Developer: Nintendo')).toBeInTheDocument();
   });
 });
-

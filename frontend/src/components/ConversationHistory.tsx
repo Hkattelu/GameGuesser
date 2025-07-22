@@ -18,7 +18,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
 
   // Keep the most recent message in view when the list changes.
   useEffect(() => {
-    historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    historyEndRef.current?.scrollIntoView();
   }, [chatHistory]);
 
   // Outer wrapper keeps a fixed max height so the list becomes scrollable once

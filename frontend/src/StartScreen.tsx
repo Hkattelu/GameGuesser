@@ -80,7 +80,7 @@ function StartScreen() {
     <>
       <SettingsButton />
       <div
-        className={`start-screen flex flex-col items-center justify-center px-4 text-center`}
+        className={`start-screen flex flex-col items-center justify-center px-4 text-center mb-4`}
         ref={mouseWatchArea}
       >
       <div className="quiz-bot-head">

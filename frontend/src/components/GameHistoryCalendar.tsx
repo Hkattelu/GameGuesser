@@ -190,14 +190,14 @@ Play at: ${window.location.origin}`;
             <div className="flex justify-between items-center mb-4">
               <button
                 onClick={() => changeMonth('prev')}
-                className="px-3 py-1 text-gray-600 hover:text-gray-800"
+                className="cursor-pointer px-3 py-1 text-gray-600 hover:text-gray-800"
               >
                 ← Previous
               </button>
-              <h4 className="text-lg font-semibold">{monthName}</h4>
+              <h4 className="flex-1 text-lg font-semibold">{monthName}</h4>
               <button
                 onClick={() => changeMonth('next')}
-                className="px-3 py-1 text-gray-600 hover:text-gray-800"
+                className="cursor-pointer px-3 py-1 text-gray-600 hover:text-gray-800"
               >
                 Next →
               </button>
@@ -224,7 +224,7 @@ Play at: ${window.location.origin}`;
                 
                 return (
                   <div
-                    key={day}
+                    key={`${day}-${index}`}
                     className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg border ${
                       isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                     } ${
@@ -262,13 +262,13 @@ Play at: ${window.location.origin}`;
             <div className="flex gap-3">
               <button
                 onClick={handleShareMonth}
-                className="flex-1 px-4 py-2 bg-blue-500 text-white font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+                className="cursor-pointer flex-1 px-4 py-2 bg-blue-500 text-white font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
               >
                 {copySuccess ? '✓ Copied!' : 'Share Monthly Results'}
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-gray-500 text-white font-medium rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+                className="cursor-pointer flex-1 px-4 py-2 bg-gray-500 text-white font-medium rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
               >
                 Close
               </button>
