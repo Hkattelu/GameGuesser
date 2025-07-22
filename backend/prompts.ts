@@ -20,19 +20,13 @@ Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.`;
 * **guess** of the secret game – and generating the appropriate structured
 * response.
 */
-export const PLAYER_QA_CLASSIFICATION_PROMPT = (
-  userInput: string,
-  secretGame: string,
-): string => {
-  return `You are Bot Boy, an assistant helping the user guess a secret video game.\n
-The user asked: "${userInput}". The secret game is "${secretGame}".\n
-Task:\n1. Determine if the user's input is a *question* about the secret game or an explicit *guess* of the game's title.\n2. Reply with a JSON object. The JSON MUST match exactly one of these two shapes (no additional keys):\n   - {\n       "type": "answer",\n       "questionCount": <number>,\n       "content": "<string>"\n     }\n   - {\n       "type": "guessResult",\n       "questionCount": <number>,\n       "content": { "correct": <boolean>, "response": "<string>" }\n     }\n\nWhen replying to *questions*:\n- Use only "Yes", "No", or "I don't know" for simple facts.\n- If the yes/no hides important nuance (for example, multiple games with the same name or series/franchise relationships), append a short, spoiler-free clarification after the yes/no.\n  • Example clarifications:\n    - "It has a direct sequel."\n    - "It is part of a larger franchise even though it has no numbered sequel."\n    - "It is a standalone game."\n- Format such answers as: "<Yes|No|I don't know> - <clarification>".\n\nWhen replying to *guesses*:\n- Evaluate whether the guessed title exactly matches the secret game.\n- Set "correct" accordingly.\n- If correct, set the "response" string to just the game title.\n- If incorrect, politely tell the user they are wrong without revealing the secret game.\n`;
-};
+
 
 /**
-* Updated prompt version that aligns with the separated answer / clarification
-* object. Kept alongside the original `PLAYER_QA_CLASSIFICATION_PROMPT` for a
-* smoother migration – all new call-sites should prefer this constant.
+* Prompt template that aligns with the newer separated answer/clarification
+* data model. This supersedes the legacy `PLAYER_QA_CLASSIFICATION_PROMPT`,
+* which was removed during the July 2025 cleanup – all call-sites should use
+* this constant going forward.
 */
 export const PLAYER_QA_WITH_CLASSIFICATION_PROMPT = (
   userInput: string,
