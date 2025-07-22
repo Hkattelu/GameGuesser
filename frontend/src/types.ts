@@ -4,9 +4,16 @@ export interface ChatPart {
   text: string;
 }
 
+export type Role = 'user' | 'model' | 'system';
+
 export interface ChatMessage {
-  role: 'user' | 'model' | 'system';
+  role: Role;
   parts: ChatPart[];
+}
+
+export interface ChatTurn {
+  user: string;
+  model?: string;
 }
 
 export type ResponseOption = 'Yes' | 'No' | 'Unsure';

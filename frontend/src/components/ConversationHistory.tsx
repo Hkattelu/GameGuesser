@@ -1,18 +1,100 @@
 import { useEffect, useRef } from 'react';
 import {AI_NAME} from '../constants';
-import { ChatMessage, GameMode } from '../types';
+import { ChatMessage, GameMode, ChatTurn } from '../types';
 import LoadingIndicator from './LoadingIndicator';
+
 
 export interface ConversationHistoryProps {
   chatHistory: ChatMessage[];
   gameMode: GameMode;
-  // When true, show a spinner instead of the message list while new history
-  // is being fetched.
   loading: boolean;
 }
 
+/**
+ * Given an array of ChatMessages, return them a list of length-2 arrays
+ * which represent the user prompt and the model response. This also
+ * filters out messages which shouldn't be shown to the user in the history,
+ * such as hints, and system messages.
+ *
+ * @param messages The list of chat messages
+ * @return The reformatted response
+ */
+function formatMessages(messages: ChatMessage[]): ChatTurn[] {
+  const turns: ChatTurn[] = [];
+
+  const filteredMessages = messages.filter(message => message.role !== 'system');
+  for (let i = 0; i < filteredMessages.length; i++) {
+    if (filteredMessages[i].role === 'user' && i + 1 < filteredMessages.length && filteredMessages[i + 1].role === 'model') {
+      turns.push({
+        user: filteredMessages[i].parts[0].text,
+        model: filteredMessages[i + 1].parts[0].text,
+      });
+      i++;
+    } else {
+      turns.push({ user: filteredMessages[i].parts[0].text });
+    }
+  }
+  return turns;
+}
+
+/**
+ * Given a string which may or may not contain JSON content, parse it and
+ * return a string which is easier to read in the conversation history.
+ *
+ * The following types of JSON content are supported:
+ *
+ * - {"type": "question", "content": string} - renders as just the content.
+ * - {"type": "guess", "content": string} - renders as "(Guess): content"
+ * - {"type": "answer", "content": string} - renders as just the content.
+ * - {"type": "answer", "content": {"answer": string, "clarification": string}} - renders as
+ *   "answer - clarification".
+ * - {"type": "guessResult", "content": {"response": string, "score": number, "usedHint": boolean}} -
+ *   renders as "response (score pts)(hint)"
+ *
+ * If the content is not one of the above formats, it is returned unchanged.
+ *
+ * @param maybeJsonString The string which may or may not contain JSON content.
+ * @return The formatted string.
+ */
+function formatJsonContent(maybeJsonString: any): string {
+  let jsonContent = {};
+
+  try {
+    jsonContent = JSON.parse(maybeJsonString);
+  } catch {
+    return maybeJsonString;
+  }
+
+  if (jsonContent.type === 'question') {
+    return jsonContent.content;
+  } else if (jsonContent.type === 'guess') {
+    return `(Guess): ${jsonContent.content}`;
+  } else if (jsonContent.type === 'answer') {
+    if (typeof jsonContent.content === 'string') {
+      return jsonContent.content;
+    } else if (jsonContent.content && typeof jsonContent.content === 'object') {
+      const answer = (jsonContent.content as any).answer;
+      const clarification = (jsonContent.content as any).clarification as string | undefined;
+      return `${answer}${clarification ? ` - ${clarification}` : ''}`;
+    }
+  } else if (
+    jsonContent.type === 'guessResult' &&
+    typeof jsonContent.content?.response === 'string'
+  ) {
+    const { response, score, usedHint } = jsonContent.content as any;
+    let suffix = '';
+    if (typeof score === 'number') {
+      suffix += ` (${score} pts)`;
+    }
+    if (usedHint) {
+      suffix += suffix ? ' (hint)' : '(hint)';
+    }
+    return `${response}${suffix}`;
+  }
+  return jsonContent.content;
+}
+
 // Renders chat history and shows a centered spinner while `loading` is true.
-// Also auto-scrolls to the newest message whenever history changes.
 function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHistoryProps) {
   const historyEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -21,85 +103,48 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
     historyEndRef.current?.scrollIntoView();
   }, [chatHistory]);
 
-  // Outer wrapper keeps a fixed max height so the list becomes scrollable once
-  // it overflows. `space-y-*` utilities add consistent vertical rhythm between
-  // messages.
   const containerClasses =
     'text-left mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg max-h-60 overflow-y-auto';
 
   if (loading) {
-    // While loading, centre the spinner and avoid showing stale messages so it
-    // is obvious that updated content is on the way.
     return (
       <div
         id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
         className={`${containerClasses} flex justify-center items-center`}
       >
-        {/* Lazy-loaded to avoid import cycles in Jest tests. */}
         <LoadingIndicator />
       </div>
     );
   }
 
+  if (chatHistory.length === 0) {
+    return null;
+  }
+
   return (
-    <div
+    <table
       id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
-      className={`${containerClasses} space-y-2`}
+      className={`${containerClasses} space-y-2 w-full`}
     >
-      {chatHistory?.filter(entry => (entry.role !== 'system')).map((entry, index) => {
-        let textContent = '';
-        // Base styling for every message bubble.
-        let className =
-          'inline-block px-3 py-2 rounded-lg max-w-full shadow-sm break-words';
-
-        if (entry.role === 'user') {
-          className += ' bg-blue-100 text-blue-900 font-semibold';
-          textContent = `You: ${entry.parts[0].text}`;
-        } else if (entry.role === 'model') {
-          className += ' bg-green-100 text-green-900';
-
-          try {
-            const jsonContent = JSON.parse(entry.parts[0].text);
-            if (jsonContent.type === 'question') {
-              textContent = `${AI_NAME}: ${jsonContent.content}`;
-            } else if (jsonContent.type === 'guess') {
-              textContent = `${AI_NAME} (Guess): ${jsonContent.content}`;
-            } else if (jsonContent.type === 'answer') {
-              if (typeof jsonContent.content === 'string') {
-                textContent = `${AI_NAME}: ${jsonContent.content}`;
-              } else if (jsonContent.content && typeof jsonContent.content === 'object') {
-                const answer = (jsonContent.content as any).answer;
-                const clarification = (jsonContent.content as any).clarification as string | undefined;
-                textContent = `${AI_NAME}: ${answer}${clarification ? ` - ${clarification}` : ''}`;
-              }
-            } else if (
-              jsonContent.type === 'guessResult' &&
-              typeof jsonContent.content?.response === 'string'
-            ) {
-              const { response, score, usedHint } = jsonContent.content as any;
-              let suffix = '';
-              if (typeof score === 'number') {
-                suffix += ` (${score} pts)`;
-              }
-              if (usedHint) {
-                suffix += suffix ? ' (hint)' : '(hint)';
-              }
-              textContent = `${AI_NAME}: ${response}${suffix}`;
-            }
-          } catch {
-            textContent = `${AI_NAME}: ${entry.parts[0].text}`;
-          }
-        }
-
+      <thead>
+        <tr>
+          <th scope="col">You</th>
+          <th scope="col" className="text-right">Quiz Bot</th>
+        </tr>
+      </thead>
+      <tbody>
+      {formatMessages(chatHistory).map((turn, index) => {
         return (
-          <p key={index} className={className}>
-            {textContent}
-          </p>
+          <tr key={index}>
+            <td>{turn.user}</td>
+            <td className="text-right">{turn.model ? formatJsonContent(turn.model) : '-'}</td>
+          </tr>
         );
       })}
+      </tbody>
       {/* Dummy element so we can scrollIntoView() smoothly. */}
-      <div ref={historyEndRef} />
-    </div>
+      <tfoot ref={historyEndRef}></tfoot>
+    </table>
   );
 }
 

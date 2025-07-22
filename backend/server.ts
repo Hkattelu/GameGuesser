@@ -116,21 +116,14 @@ app.get('/conversations/session/:sessionId', authenticateToken, async (req: Requ
 });
 
 /**
- * Fetches the game history and statistics for the logged-in user.
+ * Fetches game history for the logged-in user filtered by the requested
+ * `gameType` path parameter. Optional `startDate` and `endDate` query string
+ * parameters (YYYY-MM-DD) further constrain the time range.
+ *
+ *  GET /games/history/:gameType
+ *  e.g. /games/history/player-guesses?startDate=2025-07-01&endDate=2025-07-31
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
- */
-// ---------------------------------------------------------------------------
-// Game history – filterable by game type (player-guesses | ai-guesses)
-// ---------------------------------------------------------------------------
-
-/**
-* Fetches game history for the logged-in user filtered by the requested
-* `gameType` path parameter. Optional `startDate` and `endDate` query string
-* parameters (YYYY-MM-DD) further constrain the time range.
-*
-*  GET /games/history/:gameType
-*  e.g. /games/history/player-guesses?startDate=2025-07-01&endDate=2025-07-31
 */
 app.get('/games/history/:gameType', authenticateToken, async (req: Request, res: Response) => {
   const { gameType } = req.params as { gameType: string };
@@ -222,7 +215,7 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
  * @param {Request} req - The Express request object.
  * @param {Response} res - The Express response object.
  */
-app.get('/player-guesses/:sessionId/hint', authenticateToken, async (req: Request, res: Response) => {
+app.get('/player-guesses/:sessionId/hint/:hintType', authenticateToken, async (req: Request, res: Response) => {
   const { sessionId, hintType } = req.params as { sessionId: string, hintType?: HintType };
   try {
     const hint = await getPlayerGuessHint(sessionId, hintType);

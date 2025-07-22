@@ -6,8 +6,12 @@ type HintDialogProps = {
   onClose: () => void;
   sessionId: string | null;
   token?: string | null;
-  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
-  setChatHistory: React.Dispatch<React.SetStateAction<any[]>>;
+};
+
+enum HintType {
+  PUBLISHER = 'publisher',
+  DEVELOPER = 'developer',
+  RELEASE_YEAR = 'releaseYear',
 };
 
 const HintDialog: React.FC<HintDialogProps> = ({
@@ -15,18 +19,18 @@ const HintDialog: React.FC<HintDialogProps> = ({
   onClose,
   sessionId,
   token,
-  setQuestionCount,
-  setChatHistory,
 }) => {
-  const [hint, setHint] = useState<string | null>(null);
+  const [developer, setDeveloper] = useState<string|null>(null);
+  const [publisher, setPublisher] = useState<string|null>(null);
+  const [releaseYear, setReleaseYear] = useState<string|null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleRevealHint = async () => {
+  const handleRevealHint = async (hintType: HintType) => {
     if (!sessionId) return;
     setLoading(true);
 
     try {
-      const response = await fetch(`${getApiUrl()}/player-guesses/${sessionId}/hint`, {
+      const response = await fetch(`${getApiUrl()}/player-guesses/${sessionId}/hint/${hintType}`, {
         method: 'GET',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -39,15 +43,21 @@ const HintDialog: React.FC<HintDialogProps> = ({
       }
 
       const data = await response.json();
-      setHint(data.hintText);
-      setQuestionCount((prev) => prev + 1);
-      setChatHistory((prevHistory) => [
-        ...prevHistory,
-        { role: 'model', parts: [{ text: `Hint: ${data.hintText}` }] },
-      ]);
+      switch (data.hint?.hintType) {
+        case HintType.PUBLISHER:
+          setPublisher(data.hint.hintText);
+          break;
+        case HintType.DEVELOPER:
+          setDeveloper(data.hint.hintText);
+          break;
+        case HintType.RELEASE_YEAR:
+          setReleaseYear(data.hint.hintText);
+          break;
+        default:
+          break;
+      }
     } catch (error: unknown) {
-      const err = error as Error;
-      setHint(`Error fetching hint: ${err.message}`);
+      console.error(error as Error);
     } finally {
       setLoading(false);
     }
@@ -59,31 +69,50 @@ const HintDialog: React.FC<HintDialogProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg">
-        <h2 className="text-2xl font-bold mb-4">Need a hint?</h2>
-        {hint ? (
-          <p className="mb-4">{hint}</p>
-        ) : (
-          <p className="mb-4">
-            Reveal a hint below. Using a hint will count as asking one question.
-          </p>
-        )}
-        <div className="flex justify-center gap-4">
-          {!hint && (
-            <button
-              onClick={handleRevealHint}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              disabled={loading}
-            >
-              {loading ? 'Loading...' : 'Reveal Hint'}
-            </button>
-          )}
+      <div className="bg-white text-gray-900 dark:text-white dark:bg-gray-800 p-8 rounded-lg">
+        <div className="flex justify-between items-center mb-4 w-100">
+          <h2 className="text-2xl font-bold flex-1">Need a hint?</h2>
           <button
             onClick={onClose}
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
           >
-            Close
+            ×
           </button>
+        </div>
+        <div className="flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <div>Publisher</div>
+            {publisher ? (<div>{publisher}</div>) :
+            <button
+              onClick={() => handleRevealHint(HintType.PUBLISHER)}
+              className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Reveal'}
+            </button> }
+          </div>
+          <div className="flex justify-between items-center mb-4">
+            <div>Developer</div>
+            {developer ? (<div>{developer}</div>) :
+            <button
+              onClick={() => handleRevealHint(HintType.DEVELOPER)}
+              className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Reveal'}
+            </button>}
+          </div>
+          <div className="flex justify-between items-center mb-4">
+            <div>Release</div>
+            {releaseYear ? (<div>{releaseYear}</div>) :
+            <button
+              onClick={() => handleRevealHint(HintType.RELEASE_YEAR)}
+              className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Reveal'}
+            </button>}
+          </div>
         </div>
       </div>
     </div>

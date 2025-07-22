@@ -61,8 +61,8 @@ describe('ConversationHistory', () => {
       />,
     );
 
-    expect(screen.getByText('You: Is it an RPG?')).toBeInTheDocument();
-    expect(screen.getByText('You: Yes')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Is it an RPG?' })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Yes' })).toBeInTheDocument();
   });
 
   it('renders model question messages correctly', () => {
@@ -75,7 +75,7 @@ describe('ConversationHistory', () => {
     );
 
     expect(
-      screen.getByText('Quiz Bot: Does it have a turn-based combat system?'),
+      screen.getByRole('cell', { name: 'Does it have a turn-based combat system?' }),
     ).toBeInTheDocument();
   });
 
@@ -89,7 +89,7 @@ describe('ConversationHistory', () => {
     );
 
     expect(
-      screen.getByText('Quiz Bot (Guess): Final Fantasy VII'),
+      screen.getByRole('cell', { name: '(Guess): Final Fantasy VII' }),
     ).toBeInTheDocument();
   });
 
@@ -102,53 +102,162 @@ describe('ConversationHistory', () => {
       />,
     );
 
-    expect(screen.getByText('Quiz Bot: You win!')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'You win!' })).toBeInTheDocument();
   });
 
   it('renders model answer messages correctly', () => {
+    const answerChatHistory: ChatMessage[] = [
+      { role: 'user', parts: [{ text: 'What is the answer?' }] },
+      {
+        role: 'model',
+        parts: [
+          {
+            text: JSON.stringify({ type: 'answer', content: { answer: 'No', clarification: 'It is not an RPG.' } }),
+          },
+        ],
+      },
+    ];
     render(
       <ConversationHistory
-        chatHistory={mockChatHistory}
+        chatHistory={answerChatHistory}
         gameMode="player-guesses"
         loading={false}
       />,
     );
 
-    expect(screen.getByText('Quiz Bot: No')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'No - It is not an RPG.' })).toBeInTheDocument();
   });
 
   it('renders model guessResult messages correctly', () => {
+    const guessResultChatHistory: ChatMessage[] = [
+      { role: 'user', parts: [{ text: 'My guess is Zelda.' }] },
+      {
+        role: 'model',
+        parts: [
+          {
+            text: JSON.stringify({
+              type: 'guessResult',
+              content: { response: 'That is incorrect.', score: 50, usedHint: true },
+            }),
+          },
+        ],
+      },
+    ];
     render(
       <ConversationHistory
-        chatHistory={mockChatHistory}
+        chatHistory={guessResultChatHistory}
         gameMode="player-guesses"
         loading={false}
       />,
     );
 
     expect(
-      screen.getByText('Quiz Bot: That is incorrect.'),
+      screen.getByRole('cell', { name: 'That is incorrect. (50 pts) (hint)' }),
     ).toBeInTheDocument();
   });
 
-  it('sets the correct id for AI Guesses game mode', () => {
-    const { container } = render(
-      <ConversationHistory chatHistory={[]} gameMode="ai-guesses" loading={false} />,
-    );
-
-    expect(container.firstChild).toHaveAttribute('id', 'conversation-history');
-  });
-
-  it('sets the correct id for Player Guesses game mode', () => {
-    const { container } = render(
+  it('renders model guessResult messages correctly without score or hint', () => {
+    const guessResultChatHistory: ChatMessage[] = [
+      { role: 'user', parts: [{ text: 'My guess is Mario.' }] },
+      {
+        role: 'model',
+        parts: [
+          {
+            text: JSON.stringify({
+              type: 'guessResult',
+              content: { response: 'That is correct.' },
+            }),
+          },
+        ],
+      },
+    ];
+    render(
       <ConversationHistory
-        chatHistory={[]}
+        chatHistory={guessResultChatHistory}
         gameMode="player-guesses"
         loading={false}
       />,
     );
 
-    expect(container.firstChild).toHaveAttribute(
+    expect(
+      screen.getByRole('cell', { name: 'That is correct.' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders model guessResult messages correctly with score but no hint', () => {
+    const guessResultChatHistory: ChatMessage[] = [
+      { role: 'user', parts: [{ text: 'My guess is Pokemon.' }] },
+      {
+        role: 'model',
+        parts: [
+          {
+            text: JSON.stringify({
+              type: 'guessResult',
+              content: { response: 'That is correct.', score: 100 },
+            }),
+          },
+        ],
+      },
+    ];
+    render(
+      <ConversationHistory
+        chatHistory={guessResultChatHistory}
+        gameMode="player-guesses"
+        loading={false}
+      />,
+    );
+
+    expect(
+      screen.getByRole('cell', { name: 'That is correct. (100 pts)' }),
+    ).toBeInTheDocument();
+  });
+
+  it('renders model guessResult messages correctly with hint but no score', () => {
+    const guessResultChatHistory: ChatMessage[] = [
+      { role: 'user', parts: [{ text: 'My guess is Tetris.' }] },
+      {
+        role: 'model',
+        parts: [
+          {
+            text: JSON.stringify({
+              type: 'guessResult',
+              content: { response: 'That is incorrect.', usedHint: true },
+            }),
+          },
+        ],
+      },
+    ];
+    render(
+      <ConversationHistory
+        chatHistory={guessResultChatHistory}
+        gameMode="player-guesses"
+        loading={false}
+      />,
+    );
+
+    expect(
+      screen.getByRole('cell', { name: 'That is incorrect.(hint)' }),
+    ).toBeInTheDocument();
+  });
+
+  it('sets the correct id for AI Guesses game mode', () => {
+    render(
+      <ConversationHistory chatHistory={mockChatHistory} gameMode="ai-guesses" loading={false} />,
+    );
+
+    expect(screen.getByRole('table')).toHaveAttribute('id', 'conversation-history');
+  });
+
+  it('sets the correct id for Player Guesses game mode', () => {
+    render(
+      <ConversationHistory
+        chatHistory={mockChatHistory}
+        gameMode="player-guesses"
+        loading={false}
+      />,
+    );
+
+    expect(screen.getByRole('table')).toHaveAttribute(
       'id',
       'conversation-history-player',
     );

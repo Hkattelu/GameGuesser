@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { render, fireEvent, waitFor, within } from '@testing-library/react';
 import { vi } from 'vitest';
 import HintDialog from '../HintDialog';
 import * as env from '../../env_utils';
@@ -24,8 +24,6 @@ describe('HintDialog', () => {
         isOpen={false}
         onClose={() => {}}
         sessionId="test-session"
-        setQuestionCount={mockSetQuestionCount}
-        setChatHistory={mockSetChatHistory}
       />
     );
     expect(container.firstChild).toBeNull();
@@ -37,8 +35,6 @@ describe('HintDialog', () => {
         isOpen={true}
         onClose={() => {}}
         sessionId="test-session"
-        setQuestionCount={mockSetQuestionCount}
-        setChatHistory={mockSetChatHistory}
       />
     );
     expect(getByText('Need a hint?')).toBeInTheDocument();
@@ -46,43 +42,36 @@ describe('HintDialog', () => {
 
   it('calls onClose when the close button is clicked', () => {
     const onClose = vi.fn();
-    const { getByText } = render(
+    const { getByRole } = render(
       <HintDialog
         isOpen={true}
         onClose={onClose}
         sessionId="test-session"
-        setQuestionCount={mockSetQuestionCount}
-        setChatHistory={mockSetChatHistory}
       />
     );
-    fireEvent.click(getByText('Close'));
+    const closeButton = getByRole('button', { name: '×' });
+    fireEvent.click(closeButton);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('fetches and displays a hint when "Reveal Hint" is clicked', async () => {
-    const mockHint = { hintText: 'This is a test hint' };
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockHint),
-    });
+  it('shows loading indicator when revealing a hint', async () => {
+    global.fetch = vi.fn().mockImplementation(() =>
+      new Promise(resolve => setTimeout(() => resolve({ ok: true, json: () => Promise.resolve({ hint: { hintType: 'publisher', hintText: 'Loading Test' } }) }), 100))
+    );
 
     const { getByText } = render(
       <HintDialog
         isOpen={true}
         onClose={() => {}}
         sessionId="test-session"
-        setQuestionCount={mockSetQuestionCount}
-        setChatHistory={mockSetChatHistory}
       />
     );
 
-    fireEvent.click(getByText('Reveal Hint'));
-
-    await waitFor(() => {
-      expect(getByText(mockHint.hintText)).toBeInTheDocument();
-    });
-
-    expect(mockSetQuestionCount).toHaveBeenCalledTimes(1);
-    expect(mockSetChatHistory).toHaveBeenCalledTimes(1);
+    const publisherRow = getByText('Publisher').closest('.flex.justify-between.items-center.mb-4');
+    if (publisherRow) {
+      fireEvent.click(within(publisherRow).getByRole('button', { name: 'Reveal' }));
+    }
+    expect(within(publisherRow).getByText('Loading...')).toBeInTheDocument();
+    await waitFor(() => expect(getByText('Loading Test')).toBeInTheDocument());
   });
 });

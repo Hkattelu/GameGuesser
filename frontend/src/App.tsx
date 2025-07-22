@@ -11,7 +11,7 @@ import GameResultsDialog from './components/GameResultsDialog';
 import GameHistoryCalendar from './components/GameHistoryCalendar';
 import SettingsButton from './components/SettingsButton';
 
-import { ChatMessage, GameMode } from './types';
+import { ChatMessage, GameMode, Role } from './types';
 import { MAX_QUESTIONS } from './constants';
 import { getApiUrl } from './env_utils';
 
@@ -135,7 +135,7 @@ function App({
         type HistoryRow = { role: string; content: string };
         const rows: HistoryRow[] = await response.json();
         const history: ChatMessage[] = rows.map((r) => ({
-          role: r.role as 'user' | 'model',
+          role: r.role as Role,
           parts: [{ text: r.content }],
         }));
         setChatHistory(history);

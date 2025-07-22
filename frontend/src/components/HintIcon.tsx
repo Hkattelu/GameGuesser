@@ -8,23 +8,17 @@ const HintIcon: React.FC<HintIconProps> = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+      className="flex items-center cursor-pointer border-2 rounded-xl pl-4 pr-4 text-gray-700 hover:text-gray-800 dark:text-gray-200 dark:hover:text-gray-100"
       aria-label="Get a hint"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-6 w-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M9.663 17.333A6 6 0 013.663 12a6 6 0 016-5.333m0 10.666V12m0 5.333a6 6 0 006-5.333M12 6.667a6 6 0 00-6 5.333m6-5.333a6 6 0 016 5.333m-6-5.333V3.333m0 3.334a6 6 0 01-6 5.333m6-5.333a6 6 0 006 5.333"
-        />
-      </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="24px" width="24px" version="1.1" id="Capa_1" viewBox="0 0 489.242 489.242">
+      <g>
+        <g>
+          <path d="M416.321,171.943c0-97.8-82.2-176.9-181-171.7c-89.5,5.2-160.3,79.1-162.4,168.6c0,44.7,16.6,86.3,45.8,118.6    c47.7,51.1,41.6,110.3,41.6,110.3c0,11.4,9.4,20.8,20.8,20.8h126.9c11.4,0,20.8-9.4,21.8-20.8c0,0-7-57.7,40.6-109.2    C399.621,257.243,416.321,215.643,416.321,171.943z M288.321,377.943h-87.4c-2.1-42.7-20.8-84.3-51-116.5    c-22.9-25-34.3-57.2-34.3-90.5c1-68.7,54.1-124.8,122.8-129c74.9-4.2,137.3,56.2,137.3,130c0,32.3-12.5,64.5-35.4,88.4    C309.121,293.643,290.421,335.243,288.321,377.943z"/>
+          <path d="M281.021,447.643h-73.9c-11.4,0-20.8,9.4-20.8,20.8s9.4,20.8,20.8,20.8h73.9c11.4,0,20.8-9.4,20.8-20.8    C301.821,457.043,292.521,447.643,281.021,447.643z"/>
+        </g>
+      </g>
+    </svg>
     </button>
   );
 };

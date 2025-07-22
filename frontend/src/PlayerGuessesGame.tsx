@@ -3,10 +3,9 @@ import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
 import { MAX_SUGGESTIONS, SUGGESTIONS } from './constants';
-import { ChatMessage, GameMode } from './types';
+import { ChatMessage, GameMode, ChatTurn } from './types';
 import HintIcon from './components/HintIcon';
 import HintDialog from './components/HintDialog';
-
 
 export interface PlayerGuessesGameProps {
   gameMode: GameMode;
@@ -26,7 +25,6 @@ export interface PlayerGuessesGameProps {
   setGameMessage: React.Dispatch<React.SetStateAction<string>>;
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
-  // Optional JWT token for authenticated API requests
   token?: string | null;
 }
 
@@ -135,8 +133,6 @@ function PlayerGuessesGame({
       setQuestionCount(newQuestionCount);
 
       if (type === 'question' || type === 'answer') {
-        // For the new schema, `content` is an object. For backward compatibility,
-        // fall back to treating it as a plain string.
         let answerText = '';
         let answerLiteral: string = '';
 
@@ -146,9 +142,12 @@ function PlayerGuessesGame({
         } else if (content && typeof content === 'object') {
           answerLiteral = (content as any).answer;
           answerText = (content as any).answer + ((content as any).clarification ? ` - ${(content as any).clarification}` : '');
+
+          if (content.clarification) {
+            setModelResponseText(`Clarification: ${content.clarification}`);
+          }
         }
 
-        setModelResponseText(answerText);
         setChatHistory((prevHistory) => [
           ...prevHistory,
           { role: "model", parts: [{ text: answerText }] },
@@ -156,7 +155,7 @@ function PlayerGuessesGame({
         setSuggestions(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
 
         if (newQuestionCount >= maxQuestions) {
-          endGame(`You're out of questions! The game was ${answerText}.`, false); // Backend will provide the game title in the final answer
+          endGame(`You're out of questions! The game was ${answerText}.`, false);
         }
       } else if (type === 'guessResult') {
         const { correct, response, score, usedHint } = content as any;
@@ -167,7 +166,6 @@ function PlayerGuessesGame({
             { role: 'model', parts: [{ text: `You guessed it! The game was ${response}.` }] },
           ]);
         } else if (typeof score === 'number' && score > 0) {
-          // Partial credit
           setGameMessage(`Close! ${response} (${score} pts)${usedHint ? ' - Hint used' : ''}`);
           setChatHistory((prevHistory) => [
             ...prevHistory,
@@ -190,15 +188,12 @@ function PlayerGuessesGame({
     }
   };
 
-  
-
   const endGame = (finalMessage: string, victoryStatus: boolean) => {
     setStarted(false);
     setLoading(false);
     setVictory(victoryStatus);
     setGameMessage(finalMessage);
     setModelResponseText('');
-    // Show results dialog after a short delay
     setTimeout(() => setShowResults(true), 1500);
   };
 
@@ -217,10 +212,7 @@ function PlayerGuessesGame({
         onClose={closeHintDialog}
         sessionId={sessionId}
         token={token}
-        setQuestionCount={setQuestionCount}
-        setChatHistory={setChatHistory}
       />
-      {started && !loading && <HintIcon onClick={openHintDialog} />}
       {started && !loading && modelResponseText && (
         <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4" data-testid="model-response">
           {modelResponseText}
@@ -259,17 +251,17 @@ function PlayerGuessesGame({
       )}
 
       {started && !loading && (
-        
-          <div className="flex justify-center gap-6 mt-4">
-            <button
-              id="btn-submit-guess"
-              type="button"
-              className="cursor-pointer px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
-              onClick={handlePlayerQuestion}
-            >
-              Submit
-            </button>
-          </div>
+        <div className="flex justify-center gap-6 mt-4">
+          <button
+            id="btn-submit-guess"
+            type="button"
+            className="cursor-pointer px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+            onClick={handlePlayerQuestion}
+          >
+            Submit
+          </button>
+          <HintIcon onClick={openHintDialog} />
+        </div>
       )}
 
       {!started && (
@@ -286,3 +278,4 @@ function PlayerGuessesGame({
 }
 
 export default PlayerGuessesGame;
+

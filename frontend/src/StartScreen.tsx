@@ -46,10 +46,6 @@ function StartScreen() {
     navigate(path);
   };
 
-  if (!token) {
-    return <AuthPage onAuth={handleAuth} />;
-  }
-
   useEffect(() => {
     const moveEye = (eye: HTMLElement, event: MouseEvent) => {
       if (mouseWatchArea.current) {
@@ -75,6 +71,10 @@ function StartScreen() {
       }
     };
   });
+
+  if (!token) {
+    return <AuthPage onAuth={handleAuth} />;
+  }
 
   return (
     <>
