@@ -69,12 +69,12 @@ const HintDialog: React.FC<HintDialogProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-      <div className="bg-white text-gray-900 dark:text-white dark:bg-gray-800 p-8 rounded-lg">
-        <div className="flex justify-between items-center mb-4 w-100">
+      <div className="bg-white text-gray-900 dark:text-white dark:bg-gray-800 p-8 m-8 rounded-lg">
+        <div className="flex justify-between items-center mb-4 w-80">
           <h2 className="text-2xl font-bold flex-1">Need a hint?</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+            className="cursor-pointer text-gray-400 hover:text-gray-600 text-xl font-bold"
           >
             ×
           </button>

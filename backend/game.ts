@@ -313,9 +313,9 @@ async function getPlayerGuessHint(sessionId: string, hintType?: HintType): Promi
   (session as PlayerGuessSession).usedHint = true;
 
   let candidates: Array<HintResponse> = [];
-  if (metadata.developer) candidates.push({hintType: 'developer', hintText: `The developer is ${metadata.developer}.`});
-  if (metadata.publisher) candidates.push({hintType: 'publisher', hintText: `The publisher is ${metadata.publisher}.`});
-  if (metadata.releaseYear) candidates.push({hintType: 'releaseYear', hintText: `It was released in ${metadata.releaseYear}.`});
+  if (metadata.developer) candidates.push({hintType: 'developer', hintText: metadata.developer});
+  if (metadata.publisher) candidates.push({hintType: 'publisher', hintText: metadata.publisher});
+  if (metadata.releaseYear) candidates.push({hintType: 'releaseYear', hintText: String(metadata.releaseYear)});
 
   if (!!hintType) {
     candidates = candidates.filter(candidate => candidate.hintType === hintType);

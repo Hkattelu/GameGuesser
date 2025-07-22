@@ -28,7 +28,7 @@ const moodToUrl = (mood: MascotMood) => {
 
 function MascotImage({ mood }: MascotImageProps) {
   return (
-    <div className="flex justify-center mb-4">
+    <div className="flex justify-center mb-4 max-w-50">
       <img src={moodToUrl(mood)} alt="Game Boy mascot" />
     </div>
   );

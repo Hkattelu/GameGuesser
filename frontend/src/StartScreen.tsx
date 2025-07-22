@@ -88,15 +88,15 @@ function StartScreen() {
         <div className="eye mr-14" ref={rightEye}><div className="pupil"></div></div>
         <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />
       </div>
-      <div className="p-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">
+      <div className="p-6 bg-white border-2 border-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">
         <h1 className="text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
-          {AI_NAME} 9000's Arcade
+          {AI_NAME}'s Arcade
         </h1>
         <p className="text-lg mb-8">Welcome, {username}! Choose a game to play!</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">
-        <div className="bg-white dark:bg-gray-800">
+        <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm">
           <button
             type="button"
             onClick={() => handleSelectGame('/ai-guesses')}
@@ -109,7 +109,7 @@ function StartScreen() {
             </p>
           </button>
         </div>
-        <div className="bg-white dark:bg-gray-800">
+        <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm">
           <button
             type="button"
             onClick={() => handleSelectGame('/player-guesses')}

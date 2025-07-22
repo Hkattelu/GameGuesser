@@ -13,7 +13,6 @@ export interface AIGuessesGameProps {
   chatHistory: ChatMessage[];
   highlightedResponse: string | null;
   sessionId: string | null;
-  setPreGame: React.Dispatch<React.SetStateAction<boolean>>;
   setStarted: React.Dispatch<React.SetStateAction<boolean>>;
   setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
   setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
@@ -37,7 +36,6 @@ function AIGuessesGame({
   highlightedResponse,
   sessionId,
   token,
-  setPreGame,
   setStarted,
   setQuestionCount,
   setChatHistory,
@@ -49,7 +47,6 @@ function AIGuessesGame({
 }: AIGuessesGameProps) {
 
   const startGameAI = async () => {
-    setPreGame(false);
     setStarted(true);
     setQuestionCount(0);
     setChatHistory([]);

@@ -47,7 +47,6 @@ function App({
 
   // Game-specific state
   const [gameMode, setGameMode] = useState<GameMode>(initialGameMode);
-  const [preGame, setPreGame] = useState<boolean>(true);
   const [started, setStarted] = useState<boolean>(false);
   const [victory, setVictory] = useState<boolean>(false);
   const [questionCount, setQuestionCount] = useState<number>(0);
@@ -85,7 +84,6 @@ function App({
   const getMascotMood = () => {
     const base = '/bot_boy/';
     if (loading) return 'thinking';
-    if (preGame) return 'default';
     if (!started) {
       if (victory) return 'sad';
       return 'default';
@@ -95,7 +93,6 @@ function App({
 
 
   const resetGame = () => {
-    setPreGame(true);
     setStarted(false);
     setVictory(false);
     setQuestionCount(0);
@@ -140,7 +137,6 @@ function App({
           setSessionId(gameState.sessionId);
           setQuestionCount(gameState.questionCount);
           setStarted(true);
-          setPreGame(false);
         }
       } catch (err) {
         // eslint-disable-next-line no-console
@@ -211,7 +207,7 @@ function App({
         />
       )}
       
-      {(victory !== false && !started && !preGame) && (
+      {(victory !== false && !started) && (
         <button
           onClick={() => setShowResults(true)}
           className="mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
@@ -246,14 +242,12 @@ function App({
         <AIGuessesGame
           token={token}
           gameMode={gameMode}
-          preGame={preGame}
           started={started}
           loading={loading}
           questionCount={questionCount}
           maxQuestions={maxQuestions}
           chatHistory={chatHistory}
           sessionId={sessionId}
-          setPreGame={setPreGame}
           setStarted={setStarted}
           setQuestionCount={setQuestionCount}
           setChatHistory={setChatHistory}
@@ -270,14 +264,12 @@ function App({
         <PlayerGuessesGame
           token={token}
           gameMode={gameMode}
-          preGame={preGame}
           started={started}
           loading={loading}
           questionCount={questionCount}
           maxQuestions={maxQuestions}
           chatHistory={chatHistory}
           sessionId={sessionId}
-          setPreGame={setPreGame}
           setStarted={setStarted}
           setQuestionCount={setQuestionCount}
           setChatHistory={setChatHistory}
