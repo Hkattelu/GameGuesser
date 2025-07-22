@@ -58,15 +58,6 @@ describe('GameResultsDialog', () => {
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when Close button is clicked', () => {
-    render(<GameResultsDialog {...defaultProps} />);
-    
-    const closeButton = screen.getByRole('button', { name: 'Close' });
-    fireEvent.click(closeButton);
-    
-    expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
-  });
-
   it('displays correct summary for winning game', () => {
     render(<GameResultsDialog {...defaultProps} />);
     

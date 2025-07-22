@@ -23,6 +23,7 @@ export interface AIGuessesGameProps {
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
   // Optional JWT token for authenticated API requests
   token?: string | null;
+  gameCompletedToday?: boolean;
 }
 
 function AIGuessesGame({
@@ -44,6 +45,7 @@ function AIGuessesGame({
   setGameMessage,
   setVictory,
   setShowResults,
+  gameCompletedToday = false,
 }: AIGuessesGameProps) {
 
   const startGameAI = async () => {
@@ -166,7 +168,7 @@ function AIGuessesGame({
       )}
 
       {/* Start Game Button */}
-      {!started && (
+      {!started && !gameCompletedToday && (
         <button
           id="btn-start-game"
           className="cursor-pointer mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
@@ -174,6 +176,9 @@ function AIGuessesGame({
         >
           Start Game
         </button>
+      )}
+      {!started && gameCompletedToday && (
+        <div className="mt-8 text-lg text-gray-500 font-semibold">You have already played AI Guesses today. Come back tomorrow!</div>
       )}
     </div>
   );

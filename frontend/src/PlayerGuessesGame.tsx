@@ -25,6 +25,7 @@ export interface PlayerGuessesGameProps {
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
   token?: string | null;
+  gameCompletedToday?: boolean;
 }
 
 /** Shuffle an array of elements randomly. */
@@ -55,6 +56,7 @@ function PlayerGuessesGame({
   setGameMessage,
   setVictory,
   setShowResults,
+  gameCompletedToday = false,
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
@@ -261,7 +263,7 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      {!started && (
+      {!started && !gameCompletedToday && (
         <button
           id="btn-start-player-game"
           className="cursor-pointer mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
@@ -269,6 +271,9 @@ function PlayerGuessesGame({
         >
           Start Game
         </button>
+      )}
+      {!started && gameCompletedToday && (
+        <div className="mt-8 text-lg text-gray-500 font-semibold">You have already played Player Guesses today. Come back tomorrow!</div>
       )}
     </div>
   );
