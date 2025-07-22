@@ -23,9 +23,10 @@ Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.`;
 
 
 /**
-* Updated prompt version that aligns with the separated answer / clarification
-* object. Kept alongside the original `PLAYER_QA_CLASSIFICATION_PROMPT` for a
-* smoother migration – all new call-sites should prefer this constant.
+* Prompt template that aligns with the newer separated answer/clarification
+* data model. This supersedes the legacy `PLAYER_QA_CLASSIFICATION_PROMPT`,
+* which was removed during the July 2025 cleanup – all call-sites should use
+* this constant going forward.
 */
 export const PLAYER_QA_WITH_CLASSIFICATION_PROMPT = (
   userInput: string,
