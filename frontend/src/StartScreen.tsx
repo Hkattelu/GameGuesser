@@ -8,6 +8,7 @@ import { AI_NAME } from './constants';
 import { wrapNavigate } from './transition-utils';
 import './styles/startScreen.css';
 import { getApiUrl } from './env_utils';
+import { isGameCompleted } from './utils/gameCompletion';
 
 interface AuthPayload {
   token: string;
@@ -50,30 +51,7 @@ function StartScreen() {
     navigate(path);
   };
 
-  function isGameCompleted(gameMode: 'ai-guesses' | 'player-guesses', chatHistory: any[], questionCount: number, maxQuestions: number) {
-    if (!chatHistory || chatHistory.length === 0) return false;
-    if (gameMode === 'player-guesses') {
-      const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
-      if (lastModelMsg) {
-        try {
-          const parsed = JSON.parse(lastModelMsg.parts[0]?.text || '');
-          if (parsed.type === 'guessResult') return true;
-        } catch {}
-      }
-      if (questionCount >= maxQuestions) return true;
-    }
-    if (gameMode === 'ai-guesses') {
-      const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
-      if (lastModelMsg) {
-        try {
-          const parsed = JSON.parse(lastModelMsg.parts[0]?.text || '');
-          if (parsed.type === 'guess' && parsed.content === true) return true;
-        } catch {}
-      }
-      if (questionCount >= maxQuestions) return true;
-    }
-    return false;
-  }
+  // ---
 
   useEffect(() => {
     if (!token) return;

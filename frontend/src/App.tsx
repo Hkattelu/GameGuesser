@@ -12,6 +12,7 @@ import GameHistoryCalendar from './components/GameHistoryCalendar';
 import SettingsButton from './components/SettingsButton';
 
 import { ChatMessage, GameMode, Role } from './types';
+import { isGameCompleted } from './utils/gameCompletion';
 import { MAX_QUESTIONS } from './constants';
 import { getApiUrl } from './env_utils';
 
@@ -31,32 +32,7 @@ interface AppProps {
   onNavigateHome?: () => void;
 }
 
-function isGameCompleted(gameMode: GameMode, chatHistory: ChatMessage[], questionCount: number, maxQuestions: number) {
-  if (!chatHistory || chatHistory.length === 0) return false;
-  // For player-guesses: look for model message with type guessResult, or out of questions
-  if (gameMode === 'player-guesses') {
-    const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
-    if (lastModelMsg) {
-      try {
-        const parsed = JSON.parse(lastModelMsg.parts[0]?.text || '');
-        if (parsed.type === 'guessResult') return true;
-      } catch {}
-    }
-    if (questionCount >= maxQuestions) return true;
-  }
-  // For ai-guesses: look for model message with type guess and content true, or out of questions
-  if (gameMode === 'ai-guesses') {
-    const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
-    if (lastModelMsg) {
-      try {
-        const parsed = JSON.parse(lastModelMsg.parts[0]?.text || '');
-        if (parsed.type === 'guess' && parsed.content === true) return true;
-      } catch {}
-    }
-    if (questionCount >= maxQuestions) return true;
-  }
-  return false;
-}
+
 
 function App({
   onNavigateHome,
