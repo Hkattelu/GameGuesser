@@ -16,7 +16,6 @@ export interface PlayerGuessesGameProps {
   maxQuestions: number;
   chatHistory: ChatMessage[];
   sessionId: string | null;
-  setPreGame: React.Dispatch<React.SetStateAction<boolean>>;
   setStarted: React.Dispatch<React.SetStateAction<boolean>>;
   setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
   setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
@@ -26,6 +25,7 @@ export interface PlayerGuessesGameProps {
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
   token?: string | null;
+  gameCompletedToday?: boolean;
 }
 
 /** Shuffle an array of elements randomly. */
@@ -48,7 +48,6 @@ function PlayerGuessesGame({
   chatHistory,
   sessionId,
   token,
-  setPreGame,
   setStarted,
   setQuestionCount,
   setChatHistory,
@@ -57,6 +56,7 @@ function PlayerGuessesGame({
   setGameMessage,
   setVictory,
   setShowResults,
+  gameCompletedToday = false,
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
@@ -70,7 +70,6 @@ function PlayerGuessesGame({
    *   started.
    */
   const startGamePlayerGuesses = async () => {
-    setPreGame(false);
     setStarted(true);
     setQuestionCount(0);
     setChatHistory([]);
@@ -142,10 +141,6 @@ function PlayerGuessesGame({
         } else if (content && typeof content === 'object') {
           answerLiteral = (content as any).answer;
           answerText = (content as any).answer + ((content as any).clarification ? ` - ${(content as any).clarification}` : '');
-
-          if (content.clarification) {
-            setModelResponseText(`Clarification: ${content.clarification}`);
-          }
         }
 
         setChatHistory((prevHistory) => [
@@ -264,7 +259,7 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      {!started && (
+      {!started && !gameCompletedToday && (
         <button
           id="btn-start-player-game"
           className="cursor-pointer mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
@@ -272,6 +267,9 @@ function PlayerGuessesGame({
         >
           Start Game
         </button>
+      )}
+      {!started && gameCompletedToday && (
+        <div className="mt-8 text-lg text-gray-500 font-semibold">You have already played Player Guesses today. Come back tomorrow!</div>
       )}
     </div>
   );

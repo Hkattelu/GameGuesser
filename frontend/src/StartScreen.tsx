@@ -7,6 +7,7 @@ import SettingsButton from './components/SettingsButton';
 import { AI_NAME } from './constants';
 import { wrapNavigate } from './transition-utils';
 import './styles/startScreen.css';
+import { getApiUrl } from './env_utils';
 
 interface AuthPayload {
   token: string;
@@ -34,6 +35,9 @@ function StartScreen() {
   const mouseWatchArea = useRef(null);
   const leftEye = useRef(null);
   const rightEye = useRef(null);
+  const [aiGuessesCompletedToday, setAIGuessesCompletedToday] = useState<boolean>(false);
+  const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const navigate = wrapNavigate(useNavigate());
 
@@ -45,6 +49,63 @@ function StartScreen() {
   const handleSelectGame = (path: '/ai-guesses' | '/player-guesses') => {
     navigate(path);
   };
+
+  function isGameCompleted(gameMode: 'ai-guesses' | 'player-guesses', chatHistory: any[], questionCount: number, maxQuestions: number) {
+    if (!chatHistory || chatHistory.length === 0) return false;
+    if (gameMode === 'player-guesses') {
+      const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
+      if (lastModelMsg) {
+        try {
+          const parsed = JSON.parse(lastModelMsg.parts[0]?.text || '');
+          if (parsed.type === 'guessResult') return true;
+        } catch {}
+      }
+      if (questionCount >= maxQuestions) return true;
+    }
+    if (gameMode === 'ai-guesses') {
+      const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
+      if (lastModelMsg) {
+        try {
+          const parsed = JSON.parse(lastModelMsg.parts[0]?.text || '');
+          if (parsed.type === 'guess' && parsed.content === true) return true;
+        } catch {}
+      }
+      if (questionCount >= maxQuestions) return true;
+    }
+    return false;
+  }
+
+  useEffect(() => {
+    if (!token) return;
+    setLoading(true);
+    const today = new Date().toISOString().slice(0, 10);
+    const maxQuestions = 20;
+    const fetchCompletion = async (gameType: 'ai-guesses' | 'player-guesses', setter: (b: boolean) => void) => {
+      try {
+        const response = await fetch(`${getApiUrl()}/game-state?gameMode=${gameType}&date=${today}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error('Failed to load game state');
+        const gameState = await response.json();
+        if (gameState) {
+          const chatHistory = gameState.chatHistory.map((r) => ({
+            role: r.role,
+            parts: [{ text: r.content }],
+          }));
+          const completed = isGameCompleted(gameType, chatHistory, gameState.questionCount, maxQuestions);
+          setter(completed);
+        } else {
+          setter(false);
+        }
+      } catch {
+        setter(false);
+      }
+    };
+    Promise.all([
+      fetchCompletion('ai-guesses', setAIGuessesCompletedToday),
+      fetchCompletion('player-guesses', setPlayerGuessesCompletedToday),
+    ]).finally(() => setLoading(false));
+  }, [token]);
 
   useEffect(() => {
     const moveEye = (eye: HTMLElement, event: MouseEvent) => {
@@ -76,6 +137,12 @@ function StartScreen() {
     return <AuthPage onAuth={handleAuth} />;
   }
 
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen text-xl">Loading...</div>;
+  }
+
+  const bothCompleted = aiGuessesCompletedToday && playerGuessesCompletedToday;
+
   return (
     <>
       <SettingsButton />
@@ -88,15 +155,15 @@ function StartScreen() {
         <div className="eye mr-14" ref={rightEye}><div className="pupil"></div></div>
         <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />
       </div>
-      <div className="p-6 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">
+      <div className="p-6 bg-white border-2 border-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">
         <h1 className="text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
-          {AI_NAME} 9000's Arcade
+          {AI_NAME}'s Arcade
         </h1>
         <p className="text-lg mb-8">Welcome, {username}! Choose a game to play!</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">
-        <div className="bg-white dark:bg-gray-800">
+        <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm">
           <button
             type="button"
             onClick={() => handleSelectGame('/ai-guesses')}
@@ -107,9 +174,10 @@ function StartScreen() {
             <p className="text-gray-600 dark:text-gray-300 text-sm">
               Think of any video game and let {AI_NAME} try to guess it by asking you questions.
             </p>
+            {aiGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
           </button>
         </div>
-        <div className="bg-white dark:bg-gray-800">
+        <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm">
           <button
             type="button"
             onClick={() => handleSelectGame('/player-guesses')}
@@ -120,9 +188,11 @@ function StartScreen() {
             <p className="text-gray-600 dark:text-gray-300 text-sm">
               {AI_NAME} is thinking of a game — can you figure it out within twenty questions?
             </p>
+            {playerGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
           </button>
         </div>
       </div>
+      {bothCompleted && <div className="mt-8 text-lg text-gray-500 font-semibold">You have played both games today. Come back tomorrow!</div>}
       </div>
     </>
   );

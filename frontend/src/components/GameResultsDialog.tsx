@@ -170,7 +170,7 @@ Play at: ${window.location.origin}`;
           <h3 className="text-2xl font-bold text-gray-800">Game Results</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+            className="cursor-pointer text-gray-400 hover:text-gray-600 text-xl font-bold"
           >
             ×
           </button>
@@ -195,16 +195,9 @@ Play at: ${window.location.origin}`;
         <div className="flex flex-col gap-3">
           <button
             onClick={handleShare}
-            className="w-full px-4 py-2 bg-blue-500 text-white font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
+            className="cursor-pointer w-full px-4 py-2 bg-blue-500 text-white font-medium rounded-md shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-colors"
           >
             {copySuccess ? '✓ Copied!' : 'Share Results'}
-          </button>
-          
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-2 bg-gray-500 text-white font-medium rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
-          >
-            Close
           </button>
         </div>
       </div>

@@ -69,7 +69,6 @@ describe('AIGuessesGame', () => {
     render(<AIGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
 
-    expect(mockProps.setPreGame).toHaveBeenCalledWith(false);
     expect(mockProps.setStarted).toHaveBeenCalledWith(true);
     expect(mockProps.setLoading).toHaveBeenCalledWith(true);
 

@@ -1,6 +1,6 @@
-# Quiz Bot 9000's Arcade!
+# Quiz Bot's Arcade!
 
-This is a simple web-based game where an AI tries to guess a video game you're thinking of by asking a series of yes/no questions.
+This is a simple web-based game portal to play with an AI character who knows a lot about video games. You can challenge him to one of two yes/no style guessing games.
 
 ![Quizbot](./frontend/public/bot_boy/guy.png)
 
@@ -22,4 +22,3 @@ The backend and frontend servers can easily be built with `npm run build`, but y
 #### Database
 
 The current backend assumes that you are using firestore for a document database.
-

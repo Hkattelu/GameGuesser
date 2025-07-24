@@ -132,7 +132,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
     );
   }
 
-  if (chatHistory.length === 0) {
+  if (chatHistory.filter(message => message.role !== 'system').length === 0) {
     return null;
   }
 

@@ -16,7 +16,7 @@ const moodToUrl = (mood: MascotMood) => {
   const base = '/bot_boy/';
   switch (mood) {
     case 'default':
-      return `${base}guy.png`;
+      return `${base}smile.png`;
     case 'sad':
       return `${base}sadge.png`;
     case 'thinking':
@@ -28,7 +28,7 @@ const moodToUrl = (mood: MascotMood) => {
 
 function MascotImage({ mood }: MascotImageProps) {
   return (
-    <div className="flex justify-center mb-4">
+    <div className="flex justify-center mb-4 max-w-50">
       <img src={moodToUrl(mood)} alt="Game Boy mascot" />
     </div>
   );
