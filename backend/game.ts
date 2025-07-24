@@ -14,6 +14,8 @@ import {
 import { getDailyGame } from './dailyGameStore.js';
 import { fetchGameMetadata } from './rawgDetails.js';
 import type { GameMetadata } from './rawgDetails.js';
+import { SPECIAL_HINT_PROMPT } from './prompts.js';
+import { specialHintSchema } from './types.js';
 
 // In-memory store for game sessions – keyed by UUID
 export interface PlayerGuessSession {
@@ -35,12 +37,18 @@ interface AIGuessSession {
 }
 
 /** The types of hints that a client can request. */
-export type HintType = 'developer'|'publisher'|'releaseYear';
+export type HintType = 'developer'|'publisher'|'releaseYear'|'special';
 
 interface HintResponse {
   hintText: string;
   hintType: HintType
 }
+
+interface SpecialHint {
+  special?: string;
+}
+
+type PlayerGuessHint = GameMetadata&SpecialHint;
 
 const gameSessions = new Map<string, PlayerGuessSession | AIGuessSession>();
 
@@ -217,16 +225,15 @@ function clearSessions() {
   gameSessions.clear();
 }
 
-const metadataCache = new Map<string, GameMetadata>();
+const metadataCache = new Map<string, PlayerGuessHint>();
 
 /**
 * Returns a single hint for the secret game belonging to the provided session.
 *
-* The hint is randomly selected from the available metadata fields (developer,
-* publisher, release year). If no metadata is available, the function throws –
-* callers should translate this into a 404/500 as appropriate.
+* Developer, publisher, and release year are fetched from the RAWG API.
+* For the special hint, the AI model will generate a short string.
 */
-async function getPlayerGuessHint(sessionId: string, hintType?: HintType): Promise<HintResponse> {
+async function getPlayerGuessHint(sessionId: string, hintType: HintType): Promise<HintResponse> {
   const session = gameSessions.get(sessionId);
   if (!session || !('secretGame' in session)) {
     throw new Error('Session not found.');
@@ -235,6 +242,20 @@ async function getPlayerGuessHint(sessionId: string, hintType?: HintType): Promi
   let metadata = metadataCache.get(session.secretGame);
   if (!metadata) {
     metadata = await fetchGameMetadata(session.secretGame);
+
+    // Fetch a hint from the model
+    if (!metadata.special) {
+      try {
+        const response: { special: string } = await generateStructured(
+          specialHintSchema,
+          SPECIAL_HINT_PROMPT(session.secretGame)
+        );
+        metadata.special = response.special;
+      } catch (e) {
+        // If the model call fails, fallback to no special hint
+        metadata.special = undefined;
+      }
+    }
     metadataCache.set(session.secretGame, metadata);
   }
 
@@ -247,6 +268,7 @@ async function getPlayerGuessHint(sessionId: string, hintType?: HintType): Promi
   if (metadata.developer) candidates.push({hintType: 'developer', hintText: metadata.developer});
   if (metadata.publisher) candidates.push({hintType: 'publisher', hintText: metadata.publisher});
   if (metadata.releaseYear) candidates.push({hintType: 'releaseYear', hintText: String(metadata.releaseYear)});
+  if (metadata.special) candidates.push({hintType: 'special', hintText: metadata.special});
 
   if (!!hintType) {
     candidates = candidates.filter(candidate => candidate.hintType === hintType);

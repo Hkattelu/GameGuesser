@@ -239,7 +239,7 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
  * @param {Response} res - The Express response object.
  */
 app.get('/player-guesses/:sessionId/hint/:hintType', authenticateToken, async (req: Request, res: Response) => {
-  const { sessionId, hintType } = req.params as { sessionId: string, hintType?: HintType };
+  const { sessionId, hintType } = req.params as { sessionId: string, hintType: HintType };
   try {
     const hint = await getPlayerGuessHint(sessionId, hintType);
     await saveConversationMessage(

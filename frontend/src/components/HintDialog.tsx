@@ -24,7 +24,7 @@ const HintDialog: React.FC<HintDialogProps> = ({
   const [developer, setDeveloper] = useState<string|null>(null);
   const [publisher, setPublisher] = useState<string|null>(null);
   const [releaseYear, setReleaseYear] = useState<string|null>(null);
-  const [special, setsSpecial] = useState<string|null>(null);
+  const [special, setSpecial] = useState<string|null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleRevealHint = async (hintType: HintType) => {
@@ -119,7 +119,7 @@ const HintDialog: React.FC<HintDialogProps> = ({
             </button>}
           </div>
           <div className="flex justify-between items-center mb-4">
-            <div>Special</div>
+            <div>Special ✨</div>
             {special ? (<div>{special}</div>) :
             <button
               onClick={() => handleRevealHint(HintType.SPECIAL)}

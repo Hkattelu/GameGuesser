@@ -2,8 +2,7 @@
 * Centralized prompt templates for AI calls.
 *
 * Each constant is an arrow function that returns the prompt string with dynamic
-* data interpolated. Keeping them as `const` instead of `function` exports makes
-* the values tree-shakable and satisfies the "named constant" requirement.
+* data interpolated.
 */
 
 /**
@@ -14,13 +13,6 @@ export const SECRET_GAME_PICK_PROMPT = (exclude: string[]): string =>
   `Pick a random, well-known video game title.
 It must not be from one of these: [${exclude.join(',')}]
 Your response MUST be a JSON object of the form {"secretGame": "<Title>"}.`;
-
-/**
-* Prompt for classifying a player's input as either a yes/no **question** or a
-* **guess** of the secret game – and generating the appropriate structured
-* response.
-*/
-
 
 /**
 * Prompt template that aligns with the newer separated answer/clarification
@@ -95,3 +87,13 @@ export const AI_GUESS_NEXT_PROMPT = (
   `The user just answered "${userAnswer}". You have ${questionsLeft} questions left.
 Based on this, ask your next yes/no question or make a guess if you are confident.
 Remember, your response MUST be a JSON object with 'type' and 'content'.`;
+
+/**
+* Prompt for generating a special hint for a given game title.
+* The hint should help the user guess the game, but must not reveal the answer directly.
+* The response MUST be a JSON object: {"special": "<hint>"}
+*/
+export const SPECIAL_HINT_PROMPT = (gameTitle: string): string =>
+  `You are Bot Boy, an assistant in a video game guessing game. The secret game is "${gameTitle}".
+Your task is to provide a short, clever hint that will help the user guess the game, but you must NOT reveal the answer or give away the title directly. The hint should be subtle and only point the user in the right general direction.
+Your response MUST be a JSON object of the form {"special": "<hint>"} and nothing else.`;

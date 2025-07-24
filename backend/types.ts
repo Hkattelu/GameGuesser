@@ -42,6 +42,8 @@ export const AIGuessesGameSchema = z.object({
 
 export const AIJsonResponseSchema = AIQuestionSchema.or(AIGuessesGameSchema);
 
+export const specialHintSchema = z.object({ special: z.string() });
+
 // -------------------------- Typescript types --------------------------
 
 export type YesNoClarification = z.infer<typeof YesNoClarificationSchema>;
