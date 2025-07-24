@@ -115,6 +115,11 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
 
   // Keep the most recent message in view when the list changes.
   useEffect(() => {
+    if (typeof screen.orientation !== 'undefined') {
+      // Mobile browsers do nothing
+      return;
+    }
+    // For desktop, scroll to the bottom.
     historyEndRef.current?.scrollIntoView();
   }, [chatHistory]);
 
