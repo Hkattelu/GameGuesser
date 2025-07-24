@@ -92,20 +92,23 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     throw new Error('Session not found.');
   }
 
-  session.questionCount++;
-
+  // Ensure we're working with the correct session variant first.
   if (!('secretGame' in session)) {
     throw new Error('Invalid session type for player question handler.');
   }
 
-  if (session.questionCount > 20) {
+  // If the player has already reached the question limit, short-circuit before
+  // attempting any further work. Importantly, we do **not** increment the
+  // stored `questionCount` here so that the counter remains accurate when an
+  // error occurs during answer generation.
+  if (session.questionCount >= 20) {
     return {
-      type:  'guessResult',
+      type: 'guessResult',
       questionCount: session.questionCount,
       content: {
         correct: false,
         response: `You are out of tries. The game was ${session.secretGame}`,
-      }
+      },
     } as PlayerQAResponse;
   }
 
@@ -120,7 +123,13 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     session.chatHistory,
   );
 
+  // Now that the model has successfully produced a response we can safely
+  // count the player's question.
+  session.questionCount++;
+
+  // Reflect the updated value back to the caller.
   jsonResponse.questionCount = session.questionCount;
+
   if (jsonResponse.type === 'guessResult') {
     const isCorrect = jsonResponse.content.correct;
     jsonResponse.content.usedHint = session.usedHint || false;
