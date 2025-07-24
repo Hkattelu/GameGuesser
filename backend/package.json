@@ -10,7 +10,6 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
   },
   "compilerOptions": {
-    "rootDir": "../",
     "outDir": "dist",
     "esModuleInterop": true,
     "strict": true
@@ -35,8 +34,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
     "uuid": "^9.0.0",
-    "zod": "^3.23.0",
-    "shared-types": "workspace:^1.0.0"
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.27.1",

@@ -244,7 +244,7 @@ async function getPlayerGuessHint(sessionId: string, hintType: HintType): Promis
     metadata = await fetchGameMetadata(session.secretGame);
 
     // Fetch a hint from the model
-    if (!metadata.special) {
+    if (hintType === 'special' && !metadata.special) {
       try {
         const response: { special: string } = await generateStructured(
           specialHintSchema,

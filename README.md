@@ -2,25 +2,25 @@
 
 This is a simple web-based game where an AI tries to guess a video game you're thinking of by asking a series of yes/no questions.
 
-![Quizbot](./frontend/public/bot_boy/guy.png)
+![Quizbot](./frontend/public/bot_boy/smile.png)
 
 ## Local Development in 5&nbsp;minutes
 
 ```bash
 # 1. Install deps for *all* workspaces (root package.json → npm workspaces)
-$ npm install --workspaces
+$ cd backend && npm install   
+$ cd frontend && npm install  
 
 # 2. Fire up dev servers (two panes/tabs suggested)
-$ npm --workspace backend  run dev   # Express API → http://localhost:8080
-$ npm --workspace frontend run dev   # Vite/React → http://localhost:5173
+$ cd backend && npm run dev   # Express API → http://localhost:8080
+$ cd frontend && npm run dev   # Vite/React → http://localhost:5173
 
 # 3. Run tests
-$ npm --workspace backend  test      # Jest (Node)
-$ npm --workspace frontend test      # Vitest (browser-like)
+$ cd backend && npm test      # Jest (Node)
+$ cd frontend && npm test      # Vitest (browser-like)
 
 # 4. Lint & type-check
-$ npx tsc -b                   # Builds `shared`, `backend`, `frontend`
-$ npm --workspace frontend run lint
+$ cd frontend && npm run lint
 ```
 
 ### Environment variables
@@ -56,17 +56,15 @@ emulator via `firebase emulators:start` and set
 
 ```text
 ┌─────────────┐   REST / JSON   ┌──────────────┐        ┌──────────────┐
-│  Frontend   │ ──────────────▶│   Backend    │───────▶│ Gemini & RAWG │
-│  (React)    │                │ (Express)    │        │  3rd-party    │
-└─────────────┘  shared types   └──────────────┘        └──────────────┘
+│  Frontend   │ ──────────── ─▶│   Backend     │──────▶│ Gemini & RAWG│
+│  (React)    │                 │   (Express)  │        │ 3rd-party    │
+└─────────────┘                 └──────────────┘        └──────────────┘
 ```
 
-1. The browser UI renders **Bot&nbsp;Boy** and funnels user actions (questions,
+1. The browser UI renders **Quiz Bot** and funnels user actions (questions,
    answers, hints) to the Express API.
 2. The API layer enforces game rules, persists state (Firestore), and delegates
    heavy lifting to Gemini or RAWG where needed.
-3. All payloads are validated with Zod schemas defined *once* in
-   `shared/types.ts` and imported by both packages – zero drift.
 
 ### cURL quick-start (skip the UI!)
 
