@@ -147,7 +147,10 @@ function PlayerGuessesGame({
           ...prevHistory,
           { role: "model", parts: [{ text: answerText }] },
         ]);
-        setSuggestions(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
+        const previousQuestions = chatHistory.filter(message => message.role === 'user')
+            .map(message => message.parts[0].text);
+        const notAskedSuggestions = SUGGESTIONS.filter(suggestion => !previousQuestions.includes(suggestion));
+        setSuggestions(shuffle(notAskedSuggestions).slice(0, MAX_SUGGESTIONS));
 
         if (newQuestionCount >= maxQuestions) {
           endGame(`You're out of questions! The game was ${answerText}.`, false);
