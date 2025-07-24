@@ -123,7 +123,7 @@ describe('PlayerGuessesGame', () => {
     });
   });
 
-  it('handles startGamePlayerGuesses failure', async () => {
+  it('shows an error banner when startGamePlayerGuesses fails', async () => {
     (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ error: 'Test error' }),
@@ -131,13 +131,14 @@ describe('PlayerGuessesGame', () => {
 
     render(<PlayerGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
-    
+
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error starting the game: Test error. Please try again.');
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument();
+      expect(screen.getByText('Error starting the game: Test error')).toBeInTheDocument();
     });
   });
 
-  it('handles handlePlayerQuestion failure', async () => {
+  it('does not increment question count on handlePlayerQuestion failure', async () => {
     (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ error: 'Test error' }),
@@ -150,7 +151,8 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Submit'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error processing your question: Test error. Please try again.');
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument();
+      expect(mockProps.setQuestionCount).not.toHaveBeenCalled();
     });
   });
 

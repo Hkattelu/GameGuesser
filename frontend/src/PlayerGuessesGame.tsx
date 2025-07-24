@@ -6,6 +6,7 @@ import { MAX_SUGGESTIONS, SUGGESTIONS } from './constants';
 import { ChatMessage, GameMode, ChatTurn } from './types';
 import HintIcon from './components/HintIcon';
 import HintDialog from './components/HintDialog';
+import ErrorBanner from './components/ErrorBanner';
 
 export interface PlayerGuessesGameProps {
   gameMode: GameMode;
@@ -62,6 +63,7 @@ function PlayerGuessesGame({
   const [modelResponseText, setModelResponseText] = useState('');
   const [suggestions, setSuggestions] = useState(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
   const [isHintDialogOpen, setIsHintDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   /**
    * Starts a new game of 20 Questions where the AI thinks of a game
@@ -70,6 +72,7 @@ function PlayerGuessesGame({
    *   started.
    */
   const startGamePlayerGuesses = async () => {
+    setErrorMessage(null);
     setStarted(true);
     setQuestionCount(0);
     setChatHistory([]);
@@ -96,7 +99,7 @@ function PlayerGuessesGame({
       setGameMessage("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
     } catch (error: unknown) {
       const err = error as Error;
-      setGameMessage(`Error starting the game: ${err.message}. Please try again.`);
+      setErrorMessage(`Error starting the game: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -105,6 +108,7 @@ function PlayerGuessesGame({
   const handlePlayerQuestion = async () => {
     if (!playerGuessInput || !sessionId) return;
 
+    setErrorMessage(null);
     setLoading(true);
     setChatHistory((prevHistory) => [
       ...prevHistory,
@@ -179,7 +183,9 @@ function PlayerGuessesGame({
       }
     } catch (error: unknown) {
       const err = error as Error;
-      setGameMessage(`Error processing your question: ${err.message}. Please try again.`);
+      // Surface a user-friendly error banner instead of splicing raw error
+      // strings into the main game feed.
+      setErrorMessage(`Error processing your question: ${err.message}`);
     } finally {
       setPlayerGuessInput('');
       setLoading(false);
@@ -215,6 +221,17 @@ function PlayerGuessesGame({
         <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4" data-testid="model-response">
           {modelResponseText}
         </div>
+      )}
+
+      {errorMessage && (
+        <ErrorBanner
+          message={errorMessage}
+          onRetry={() => {
+            // Simply clear the error – the player can click the same action
+            // button again (start or submit) to retry.
+            setErrorMessage(null);
+          }}
+        />
       )}
 
       <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />

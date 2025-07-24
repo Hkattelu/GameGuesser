@@ -1,7 +1,9 @@
+import React from 'react';
 import ResponseButtons from './components/ResponseButtons';
 import ConversationHistory from './components/ConversationHistory';
 import { ChatMessage, GameMode } from './types';
 import { getApiUrl } from './env_utils';
+import ErrorBanner from './components/ErrorBanner';
 
 export interface AIGuessesGameProps {
   gameMode: GameMode;
@@ -48,7 +50,10 @@ function AIGuessesGame({
   gameCompletedToday = false,
 }: AIGuessesGameProps) {
 
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
   const startGameAI = async () => {
+    setErrorMessage(null);
     setStarted(true);
     setQuestionCount(0);
     setChatHistory([]);
@@ -83,7 +88,7 @@ function AIGuessesGame({
 
     } catch (error: unknown) {
       const err = error as Error;
-      setGameMessage(`Please try again. Error: ${err.message}`);
+      setErrorMessage(`Error starting game: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -92,6 +97,7 @@ function AIGuessesGame({
   const handleAnswer = async (answer: string) => {
     if (!started || !sessionId) return;
 
+    setErrorMessage(null);
     setLoading(true);
     setGameMessage(`You answered "${answer}". Thinking...`);
     setChatHistory((prevHistory) => [
@@ -136,7 +142,7 @@ function AIGuessesGame({
       }
     } catch (error: unknown) {
       const err = error as Error;
-      setGameMessage(`Error communicating with Quiz Bot: ${err.message}`);
+      setErrorMessage(`Error communicating with Quiz Bot: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -157,6 +163,13 @@ function AIGuessesGame({
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
           Questions left: {maxQuestions - questionCount}/{maxQuestions}
         </div>
+      )}
+
+      {errorMessage && (
+        <ErrorBanner
+          message={errorMessage}
+          onRetry={() => setErrorMessage(null)}
+        />
       )}
 
       {/* Conversation History */}
