@@ -45,6 +45,7 @@ const mockProps = {
   setVictory: vi.fn(),
   setShowResults: vi.fn(),
   setConfidence: vi.fn(),
+  setError: vi.fn(),
 };
 
 describe('AIGuessesGame', () => {
@@ -169,6 +170,20 @@ describe('AIGuessesGame', () => {
 
     await waitFor(() => {
       expect(mockProps.setVictory).toHaveBeenCalledWith(true);
+    });
+  });
+
+  it('sets error state when startGameAI fails', async () => {
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Test error' }),
+    });
+
+    render(<AIGuessesGame {...mockProps} />);
+    fireEvent.click(screen.getByText('Start Game'));
+
+    await waitFor(() => {
+      expect(mockProps.setError).toHaveBeenCalledWith(true);
     });
   });
 });

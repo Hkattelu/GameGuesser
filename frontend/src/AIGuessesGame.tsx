@@ -24,9 +24,11 @@ export interface AIGuessesGameProps {
   setVictory: React.Dispatch<React.SetStateAction<boolean>>;
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
   setConfidence: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setError: React.Dispatch<React.SetStateAction<boolean>>;
   // Optional JWT token for authenticated API requests
   token?: string | null;
   gameCompletedToday?: boolean;
+  onGameCompleted?: () => void;
 }
 
 function AIGuessesGame({
@@ -47,8 +49,10 @@ function AIGuessesGame({
   setSessionId,
   setGameMessage,
   setVictory,
+  setError,
   setShowResults,
   gameCompletedToday = false,
+  onGameCompleted,
 }: AIGuessesGameProps) {
 
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -56,6 +60,7 @@ function AIGuessesGame({
   const startGameAI = async () => {
     // Clear any previous error state so the banner disappears immediately.
     setErrorMessage(null);
+    setError(false);
     // Show a pending state while we contact the backend.
     setLoading(true);
 
@@ -91,6 +96,7 @@ function AIGuessesGame({
     } catch (error: unknown) {
       const err = error as Error;
       setErrorMessage(`Error starting game: ${err.message}`);
+      setError(true);
       // Roll back optimistic flag in case it was toggled previously.
       setStarted(false);
     } finally {
@@ -102,6 +108,7 @@ function AIGuessesGame({
     if (!started || !sessionId) return;
 
     setErrorMessage(null);
+    setError(false);
     setLoading(true);
     setGameMessage(`You answered "${answer}". Thinking...`);
     setChatHistory((prevHistory) => [
@@ -147,6 +154,7 @@ function AIGuessesGame({
     } catch (error: unknown) {
       const err = error as Error;
       setErrorMessage(`Error communicating with Quiz Bot: ${err.message}`);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -157,6 +165,9 @@ function AIGuessesGame({
     setLoading(false);
     setVictory(victoryStatus);
     setGameMessage(victoryStatus ? 'Congratulations, you win!' : 'Victory!');
+    if (onGameCompleted) {
+      onGameCompleted();
+    }
     // Show results dialog after a short delay
     setTimeout(() => setShowResults(true), 1000);
   };

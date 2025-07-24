@@ -53,6 +53,38 @@ describe('GameHistoryCalendar', () => {
     },
   ];
 
+  const mockGameHistoryWithHints = [
+    {
+      session_id: '1',
+      date: '2025-07-02',
+      game_mode: 'player-guesses' as const,
+      victory: true,
+      question_count: 5,
+      total_questions: 20,
+      score: 1,
+      used_hint: true,
+    },
+    {
+      session_id: '2',
+      date: '2025-07-03',
+      game_mode: 'player-guesses' as const,
+      victory: false,
+      question_count: 20,
+      total_questions: 20,
+      used_hint: true,
+    },
+    {
+      session_id: '3',
+      date: '2025-07-15',
+      game_mode: 'player-guesses' as const,
+      victory: true,
+      question_count: 10,
+      total_questions: 20,
+      score: 0.5,
+      used_hint: true,
+    },
+  ];
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.setSystemTime(new Date('2025-07-15'));
@@ -364,6 +396,60 @@ describe('GameHistoryCalendar', () => {
       expect(screen.getByText('Won')).toBeInTheDocument();
       expect(screen.getByText('Lost')).toBeInTheDocument();
       expect(screen.getByText('No Game')).toBeInTheDocument();
+    });
+  });
+
+  it('displays hint indicator for games where hint was used', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockGameHistoryWithHints,
+    } as Response);
+
+    const { container } = render(<GameHistoryCalendar {...defaultProps} />);
+
+    await waitFor(() => {
+      // Day 2 should show hint indicator (💡)
+      const day2 = container.querySelector('[title*="2025-07-02: Won"] .text-orange-600');
+      expect(day2).toBeInTheDocument();
+      expect(day2).toHaveTextContent('💡');
+
+      // Day 3 should show hint indicator (💡)
+      const day3 = container.querySelector('[title*="2025-07-03: Lost"] .text-orange-600');
+      expect(day3).toBeInTheDocument();
+      expect(day3).toHaveTextContent('💡');
+
+      // Day 15 should show hint indicator (💡)
+      const day15 = container.querySelector('[title*="2025-07-15: Won"] .text-orange-600');
+      expect(day15).toBeInTheDocument();
+      expect(day15).toHaveTextContent('💡');
+    });
+  });
+
+  it('shows hint legend for player-guesses mode', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<GameHistoryCalendar {...defaultProps} gameMode="player-guesses" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('💡')).toBeInTheDocument();
+      expect(screen.getByText('Hint Used')).toBeInTheDocument();
+    });
+  });
+
+  it('does not show hint legend for ai-guesses mode', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    } as Response);
+
+    render(<GameHistoryCalendar {...defaultProps} gameMode="ai-guesses" />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('💡')).not.toBeInTheDocument();
+      expect(screen.queryByText('Hint Used')).not.toBeInTheDocument();
     });
   });
 });

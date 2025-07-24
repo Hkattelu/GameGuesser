@@ -150,7 +150,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
       <tbody>
       {formatMessages(chatHistory, gameMode).map((turn, index) => {
         return (
-          <tr key={index}>
+          <tr key={index} className="even:bg-gray-100 dark:even:bg-gray-700">
             <td>{gameMode === 'player-guesses' ? formatJsonContent(turn.user) :  formatJsonContent(turn.model)}</td>
             <td className="text-right">{gameMode === 'player-guesses' ? (turn.model ? formatJsonContent(turn.model) : '-') : (turn.user ? formatJsonContent(turn.user) : '-')}</td>
           </tr>

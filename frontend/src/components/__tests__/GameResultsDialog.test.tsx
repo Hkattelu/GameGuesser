@@ -31,6 +31,18 @@ describe('GameResultsDialog', () => {
     username: 'testuser',
   };
 
+  const defaultPropsWithHint = {
+    ...defaultProps,
+    score: 0.5,
+    usedHint: true,
+  };
+
+  const defaultPropsWithHintNoVictory = {
+    ...defaultProps,
+    victory: false as const,
+    usedHint: true,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -197,5 +209,53 @@ describe('GameResultsDialog', () => {
       expect(callArgs).toContain('Play at:');
       expect(callArgs).toContain(window.location.origin);
     });
+  });
+
+  it('displays hint indicator for winning game with hint used', () => {
+    render(<GameResultsDialog {...defaultPropsWithHint} />);
+    
+    expect(screen.getByText('(💡 Hint used)')).toBeInTheDocument();
+  });
+
+  it('displays hint indicator for losing game with hint used', () => {
+    render(<GameResultsDialog {...defaultPropsWithHintNoVictory} />);
+    
+    expect(screen.getByText('💡 Hint used')).toBeInTheDocument();
+  });
+
+  it('includes hint indicator in share text for winning game with hint used', async () => {
+    const mockWriteText = vi.fn().mockResolvedValue(undefined);
+    navigator.clipboard.writeText = mockWriteText;
+
+    render(<GameResultsDialog {...defaultPropsWithHint} />);
+    
+    const shareButton = screen.getByRole('button', { name: 'Share Results' });
+    fireEvent.click(shareButton);
+    
+    await waitFor(() => {
+      const callArgs = mockWriteText.mock.calls[0][0];
+      expect(callArgs).toContain('Score: 0.5 points (💡 Hint used)');
+    });
+  });
+
+  it('includes hint indicator in share text for losing game with hint used', async () => {
+    const mockWriteText = vi.fn().mockResolvedValue(undefined);
+    navigator.clipboard.writeText = mockWriteText;
+
+    render(<GameResultsDialog {...defaultPropsWithHintNoVictory} />);
+    
+    const shareButton = screen.getByRole('button', { name: 'Share Results' });
+    fireEvent.click(shareButton);
+    
+    await waitFor(() => {
+      const callArgs = mockWriteText.mock.calls[0][0];
+      expect(callArgs).toContain('💡 Hint used');
+    });
+  });
+
+  it('does not display hint indicator when hint was not used', () => {
+    render(<GameResultsDialog {...defaultProps} />);
+    
+    expect(screen.queryByText('💡 Hint used')).not.toBeInTheDocument();
   });
 });

@@ -45,6 +45,7 @@ const mockProps = {
   setVictory: vi.fn(),
   setShowResults: vi.fn(),
   setConfidence: vi.fn(),
+  setError: vi.fn(),
   token: null,
 };
 
@@ -122,6 +123,48 @@ describe('PlayerGuessesGame', () => {
 
     await waitFor(() => {
       expect(mockProps.setVictory).toHaveBeenCalledWith(true);
+    });
+  });
+
+  it('handles correct player guess with hint used and shows hint indicator in message', async () => {
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        type: 'guessResult',
+        content: { correct: true, response: 'Starcraft', usedHint: true, score: 0.5 },
+      }),
+    });
+
+    const props = { ...mockProps, started: true, sessionId: 'test-session-id' };
+    render(<PlayerGuessesGame {...props} />);
+
+    const input = screen.getByPlaceholderText('e.g., Is the game a first-person shooter?');
+    fireEvent.change(input, { target: { value: 'Starcraft' } });
+    fireEvent.click(screen.getByText('Submit'));
+
+    await waitFor(() => {
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Starcraft (0.5 pts) - Hint used');
+    });
+  });
+
+  it('handles close guess with hint used and shows hint indicator in message', async () => {
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({
+        type: 'guessResult',
+        content: { correct: false, response: 'Close but not quite', usedHint: true, score: 0 },
+      }),
+    });
+
+    const props = { ...mockProps, started: true, sessionId: 'test-session-id' };
+    render(<PlayerGuessesGame {...props} />);
+
+    const input = screen.getByPlaceholderText('e.g., Is the game a first-person shooter?');
+    fireEvent.change(input, { target: { value: 'Starcraft' } });
+    fireEvent.click(screen.getByText('Submit'));
+
+    await waitFor(() => {
+      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Close but not quite');
     });
   });
 
@@ -207,6 +250,20 @@ describe('PlayerGuessesGame', () => {
 
     await waitFor(() => {
         expect(screen.getByTestId('hint-dialog')).toBeInTheDocument();
+    });
+  });
+
+  it('sets error state when startGamePlayerGuesses fails', async () => {
+    (global.fetch as vi.Mock).mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Test error' }),
+    });
+
+    render(<PlayerGuessesGame {...mockProps} />);
+    fireEvent.click(screen.getByText('Start Game'));
+
+    await waitFor(() => {
+      expect(mockProps.setError).toHaveBeenCalledWith(true);
     });
   });
 });

@@ -6,13 +6,17 @@ import App from '../App';
 
 // Stub heavy child components so the test focuses on the logout logic.
 vi.mock('../AIGuessesGame', () => ({
-    default: () => <div data-testid="ai-game" />,
+    default: ({ setError }: { setError: (error: boolean) => void }) => (
+        <div data-testid="ai-game">
+            <button onClick={() => setError(true)}>Simulate Error</button>
+        </div>
+    ),
 }));
 vi.mock('../PlayerGuessesGame', () => ({
     default: () => <div data-testid="player-game" />,
 }));
 vi.mock('../components/MascotImage', () => ({
-    default: () => <div data-testid="mascot" />,
+    default: ({ mood }: { mood: string }) => <div data-testid="mascot" data-mood={mood} />,
 }));
 vi.mock('../AuthPage', () => ({
     default: () => <div>AuthPage</div>,
@@ -60,6 +64,44 @@ describe('App – logout flow', () => {
     expect(onNavigateHome).toHaveBeenCalledTimes(1);
     // The token should be removed from localStorage as part of logout.
     expect(localStorage.getItem('token')).toBeNull();
+  });
+});
+
+describe('App - mascot mood', () => {
+  const originalLocalStorage = { ...localStorage } as Storage;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Prime localStorage so the component thinks the user is logged-in.
+    localStorage.setItem('token', 'test-token');
+    localStorage.setItem('username', 'test-user');
+  });
+
+  afterEach(() => {
+    // Clean up any changes to localStorage between tests.
+    localStorage.clear();
+    Object.keys(originalLocalStorage).forEach((key) => {
+      if (originalLocalStorage.getItem(key)) {
+        localStorage.setItem(key, originalLocalStorage.getItem(key)!);
+      }
+    });
+  });
+
+  it('shows the error mascot when there is an error', () => {
+    render(
+      <MemoryRouter initialEntries={['/ai-guesses']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    // Initially, the mascot should be in the default state.
+    expect(screen.getByTestId('mascot')).toHaveAttribute('data-mood', 'default');
+
+    // Simulate an error.
+    fireEvent.click(screen.getByText('Simulate Error'));
+
+    // The mascot should now be in the error state.
+    expect(screen.getByTestId('mascot')).toHaveAttribute('data-mood', 'error');
   });
 });
 

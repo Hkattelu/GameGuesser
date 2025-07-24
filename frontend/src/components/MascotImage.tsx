@@ -5,6 +5,8 @@ type MascotMood = 'default'|'sad'|'thinking'|'nervous'|'smug'|'victory'|'error';
 export interface MascotImageProps {
   mood?: MascotMood;
   confidence?: number;
+  error?: boolean;
+  loading?: boolean;
 }
 
 /**
@@ -36,21 +38,23 @@ const moodToUrl = (mood: MascotMood) => {
 };
 
 const confidenceToUrl = (confidence: number) => {
-    const base = '/bot_boy/';
-    if (confidence <= 2) {
-        return `${base}sad.png`;
-    } else if (confidence <= 4) {
-        return `${base}nervous.png`;
-    } else if (confidence <= 6) {
-        return `${base}thinking.png`;
-    } else if (confidence <= 8) {
-        return `${base}smile.png`;
-    } else {
-        return `${base}smug.png`;
-    }
+  const base = '/bot_boy/';
+  if (confidence <= 2) {
+    return `${base}sad.png`;
+  } else if (confidence <= 4) {
+    return `${base}nervous.png`;
+  } else if (confidence <= 6) {
+    return `${base}thinking.png`;
+  } else if (confidence <= 8) {
+    return `${base}smile.png`;
+  } else {
+    return `${base}smug.png`;
+  }
 }
 
-function MascotImage({ mood, confidence }: MascotImageProps) {
+function MascotImage({ mood, confidence, error, loading }: MascotImageProps) {
+  if (loading) return '/bot_boy/thinking.png';
+  else if (error) return '/bot_boy/error.png';
   const imageUrl = confidence ? confidenceToUrl(confidence) : moodToUrl(mood || 'default');
   return (
     <div className="flex justify-center mb-4 max-w-50">

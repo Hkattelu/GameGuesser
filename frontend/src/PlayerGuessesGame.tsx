@@ -26,8 +26,10 @@ export interface PlayerGuessesGameProps {
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
   setConfidence: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setError: React.Dispatch<React.SetStateAction<boolean>>;
   token?: string | null;
   gameCompletedToday?: boolean;
+  onGameCompleted?: () => void;
 }
 
 /** Shuffle an array of elements randomly. */
@@ -59,7 +61,9 @@ function PlayerGuessesGame({
   setVictory,
   setShowResults,
   setConfidence,
+  setError,
   gameCompletedToday = false,
+  onGameCompleted,
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
@@ -78,6 +82,7 @@ function PlayerGuessesGame({
     // state while we contact the backend.
     setSessionId(null);
     setErrorMessage(null);
+    setError(false);
     setLoading(true);
 
     try {
@@ -106,6 +111,7 @@ function PlayerGuessesGame({
     } catch (error: unknown) {
       const err = error as Error;
       setErrorMessage(`Error starting the game: ${err.message}`);
+      setError(true);
       // Ensure the user can try again if the backend call fails.
       setStarted(false);
     } finally {
@@ -172,17 +178,12 @@ function PlayerGuessesGame({
         }
       } else if (type === 'guessResult') {
         const { correct, response, score, usedHint } = content as any;
+        const finalMessage = `${response} (${score} pts)${usedHint ? ' - Hint used' : ''}`;
         if (correct) {
-          endGame(response, true);
+          endGame(finalMessage, true);
           setChatHistory((prevHistory) => [
             ...prevHistory,
             { role: 'model', parts: [{ text: response }] },
-          ]);
-        } else if (typeof score === 'number' && score > 0) {
-          setGameMessage(`Close! ${response} (${score} pts)${usedHint ? ' - Hint used' : ''}`);
-          setChatHistory((prevHistory) => [
-            ...prevHistory,
-            { role: 'model', parts: [{ text: `Close! ${response} (${score} pts).` }] },
           ]);
         } else {
           setGameMessage(response);
@@ -197,6 +198,7 @@ function PlayerGuessesGame({
       // Surface a user-friendly error banner instead of splicing raw error
       // strings into the main game feed.
       setErrorMessage(`Error processing your question: ${err.message}`);
+      setError(true);
     } finally {
       setPlayerGuessInput('');
       setLoading(false);
@@ -209,6 +211,9 @@ function PlayerGuessesGame({
     setVictory(victoryStatus);
     setGameMessage(finalMessage);
     setModelResponseText('');
+    if (onGameCompleted) {
+      onGameCompleted();
+    }
     setTimeout(() => setShowResults(true), 1500);
   };
 

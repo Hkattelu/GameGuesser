@@ -50,6 +50,7 @@ function App({
   const [gameMode, setGameMode] = useState<GameMode>(initialGameMode);
   const [started, setStarted] = useState<boolean>(false);
   const [victory, setVictory] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
   const [questionCount, setQuestionCount] = useState<number>(0);
   const [maxQuestions] = useState<number>(MAX_QUESTIONS);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -62,6 +63,13 @@ function App({
   const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
   const [confidence, setConfidence] = useState<number | undefined>(undefined);
 
+  const handleGameCompletion = (mode: GameMode) => {
+    if (mode === 'ai-guesses') {
+      setAIGuessesCompletedToday(true);
+    } else {
+      setPlayerGuessesCompletedToday(true);
+    }
+  };
   // ---------------- Authentication helpers ----------------
   const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
     setToken(newToken);
@@ -86,7 +94,7 @@ function App({
 
   /** Returns the mascot image URL appropriate for the current UI state. */
   const getMascotMood = () => {
-    const base = '/bot_boy/';
+    if (error) return 'error';
     if (loading) return 'thinking';
     if (!started) {
       if (victory) return 'sad';
@@ -276,6 +284,8 @@ function App({
           setShowResults={setShowResults}
           setConfidence={setConfidence}
           gameCompletedToday={aiGuessesCompletedToday}
+          onGameCompleted={() => handleGameCompletion('ai-guesses')}
+          setError={setError}
         />
       )}
 
@@ -300,6 +310,8 @@ function App({
           setShowResults={setShowResults}
           setConfidence={setConfidence}
           gameCompletedToday={playerGuessesCompletedToday}
+          onGameCompleted={() => handleGameCompletion('player-guesses')}
+          setError={setError}
         />
       )}
       

@@ -32,7 +32,7 @@ function ErrorBanner({ message, onClose }: ErrorBannerProps) {
       {onClose && (
         <button
           onClick={onClose}
-          className="ml-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded"
+          className="cursor-pointer ml-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded"
         >
           Close
         </button>
