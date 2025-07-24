@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ErrorBanner from './components/ErrorBanner';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
@@ -64,17 +65,24 @@ function PlayerGuessesGame({
   const [isHintDialogOpen, setIsHintDialogOpen] = useState(false);
 
   /**
+   * Error state. When non-null the UI will render {@link ErrorBanner}. The
+   * retry callback is stored so the user can attempt the failed action again
+   * without losing their turn.
+   */
+  const [errorInfo, setErrorInfo] = useState<{ message: string; retry: () => void } | null>(null);
+
+  /**
    * Starts a new game of 20 Questions where the AI thinks of a game
    * and the player tries to guess what it is.
    * @return {Promise<void>} - A promise resolving when the game has
    *   started.
    */
   const startGamePlayerGuesses = async () => {
-    setStarted(true);
-    setQuestionCount(0);
-    setChatHistory([]);
+    setErrorInfo(null);
+    // Optimistically show loading state but defer marking the game as started
+    // until after the backend confirms the session is open. This prevents an
+    // error from leaving the UI in a half-started state (CHR-64).
     setLoading(true);
-    setSessionId(null);
     setGameMessage("I'm thinking of a game. Please wait...");
 
     try {
@@ -93,10 +101,23 @@ function PlayerGuessesGame({
 
       const data = await response.json();
       setSessionId(data.sessionId);
+
+      // Now that we have a valid session we can mark the game as started and
+      // reset client-side state.
+      setStarted(true);
+      setQuestionCount(0);
+      setChatHistory([]);
+
       setGameMessage("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
     } catch (error: unknown) {
       const err = error as Error;
-      setGameMessage(`Error starting the game: ${err.message}. Please try again.`);
+      setErrorInfo({
+        message: 'Something went wrong. Please try again.',
+        retry: () => {
+          setErrorInfo(null);
+          void startGamePlayerGuesses();
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -105,10 +126,15 @@ function PlayerGuessesGame({
   const handlePlayerQuestion = async () => {
     if (!playerGuessInput || !sessionId) return;
 
+    setErrorInfo(null);
     setLoading(true);
+
+    // Take a snapshot of the input so we can restore it if a retry is needed.
+    const currentInput = playerGuessInput;
+
     setChatHistory((prevHistory) => [
       ...prevHistory,
-      { role: "user", parts: [{ text: playerGuessInput }] },
+      { role: "user", parts: [{ text: currentInput }] },
     ]);
 
     try {
@@ -177,11 +203,19 @@ function PlayerGuessesGame({
           ]);
         }
       }
-    } catch (error: unknown) {
-      const err = error as Error;
-      setGameMessage(`Error processing your question: ${err.message}. Please try again.`);
-    } finally {
+
+      // Clear the input only after a successful interaction.
       setPlayerGuessInput('');
+    } catch (error: unknown) {
+      setPlayerGuessInput(currentInput); // Restore the input so the user can edit/resubmit.
+      setErrorInfo({
+        message: 'Something went wrong. Please try again.',
+        retry: () => {
+          setErrorInfo(null);
+          void handlePlayerQuestion();
+        },
+      });
+    } finally {
       setLoading(false);
     }
   };
@@ -205,6 +239,7 @@ function PlayerGuessesGame({
 
   return (
     <div id="player-guesses-game">
+      {errorInfo && <ErrorBanner message={errorInfo.message} onRetry={errorInfo.retry} />}
       <HintDialog
         isOpen={isHintDialogOpen}
         onClose={closeHintDialog}

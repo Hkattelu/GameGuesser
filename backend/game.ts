@@ -92,13 +92,17 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     throw new Error('Session not found.');
   }
 
-  session.questionCount++;
+  // Compute the *next* question number but **do not** mutate the session yet. This ensures
+  // that if any downstream processing (e.g. AI inference, network failure) throws an
+  // exception we do **not** permanently advance the question counter and the client can
+  // safely retry the same input without losing a turn (CHR-64).
+  const nextQuestionNumber = session.questionCount + 1;
 
   if (!('secretGame' in session)) {
     throw new Error('Invalid session type for player question handler.');
   }
 
-  if (session.questionCount > 20) {
+  if (nextQuestionNumber > 20) {
     return {
       type:  'guessResult',
       questionCount: session.questionCount,
@@ -119,6 +123,9 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     prompt,
     session.chatHistory,
   );
+
+  // Now that the call has succeeded we can safely commit the counter increment.
+  session.questionCount = nextQuestionNumber;
 
   jsonResponse.questionCount = session.questionCount;
   if (jsonResponse.type === 'guessResult') {

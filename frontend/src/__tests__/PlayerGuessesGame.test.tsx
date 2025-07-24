@@ -67,10 +67,10 @@ describe('PlayerGuessesGame', () => {
     render(<PlayerGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
 
-    expect(mockProps.setStarted).toHaveBeenCalledWith(true);
     expect(mockProps.setLoading).toHaveBeenCalledWith(true);
 
     await waitFor(() => {
+      expect(mockProps.setStarted).toHaveBeenCalledWith(true);
       expect(mockProps.setSessionId).toHaveBeenCalledWith('test-session-id');
       expect(mockProps.setGameMessage).toHaveBeenCalledWith("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
       expect(mockProps.setLoading).toHaveBeenCalledWith(false);
@@ -131,9 +131,10 @@ describe('PlayerGuessesGame', () => {
 
     render(<PlayerGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
-    
+
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error starting the game: Test error. Please try again.');
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument();
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
     });
   });
 
@@ -150,7 +151,7 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Submit'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error processing your question: Test error. Please try again.');
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument();
     });
   });
 

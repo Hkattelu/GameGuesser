@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import ResponseButtons from './components/ResponseButtons';
 import ConversationHistory from './components/ConversationHistory';
+import ErrorBanner from './components/ErrorBanner';
 import { ChatMessage, GameMode } from './types';
 import { getApiUrl } from './env_utils';
 
@@ -48,12 +50,12 @@ function AIGuessesGame({
   gameCompletedToday = false,
 }: AIGuessesGameProps) {
 
+  /** Error banner state (CHR-64) */
+  const [errorInfo, setErrorInfo] = useState<{ message: string; retry: () => void } | null>(null);
+
   const startGameAI = async () => {
-    setStarted(true);
-    setQuestionCount(0);
-    setChatHistory([]);
+    setErrorInfo(null);
     setLoading(true);
-    setGameMessage("Okay, let's begin! I'll ask my first question.");
 
     try {
       const response = await fetch(`${getApiUrl()}/ai-guesses/start`, {
@@ -72,8 +74,12 @@ function AIGuessesGame({
       const data = await response.json();
       const { sessionId: newSessionId, aiResponse, questionCount: newQuestionCount } = data;
 
-      setSessionId(newSessionId);
+      // With a valid session we can now mark the game as started.
+      setStarted(true);
       setQuestionCount(newQuestionCount);
+      setSessionId(newSessionId);
+      setChatHistory([]);
+
       setGameMessage("Your turn to answer!");
 
       setChatHistory((prevHistory) => [
@@ -82,8 +88,13 @@ function AIGuessesGame({
       ]);
 
     } catch (error: unknown) {
-      const err = error as Error;
-      setGameMessage(`Please try again. Error: ${err.message}`);
+      setErrorInfo({
+        message: 'Something went wrong. Please try again.',
+        retry: () => {
+          setErrorInfo(null);
+          void startGameAI();
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -135,8 +146,13 @@ function AIGuessesGame({
         setGameMessage("Please try again.");
       }
     } catch (error: unknown) {
-      const err = error as Error;
-      setGameMessage(`Error communicating with Quiz Bot: ${err.message}`);
+      setErrorInfo({
+        message: 'Something went wrong. Please try again.',
+        retry: () => {
+          setErrorInfo(null);
+          void handleAnswer(answer);
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -153,6 +169,7 @@ function AIGuessesGame({
 
   return (
     <div id="ai-guesses-game">
+      {errorInfo && <ErrorBanner message={errorInfo.message} onRetry={errorInfo.retry} />}
       {started && (
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
           Questions left: {maxQuestions - questionCount}/{maxQuestions}

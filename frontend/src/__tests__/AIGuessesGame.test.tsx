@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 import AIGuessesGame from '../AIGuessesGame';
 import { GameMode } from '../types';
 
@@ -69,10 +70,10 @@ describe('AIGuessesGame', () => {
     render(<AIGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
 
-    expect(mockProps.setStarted).toHaveBeenCalledWith(true);
     expect(mockProps.setLoading).toHaveBeenCalledWith(true);
 
     await waitFor(() => {
+      expect(mockProps.setStarted).toHaveBeenCalledWith(true);
       expect(mockProps.setSessionId).toHaveBeenCalledWith('test-session-id');
       expect(mockProps.setLoading).toHaveBeenCalledWith(false);
     });
@@ -128,7 +129,7 @@ describe('AIGuessesGame', () => {
     fireEvent.click(screen.getByText('Start Game'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Please try again. Error: Test error');
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument();
     });
   });
 
@@ -143,7 +144,7 @@ describe('AIGuessesGame', () => {
     fireEvent.click(screen.getByText('Yes'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error communicating with Quiz Bot: Test error');
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument();
     });
   });
 
