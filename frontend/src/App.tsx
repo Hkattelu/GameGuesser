@@ -135,14 +135,15 @@ function App({
           const history = gameState.chatHistory.map((r) => ({
             role: r.role,
             parts: [{ text: r.content }],
-            content: r.content, // for easier parsing
+            gameType: r.game_type,
           }));
           setChatHistory(history);
           setSessionId(gameState.sessionId);
           setQuestionCount(gameState.questionCount);
           setStarted(true);
+
           // Check completion for both game types
-          const completed = isGameCompleted(gameMode, gameState.chatHistory, gameState.questionCount, maxQuestions);
+          const completed = isGameCompleted(gameMode, history, gameState.questionCount, maxQuestions);
           if (gameMode === 'ai-guesses') setAIGuessesCompletedToday(completed);
           if (gameMode === 'player-guesses') setPlayerGuessesCompletedToday(completed);
         } else {
@@ -227,15 +228,6 @@ function App({
           floorwidth={1600}
         />
       )}
-      
-      {(victory !== false && !started) && (
-        <button
-          onClick={() => setShowResults(true)}
-          className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
-        >
-          View Results
-        </button>
-      )}
 
       {showResults && (
         <GameResultsDialog
@@ -304,6 +296,16 @@ function App({
           setShowResults={setShowResults}
           gameCompletedToday={playerGuessesCompletedToday}
         />
+      )}
+      
+      {((gameMode === 'player-guesses' && playerGuessesCompletedToday) ||
+       (gameMode === 'ai-guesses' && aiGuessesCompletedToday)) && (
+        <button
+          onClick={() => setShowResults(true)}
+          className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+        >
+          View Results
+        </button>
       )}
       </div>
     </>

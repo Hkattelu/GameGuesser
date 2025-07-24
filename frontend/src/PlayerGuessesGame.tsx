@@ -219,13 +219,13 @@ function PlayerGuessesGame({
 
       <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
 
-      {started && (
+      {started && !gameCompletedToday && (
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
           Questions left: {maxQuestions - questionCount}/{maxQuestions}
         </div>
       )}
 
-      {started && !loading && (
+      {started && !loading && !gameCompletedToday && (
         <div className="mb-6">
           <label htmlFor="player-guess-input" className="block text-gray-700 text-sm font-semibold mb-2" aria-hidden="true"></label>
           <input
@@ -244,11 +244,11 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      {started && !loading && (
+      {started && !loading && !gameCompletedToday && (
         <SuggestionChips suggestions={suggestions} onSelectSuggestion={handleSelectSuggestion} />
       )}
 
-      {started && !loading && (
+      {started && !loading && !gameCompletedToday && (
         <div className="flex justify-center gap-6 mt-4">
           <button
             id="btn-submit-guess"
@@ -271,8 +271,8 @@ function PlayerGuessesGame({
           Start Game
         </button>
       )}
-      {!started && gameCompletedToday && (
-        <div className="mt-8 text-lg text-gray-500 font-semibold">You have already played Player Guesses today. Come back tomorrow!</div>
+      {gameCompletedToday && (
+        <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
       )}
     </div>
   );

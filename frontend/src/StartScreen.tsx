@@ -67,6 +67,7 @@ function StartScreen() {
           const chatHistory = gameState.chatHistory.map((r) => ({
             role: r.role,
             parts: [{ text: r.content }],
+            gameType: r.game_type,
           }));
           const completed = isGameCompleted(gameType, chatHistory, gameState.questionCount, maxQuestions);
           setter(completed);
