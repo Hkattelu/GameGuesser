@@ -12,6 +12,8 @@ interface GameSession {
   question_count: number;
   total_questions: number;
   game_name?: string;
+  score?: number;
+  used_hint?: boolean;
 }
 
 interface GameHistoryCalendarProps {
@@ -225,7 +227,7 @@ Play at: ${window.location.origin}`;
                 return (
                   <div
                     key={`${day}-${index}`}
-                    className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg border ${
+                    className={`aspect-square flex flex-col items-center justify-center text-sm font-medium rounded-lg border relative ${
                       isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                     } ${
                       game 
@@ -234,9 +236,12 @@ Play at: ${window.location.origin}`;
                           : 'bg-red-100 text-red-800'
                         : 'bg-gray-50 text-gray-500'
                     }`}
-                    title={game ? `${game.date}: ${game.victory ? 'Won' : 'Lost'} (${game.question_count}/${game.total_questions})` : ''}
+                    title={game ? `${game.date}: ${game.victory ? 'Won' : 'Lost'} (${game.question_count}/${game.total_questions})${game.used_hint ? ' - Hint used' : ''}${typeof game.score === 'number' ? ` - Score: ${game.score}` : ''}` : ''}
                   >
-                    {day}
+                    <span>{day}</span>
+                    {game && game.used_hint && (
+                      <span className="text-xs text-orange-600" title="Hint used">💡</span>
+                    )}
                   </div>
                 );
               })}
@@ -256,6 +261,12 @@ Play at: ${window.location.origin}`;
                 <div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded"></div>
                 <span>No Game</span>
               </div>
+              {gameMode === 'player-guesses' && (
+                <div className="flex items-center space-x-1">
+                  <span className="text-orange-600">💡</span>
+                  <span>Hint Used</span>
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}

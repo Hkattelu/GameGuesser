@@ -76,6 +76,7 @@ function PlayerGuessesGame({
   const startGamePlayerGuesses = async () => {
     // Clear any previous error so the banner disappears, then show a loading
     // state while we contact the backend.
+    setSessionId(null);
     setErrorMessage(null);
     setLoading(true);
 

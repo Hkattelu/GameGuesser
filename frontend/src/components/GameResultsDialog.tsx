@@ -11,6 +11,8 @@ interface GameResultsDialogProps {
   maxQuestions: number;
   sessionId: string | null;
   username: string | null;
+  score?: number;
+  usedHint?: boolean;
 }
 
 const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
@@ -22,6 +24,8 @@ const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
   maxQuestions,
   sessionId,
   username,
+  score,
+  usedHint,
 }) => {
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -49,10 +53,20 @@ const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
     // Create a simple text representation of the grid
     const gridText = generateGridText();
     
+    let scoreText = '';
+    if (gameMode === 'player-guesses' && victory && typeof score === 'number') {
+      scoreText = `\nScore: ${score === 1 ? '1.0' : score.toFixed(1)} point${score !== 1 ? 's' : ''}`;
+      if (usedHint) {
+        scoreText += ' (💡 Hint used)';
+      }
+    } else if (gameMode === 'player-guesses' && usedHint) {
+      scoreText = '\n💡 Hint used';
+    }
+    
     const shareText = `🎮 Bot Boy's Game Guessr - ${date}
 
 Mode: ${gameType}
-Result: ${resultText} (${totalQuestions}/${maxQuestions} questions)
+Result: ${resultText} (${totalQuestions}/${maxQuestions} questions)${scoreText}
 
 ${gridText}
 
@@ -182,6 +196,17 @@ Play at: ${window.location.origin}`;
           </div>
           <div className="text-sm text-gray-600 dark:text-gray-200 mb-4">
             {totalQuestions}/{maxQuestions} questions used
+            {gameMode === 'player-guesses' && victory && typeof score === 'number' && (
+              <div className="mt-1">
+                Score: {score === 1 ? '1.0' : score.toFixed(1)} point{score !== 1 ? 's' : ''}
+                {usedHint && <span className="text-orange-600 dark:text-orange-400"> (💡 Hint used)</span>}
+              </div>
+            )}
+            {gameMode === 'player-guesses' && usedHint && !victory && (
+              <div className="mt-1 text-orange-600 dark:text-orange-400">
+                💡 Hint used
+              </div>
+            )}
           </div>
           
           <GameResultsGrid
