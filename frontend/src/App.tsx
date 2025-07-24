@@ -12,6 +12,7 @@ import GameHistoryCalendar from './components/GameHistoryCalendar';
 import SettingsButton from './components/SettingsButton';
 
 import { ChatMessage, GameMode, Role } from './types';
+import { isGameCompleted } from './utils/gameCompletion';
 import { MAX_QUESTIONS } from './constants';
 import { getApiUrl } from './env_utils';
 

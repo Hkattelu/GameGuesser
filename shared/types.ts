@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-// -------------------------- Zod Schemas --------------------------
+// ---------------------------------------------------------------------------
+// Zod Schemas (kept in a single place so both FE & BE stay in sync)
+// ---------------------------------------------------------------------------
 
 export const YesNoClarificationSchema = z.object({
   answer: z.union([
@@ -44,7 +46,9 @@ export const AIGuessesGameSchema = z.object({
 
 export const AIJsonResponseSchema = AIQuestionSchema.or(AIGuessesGameSchema);
 
-// -------------------------- Typescript types --------------------------
+// ---------------------------------------------------------------------------
+// TypeScript type aliases inferred from the schemas
+// ---------------------------------------------------------------------------
 
 export type YesNoClarification = z.infer<typeof YesNoClarificationSchema>;
 export type AnswerToQuestion = z.infer<typeof AnswerToQuestionSchema>;
@@ -52,22 +56,13 @@ export type AnswerToGuess = z.infer<typeof AnswerToGuessSchema>;
 export type PlayerQAResponse = z.infer<typeof PlayerQAResponseSchema>;
 export type AIJsonResponse = z.infer<typeof AIJsonResponseSchema>;
 
-// Literal union shared with the frontend for button rendering.
+// ---------------------------------------------------------------------------
+// Misc shared enums / literals used in both FE & BE
+// ---------------------------------------------------------------------------
+
+/**
+* Enum-like union of possible yes/no buttons that the player can press. The
+* string literal names are intentionally capitalised to show nicely on UI
+* buttons without additional `toUpperCase()` calls.
+*/
 export type ResponseOption = 'Yes' | 'No' | 'Unsure';
-
-// Re-export everything from the canonical shared module so downstream imports
-// can gradually move over while still relying on this file.
-
-// -----------------------------------------------------------------------
-// Augment Express `Request` so that `req.user` is recognised everywhere.
-// -----------------------------------------------------------------------
-
-declare global {
-  namespace Express {
-    export interface Request {
-      user?: {
-        username: string;
-      };
-    }
-  }
-}
