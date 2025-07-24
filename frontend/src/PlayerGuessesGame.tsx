@@ -24,6 +24,7 @@ export interface PlayerGuessesGameProps {
   setGameMessage: React.Dispatch<React.SetStateAction<string>>;
   setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
   setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
+  setConfidence: React.Dispatch<React.SetStateAction<number | undefined>>;
   token?: string | null;
   gameCompletedToday?: boolean;
 }
@@ -56,6 +57,7 @@ function PlayerGuessesGame({
   setGameMessage,
   setVictory,
   setShowResults,
+  setConfidence,
   gameCompletedToday = false,
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
@@ -130,6 +132,9 @@ function PlayerGuessesGame({
       const { type, content, questionCount: newQuestionCount } = data;
 
       setQuestionCount(newQuestionCount);
+      if (content && typeof content === 'object') {
+        setConfidence((content as any).confidence);
+      }
 
       if (type === 'question' || type === 'answer') {
         let answerText = '';

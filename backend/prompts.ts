@@ -36,19 +36,21 @@ export const PLAYER_QA_WITH_CLASSIFICATION_PROMPT = (
         "questionCount": <number>,           
         "content": {
           "answer": "Yes"|"No"|"I don't know",
-          "clarification"?: "<string>"
+          "clarification"?: "<string>",
+          "confidence": <number>
         }
        }
      - {
         "type": "guessResult",
         "questionCount": <number>,
-        "content": { "correct": <boolean>, "response": "<string>" }
+        "content": { "correct": <boolean>, "response": "<string>", "confidence": <number> }
        }
 
   Guidelines for *answer* objects:
   • **content.answer** must be exactly "Yes", "No", or "I don't know".
   • questionCount should be the number of questions that the user has asked so far.
   • Include **content.clarification** only when a strict yes/no could be misleading.
+  • confidence should be a number from 1-10 representing how confident you are in your answer.
   Example clarifications:
     – "It has a direct sequel."
     – "It is part of a franchise even though it has no numbered sequel."
@@ -56,7 +58,8 @@ export const PLAYER_QA_WITH_CLASSIFICATION_PROMPT = (
     
   Guidelines for *guessResult* objects:
     • If the guess is correct, set **content.correct** = true and **content.response** to a congratulations message.
-    • If incorrect, set **content.correct** = false and use **content.response** to politely inform the user without revealing the real title.`;
+    • If incorrect, set **content.correct** = false and use **content.response** to politely inform the user without revealing the real title.
+    • confidence should be a number from 1-10 representing how confident you are in your answer.`;
 };
 
 /**
@@ -69,10 +72,10 @@ You will ask yes/no questions. If you are very confident, you can make a guess.
 You have ${maxQuestions} questions in total. This is question 1.
 If the user responds indicating that you are correct, then you win, and the user loses. If you win, you will respond
 with the guess type and content true. Otherwise keep asking questions.
-Your response MUST be a JSON object with a 'type' field ("question" or "guess") and a 'content' field (the question text or the game guess).
-Example: {"type": "question", "content": "Is your game an RPG?"}
-Example: {"type": "question", "content": "Is your game The Legend of Zelda: Breath of the Wild?"}
-Example: {"type": "guess", "content": true}
+Your response MUST be a JSON object with a 'type' field ("question" or "guess"), a 'content' field (the question text or the game guess), and a 'confidence' field (a number from 1-10).
+Example: {"type": "question", "content": "Is your game an RPG?", "confidence": 5}
+Example: {"type": "question", "content": "Is your game The Legend of Zelda: Breath of the Wild?", "confidence": 8}
+Example: {"type": "guess", "content": true, "confidence": 10}
 
 Start by asking your first question.`;
 
@@ -86,7 +89,7 @@ export const AI_GUESS_NEXT_PROMPT = (
 ): string =>
   `The user just answered "${userAnswer}". You have ${questionsLeft} questions left.
 Based on this, ask your next yes/no question or make a guess if you are confident.
-Remember, your response MUST be a JSON object with 'type' and 'content'.`;
+Remember, your response MUST be a JSON object with 'type', 'content', and 'confidence'.`;
 
 /**
 * Prompt for generating a special hint for a given game title.

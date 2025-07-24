@@ -13,6 +13,7 @@ const generateStructuredMock = jest.fn(async (_schema: unknown, prompt: string) 
   return {
     type: 'question',
     content: 'Placeholder question?',
+    confidence: 5,
   } as any;
 });
 

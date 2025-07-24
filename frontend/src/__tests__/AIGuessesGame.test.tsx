@@ -43,6 +43,8 @@ const mockProps = {
   setSessionId: vi.fn(),
   setGameMessage: vi.fn(),
   setVictory: vi.fn(),
+  setShowResults: vi.fn(),
+  setConfidence: vi.fn(),
 };
 
 describe('AIGuessesGame', () => {

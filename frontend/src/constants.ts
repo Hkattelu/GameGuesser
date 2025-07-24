@@ -18,8 +18,6 @@ export const SUGGESTIONS: readonly string[] = [
   'Does it involve a post-apocalyptic setting?',
   'Does it feature a female protagonist?',
   'Does it have a realistic art style?',
-  'Is it an RPG?',
-  'Is it a first-person shooter?',
   'Is it a multiplayer game?',
   'Is it exclusive to a single platform?',
   'Is it an RPG (Role-Playing Game)?',

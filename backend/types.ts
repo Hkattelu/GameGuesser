@@ -9,6 +9,7 @@ export const YesNoClarificationSchema = z.object({
     z.literal("I don't know"),
   ]),
   clarification: z.string().optional(),
+  confidence: z.number().optional(),
 });
 
 export const AnswerToQuestionSchema = z.object({
@@ -25,6 +26,7 @@ export const AnswerToGuessSchema = z.object({
     response: z.string(),
     score: z.number().optional().describe('Fractional score awarded for this guess (1 = exact, 0.5 = near, 0 = wrong)'),
     usedHint: z.boolean().optional().describe('Whether the player had used a hint at the time of this guess'),
+    confidence: z.number().optional(),
   }),
 });
 
@@ -33,11 +35,13 @@ export const PlayerQAResponseSchema = AnswerToQuestionSchema.or(AnswerToGuessSch
 export const AIQuestionSchema = z.object({
   type: z.enum(['question']),
   content: z.string(),
+  confidence: z.number().optional(),
 });
 
 export const AIGuessesGameSchema = z.object({
   type: z.enum(['guess']),
   content: z.boolean(),
+  confidence: z.number().optional(),
 });
 
 export const AIJsonResponseSchema = AIQuestionSchema.or(AIGuessesGameSchema);

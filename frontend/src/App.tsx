@@ -60,6 +60,7 @@ function App({
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [aiGuessesCompletedToday, setAIGuessesCompletedToday] = useState<boolean>(false);
   const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
+  const [confidence, setConfidence] = useState<number | undefined>(undefined);
 
   // ---------------- Authentication helpers ----------------
   const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
@@ -104,6 +105,7 @@ function App({
     setSessionId(null);
     setShowResults(false);
     setShowHistory(false);
+    setConfidence(undefined);
     if (!started) {
       setGameMessage(
         gameMode === 'ai-guesses'
@@ -141,6 +143,7 @@ function App({
           setSessionId(gameState.sessionId);
           setQuestionCount(gameState.questionCount);
           setStarted(true);
+          setConfidence(gameState.confidence);
 
           // Check completion for both game types
           const completed = isGameCompleted(gameMode, history, gameState.questionCount, maxQuestions);
@@ -215,7 +218,7 @@ function App({
       </div>
 
       <div className="flex justify-center items-center ml-4 mr-4">
-        <MascotImage mood={getMascotMood()} />
+        <MascotImage mood={getMascotMood()} confidence={confidence} />
         <p id="game-message" className="text-lg text-gray-600 dark:text-gray-300 mb-4">{gameMessage}</p>
       </div>
 
@@ -271,6 +274,7 @@ function App({
           setGameMessage={setGameMessage}
           setVictory={setVictory}
           setShowResults={setShowResults}
+          setConfidence={setConfidence}
           gameCompletedToday={aiGuessesCompletedToday}
         />
       )}
@@ -294,6 +298,7 @@ function App({
           setGameMessage={setGameMessage}
           setVictory={setVictory}
           setShowResults={setShowResults}
+          setConfidence={setConfidence}
           gameCompletedToday={playerGuessesCompletedToday}
         />
       )}

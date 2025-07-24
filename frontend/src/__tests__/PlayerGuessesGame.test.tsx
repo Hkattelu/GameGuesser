@@ -44,6 +44,7 @@ const mockProps = {
   setGameMessage: vi.fn(),
   setVictory: vi.fn(),
   setShowResults: vi.fn(),
+  setConfidence: vi.fn(),
   token: null,
 };
 

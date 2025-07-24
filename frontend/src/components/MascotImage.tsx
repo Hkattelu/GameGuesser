@@ -1,9 +1,10 @@
 import React from 'react';
 
-type MascotMood = 'default'|'sad'|'thinking';
+type MascotMood = 'default'|'sad'|'thinking'|'nervous'|'smug'|'victory'|'error';
 
 export interface MascotImageProps {
-  mood: MascotMood;
+  mood?: MascotMood;
+  confidence?: number;
 }
 
 /**
@@ -18,18 +19,42 @@ const moodToUrl = (mood: MascotMood) => {
     case 'default':
       return `${base}smile.png`;
     case 'sad':
-      return `${base}sadge.png`;
+      return `${base}sad.png`;
     case 'thinking':
       return `${base}thinking.png`;
+    case 'nervous':
+        return `${base}nervous.png`;
+    case 'smug':
+        return `${base}smug.png`;
+    case 'victory':
+        return `${base}victory.png`;
+    case 'error':
+        return `${base}error.png`;
     default:
       return '';
   }
 };
 
-function MascotImage({ mood }: MascotImageProps) {
+const confidenceToUrl = (confidence: number) => {
+    const base = '/bot_boy/';
+    if (confidence <= 2) {
+        return `${base}sad.png`;
+    } else if (confidence <= 4) {
+        return `${base}nervous.png`;
+    } else if (confidence <= 6) {
+        return `${base}thinking.png`;
+    } else if (confidence <= 8) {
+        return `${base}smile.png`;
+    } else {
+        return `${base}smug.png`;
+    }
+}
+
+function MascotImage({ mood, confidence }: MascotImageProps) {
+  const imageUrl = confidence ? confidenceToUrl(confidence) : moodToUrl(mood || 'default');
   return (
     <div className="flex justify-center mb-4 max-w-50">
-      <img src={moodToUrl(mood)} alt="Game Boy mascot" />
+      <img src={imageUrl} alt="Game Boy mascot" />
     </div>
   );
 }
