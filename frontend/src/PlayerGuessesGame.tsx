@@ -141,10 +141,6 @@ function PlayerGuessesGame({
         } else if (content && typeof content === 'object') {
           answerLiteral = (content as any).answer;
           answerText = (content as any).answer + ((content as any).clarification ? ` - ${(content as any).clarification}` : '');
-
-          if (content.clarification) {
-            setModelResponseText(`Clarification: ${content.clarification}`);
-          }
         }
 
         setChatHistory((prevHistory) => [

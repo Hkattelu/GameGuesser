@@ -8,6 +8,10 @@ import { AI_NAME } from './constants';
 import { wrapNavigate } from './transition-utils';
 import './styles/startScreen.css';
 import { getApiUrl } from './env_utils';
+<<<<<<< HEAD
+=======
+import { isGameCompleted } from './utils/gameCompletion';
+>>>>>>> c2d47ea528eb54b73b04bd185f1b868b27030fc2
 
 interface AuthPayload {
   token: string;
@@ -50,6 +54,7 @@ function StartScreen() {
     navigate(path);
   };
 
+<<<<<<< HEAD
   function isGameCompleted(gameMode: 'ai-guesses' | 'player-guesses', chatHistory: any[], questionCount: number, maxQuestions: number) {
     if (!chatHistory || chatHistory.length === 0) return false;
     if (gameMode === 'player-guesses') {
@@ -74,6 +79,9 @@ function StartScreen() {
     }
     return false;
   }
+=======
+  // ---
+>>>>>>> c2d47ea528eb54b73b04bd185f1b868b27030fc2
 
   useEffect(() => {
     if (!token) return;

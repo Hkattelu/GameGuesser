@@ -16,7 +16,7 @@ const moodToUrl = (mood: MascotMood) => {
   const base = '/bot_boy/';
   switch (mood) {
     case 'default':
-      return `${base}guy.png`;
+      return `${base}smile.png`;
     case 'sad':
       return `${base}sadge.png`;
     case 'thinking':
