@@ -12,6 +12,7 @@ enum HintType {
   PUBLISHER = 'publisher',
   DEVELOPER = 'developer',
   RELEASE_YEAR = 'releaseYear',
+  SPECIAL = 'special'
 };
 
 const HintDialog: React.FC<HintDialogProps> = ({
@@ -23,6 +24,7 @@ const HintDialog: React.FC<HintDialogProps> = ({
   const [developer, setDeveloper] = useState<string|null>(null);
   const [publisher, setPublisher] = useState<string|null>(null);
   const [releaseYear, setReleaseYear] = useState<string|null>(null);
+  const [special, setsSpecial] = useState<string|null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleRevealHint = async (hintType: HintType) => {
@@ -52,6 +54,9 @@ const HintDialog: React.FC<HintDialogProps> = ({
           break;
         case HintType.RELEASE_YEAR:
           setReleaseYear(data.hint.hintText);
+          break;
+        case HintType.SPECIAL:
+          setSpecial(data.hint.hintText);
           break;
         default:
           break;
@@ -103,10 +108,21 @@ const HintDialog: React.FC<HintDialogProps> = ({
             </button>}
           </div>
           <div className="flex justify-between items-center mb-4">
-            <div>Release</div>
+            <div>Release Year</div>
             {releaseYear ? (<div>{releaseYear}</div>) :
             <button
               onClick={() => handleRevealHint(HintType.RELEASE_YEAR)}
+              className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Reveal'}
+            </button>}
+          </div>
+          <div className="flex justify-between items-center mb-4">
+            <div>Special</div>
+            {special ? (<div>{special}</div>) :
+            <button
+              onClick={() => handleRevealHint(HintType.SPECIAL)}
               className="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               disabled={loading}
             >

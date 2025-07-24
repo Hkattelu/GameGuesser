@@ -289,6 +289,45 @@ html.dark .hover-anim {
   color: #1f2937;
 }
 
+table {
+  width: 100%;
+}
+
+tbody {
+  max-height: 400px;
+  overflow: auto;
+}
+
+th, td {
+  padding: 3px 10px;
+  display: inline-block;
+  width: 49%;
+  box-sizing: border-box;
+}
+
+tr, tbody{
+  display:block;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+	width: 12px ;
+}
+  
+::-webkit-scrollbar-track { /* TRACK */
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0,0.3);
+}
+
+html.dark {
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,1);
+  }
+}
+
+::-webkit-scrollbar-thumb { /* Cursor */
+  background: rgba(200, 200, 200, 1);
+}
+
 .loading-spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-left-color: #3498db;

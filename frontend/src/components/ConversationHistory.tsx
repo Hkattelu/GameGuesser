@@ -143,8 +143,8 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
     >
       <thead>
         <tr>
-          <th scope="col">{gameMode === 'player-guesses' ? 'You' : 'Quiz Bot'}</th>
-          <th scope="col" className="text-right">{gameMode === 'player-guesses' ? 'Quiz Bot' : 'You'}</th>
+          <th scope="col" className="border-2 border-r-1">{gameMode === 'player-guesses' ? 'You' : 'Quiz Bot'}</th>
+          <th scope="col" className="border-2 border-l-1 text-right">{gameMode === 'player-guesses' ? 'Quiz Bot' : 'You'}</th>
         </tr>
       </thead>
       <tbody>

@@ -25,7 +25,6 @@ export function isGameCompleted(
 ): boolean {
   if (!chatHistory || chatHistory.length === 0) return false;
 
-  console.log(chatHistory);
   if (gameMode === 'player-guesses') {
     // Look for the latest model message signalling the end of the round.
     const lastModelMsg = [...chatHistory].reverse().find((m) => m.role === 'model');
@@ -40,14 +39,7 @@ export function isGameCompleted(
         /* swallow JSON parse errors – not game-ending */
       }
     }
-
-    // The user ran out of questions
-    if (questionCount >= maxQuestions) {
-      return true;
-    }
-  }
-
-  if (gameMode === 'ai-guesses') {
+  } else if (gameMode === 'ai-guesses') {
     const lastModelMsg = [...chatHistory].reverse().find((m) => m.role === 'model');
     if (lastModelMsg) {
       try {
@@ -59,11 +51,11 @@ export function isGameCompleted(
         /* ignore parse errors */
       }
     }
+  }
 
-    // The user ran out of questions
-    if (questionCount >= maxQuestions) {
-      return true;
-    }
+  // The user ran out of questions
+  if (questionCount >= maxQuestions) {
+    return true;
   }
 
   return false;
