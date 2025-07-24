@@ -7,6 +7,7 @@ frontend/dist
 frontend/dist/*
 frontend/pnpm-lock.yaml
 frontend/pglite-debug.log
+frontend/tsconfig.tsbuildinfo
 
 # Firebase
 frontend/.firebase
@@ -27,8 +28,9 @@ backend/.development.env
 backend/.production.env
 backend/pnpm-lock.yaml
 
-# Daily Game persistence file
-backend/daily-games.json
+# Shared
+shared/tsconfig.tsbuildinfo
+shared/tsconfig.js
 
 # Coverage reports
 !frontend/coverage/clover.xml

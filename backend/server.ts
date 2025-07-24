@@ -22,6 +22,7 @@ import {
 
 // Centralised game type helpers
 import { isValidGameType, type GameType } from './gameType.js';
+import './types.js';
 
 const app: Express = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;

@@ -3,5 +3,8 @@
   "compilerOptions": {
     "module": "NodeNext"
   },
+  "paths": {
+    "@shared/*": ["../shared/*"]
+  },
   "include": ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**/*.ts"]
 }

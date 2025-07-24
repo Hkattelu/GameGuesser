@@ -12,13 +12,13 @@ export const YesNoClarificationSchema = z.object({
 });
 
 export const AnswerToQuestionSchema = z.object({
-  type: z.literal('answer'),
+  type: z.enum(['answer']),
   questionCount: z.number(),
   content: YesNoClarificationSchema,
 });
 
 export const AnswerToGuessSchema = z.object({
-  type: z.literal('guessResult'),
+  type: z.enum(['guessResult']),
   questionCount: z.number(),
   content: z.object({
     correct: z.boolean(),
@@ -33,12 +33,12 @@ export const AnswerToGuessSchema = z.object({
 export const PlayerQAResponseSchema = AnswerToQuestionSchema.or(AnswerToGuessSchema);
 
 export const AIQuestionSchema = z.object({
-  type: z.literal('question'),
+  type: z.enum(['question']),
   content: z.string(),
 });
 
 export const AIGuessesGameSchema = z.object({
-  type: z.literal('guess'),
+  type: z.enum(['guess']),
   content: z.boolean(),
 });
 

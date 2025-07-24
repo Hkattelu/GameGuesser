@@ -10,7 +10,6 @@ import {
   PlayerQAResponseSchema,
   AIJsonResponse,
   AIJsonResponseSchema,
-  AnswerToGuess,
 } from './types.js';
 import { getDailyGame } from './dailyGameStore.js';
 import { fetchGameMetadata } from './rawgDetails.js';
@@ -47,65 +46,6 @@ const gameSessions = new Map<string, PlayerGuessSession | AIGuessSession>();
 
 // Maximum number of questions for the AI guessing mode.
 const MAX_QUESTIONS = 20;
-
-// --------------------------- Scoring helpers ---------------------------
-
-/**
-* Calculates the [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
-* between two strings using a simple dynamic-programming algorithm.
-* This implementation is intentionally lightweight to avoid an additional
-* dependency for such a small computation.
-*/
-function levenshtein(a: string, b: string): number {
-  if (a === b) return 0;
-  if (!a.length) return b.length;
-  if (!b.length) return a.length;
-
-  const v0: number[] = new Array(b.length + 1).fill(0);
-  const v1: number[] = new Array(b.length + 1).fill(0);
-
-  for (let i = 0; i < v0.length; i++) v0[i] = i;
-
-  for (let i = 0; i < a.length; i++) {
-    v1[0] = i + 1;
-    for (let j = 0; j < b.length; j++) {
-      const cost = a[i] === b[j] ? 0 : 1;
-      v1[j + 1] = Math.min(
-        v1[j] + 1,      // Deletion
-        v0[j + 1] + 1,  // Insertion
-        v0[j] + cost,   // Substitution
-      );
-    }
-    for (let j = 0; j < v0.length; j++) v0[j] = v1[j];
-  }
-
-  return v1[b.length];
-}
-
-/**
-* Computes the fractional score for a player's guess.
-*
-* - 1.0 when the guess matches the secret game exactly (case-insensitive).
-* - 0.5 when the normalized Levenshtein distance is small enough (≤ 2 edits
-*   OR ≤ 10% of the average length).
-* - 0   otherwise.
-*/
-function computeGuessScore(guess: string, secret: string): number {
-  const clean = (s: string) => s.trim().toLowerCase();
-  const g = clean(guess);
-  const s = clean(secret);
-
-  if (g === s) return 1;
-
-  const distance = levenshtein(g, s);
-  const avgLen = (g.length + s.length) / 2 || 1;
-
-  const CLOSE_THRESHOLD_ABS = 2; // absolute edit distance
-  const CLOSE_THRESHOLD_REL = 0.1; // 10% of average length
-
-  const isClose = distance <= CLOSE_THRESHOLD_ABS || distance / avgLen <= CLOSE_THRESHOLD_REL;
-  return isClose ? 0.5 : 0;
-}
 
 /**
 * Starts a new *Player-Guesses* game session.
@@ -158,7 +98,7 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
         correct: false,
         response: `You are out of tries. The game was ${session.secretGame}`,
       }
-    } as AnswerToGuess;
+    } as PlayerQAResponse;
   }
 
   const prompt = PLAYER_QA_WITH_CLASSIFICATION_PROMPT(
@@ -172,20 +112,10 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     session.chatHistory,
   );
 
-  // Just in case the model misses the question count, we provide it.
-  jsonResponse.questionCount = jsonResponse.questionCount || session.questionCount;
-
-  // ---------------------------------------------------------------
-  // Compute fractional score and embed hint metadata *before* we push the
-  // response into the chat history so that persisted messages already carry
-  // the enriched fields.
-  // ---------------------------------------------------------------
-
   if (jsonResponse.type === 'guessResult') {
-    const score = computeGuessScore(userInput, session.secretGame);
-    (jsonResponse.content as any).score = score;
-    (jsonResponse.content as any).usedHint = session.usedHint || false;
-    (jsonResponse.content as any).correct = score === 1;
+    const isCorrect = jsonResponse.content.correct;
+    jsonResponse.content.usedHint = session.usedHint || false;
+    jsonResponse.content.score = isCorrect ? (session.usedHint ? 1 : 0.5) : 0;
   }
 
   session.chatHistory.push({

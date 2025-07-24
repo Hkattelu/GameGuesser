@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
 import { createUser, findUserByUsername } from './db.js';
+import './types.js';
 
 export type UserJwtPayload = Record<'username', string> & Record<string, string>;
 
