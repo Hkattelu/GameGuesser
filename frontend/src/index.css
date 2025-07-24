@@ -58,6 +58,10 @@
     to { transform: translateX(-400px); }
 }
 
+#root {
+  height: 100%;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background: linear-gradient(90deg, #f0f2f5, #e6e9ee, #f0f2f5);
@@ -196,7 +200,7 @@ html.dark #icons-container {
   .eye {
     filter: blur(1px);
     position: absolute;
-    margin-top: 32px;
+    margin-top: 35px;
     display: inline-block;
     border-radius: 50%;
     z-index: 3;
