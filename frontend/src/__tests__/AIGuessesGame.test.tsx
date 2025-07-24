@@ -69,10 +69,13 @@ describe('AIGuessesGame', () => {
     render(<AIGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
 
-    expect(mockProps.setStarted).toHaveBeenCalledWith(true);
+    // Loading indicator should appear immediately.
     expect(mockProps.setLoading).toHaveBeenCalledWith(true);
 
+    // The game should only transition to *started* state after the fetch
+    // succeeds.
     await waitFor(() => {
+      expect(mockProps.setStarted).toHaveBeenCalledWith(true);
       expect(mockProps.setSessionId).toHaveBeenCalledWith('test-session-id');
       expect(mockProps.setLoading).toHaveBeenCalledWith(false);
     });
@@ -118,7 +121,7 @@ describe('AIGuessesGame', () => {
     });
   });
 
-  it('handles startGameAI failure', async () => {
+  it('shows an error banner when startGameAI fails', async () => {
     (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ error: 'Test error' }),
@@ -128,11 +131,12 @@ describe('AIGuessesGame', () => {
     fireEvent.click(screen.getByText('Start Game'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Please try again. Error: Test error');
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument();
+      expect(screen.getByText('Error starting game: Test error')).toBeInTheDocument();
     });
   });
 
-  it('handles handleAnswer failure', async () => {
+  it('does not increment question count on handleAnswer failure', async () => {
     (global.fetch as vi.Mock).mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({ error: 'Test error' }),
@@ -143,7 +147,8 @@ describe('AIGuessesGame', () => {
     fireEvent.click(screen.getByText('Yes'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Error communicating with Quiz Bot: Test error');
+      expect(screen.getByTestId('error-banner')).toBeInTheDocument();
+      expect(mockProps.setQuestionCount).not.toHaveBeenCalled();
     });
   });
 
