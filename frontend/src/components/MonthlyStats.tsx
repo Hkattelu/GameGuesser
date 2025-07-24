@@ -82,20 +82,20 @@ const MonthlyStats: React.FC<MonthlyStatsProps> = ({ games }) => {
   }
 
   return (
-    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-      <h3 className="text-sm font-semibold text-blue-800 mb-2">This Month's Stats</h3>
+    <div className="bg-blue-50 dark:bg-gray-800/50 rounded-lg p-4 border border-blue-200">
+      <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-100 mb-2">This Month's Stats</h3>
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div className="text-center">
-          <div className="text-2xl font-bold text-blue-600">{stats.wins}/{stats.total}</div>
-          <div className="text-blue-600">Win Rate: {stats.winRate}%</div>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-100">{stats.wins}/{stats.total}</div>
+          <div className="text-blue-600 dark:text-blue-100">Win Rate: {stats.winRate}%</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-semibold text-blue-600">
+          <div className="text-lg font-semibold text-blue-600 dark:text-blue-100">
             🔥 {stats.currentStreak}
           </div>
-          <div className="text-blue-600">Current Streak</div>
+          <div className="text-blue-600 dark:text-blue-100">Current Streak</div>
           {stats.bestStreak > 0 && (
-            <div className="text-xs text-blue-500 mt-1">
+            <div className="text-xs text-blue-500 dark:text-blue-100 mt-1">
               Best: {stats.bestStreak}
             </div>
           )}

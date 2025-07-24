@@ -166,9 +166,9 @@ Play at: ${window.location.origin}`;
 
   return (
     <div className="fixed inset-0 bg-gray-600/50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
-      <div className="relative p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white mx-4">
+      <div className="relative p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white mx-4 dark:bg-gray-800">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-2xl font-bold text-gray-800">Game History Calendar</h3>
+          <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Game History Calendar</h3>
           <button
             onClick={onClose}
             className="cursor-pointer text-gray-400 hover:text-gray-600 text-xl font-bold"
@@ -192,14 +192,14 @@ Play at: ${window.location.origin}`;
             <div className="flex justify-between items-center mb-4">
               <button
                 onClick={() => changeMonth('prev')}
-                className="cursor-pointer px-3 py-1 text-gray-600 hover:text-gray-800"
+                className="cursor-pointer px-3 py-1 text-gray-600 dark:text-gray-200 dark:hover:text-gray-100 hover:text-gray-800"
               >
                 ← Previous
               </button>
               <h4 className="flex-1 text-lg font-semibold">{monthName}</h4>
               <button
                 onClick={() => changeMonth('next')}
-                className="cursor-pointer px-3 py-1 text-gray-600 hover:text-gray-800"
+                className="cursor-pointer px-3 py-1 text-gray-600 dark:text-gray-200 dark:hover:text-gray-100 hover:text-gray-800"
               >
                 Next →
               </button>
@@ -212,7 +212,7 @@ Play at: ${window.location.origin}`;
             {/* Calendar Grid */}
             <div className="grid grid-cols-7 gap-2 mb-4">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+                <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-300 py-2">
                   {day}
                 </div>
               ))}
@@ -227,14 +227,14 @@ Play at: ${window.location.origin}`;
                 return (
                   <div
                     key={`${day}-${index}`}
-                    className={`aspect-square flex flex-col items-center justify-center text-sm font-medium rounded-lg border relative ${
-                      isToday ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                    className={`aspect-square bg-gray-200 dark:bg-gray-800 flex flex-col items-center justify-center text-sm font-medium rounded-lg border relative ${
+                      isToday ? 'border-blue-500 bg-blue-50 dark:bg-blue-300' : 'border-gray-200'
                     } ${
                       game 
                         ? game.victory 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                        : 'bg-gray-50 text-gray-500'
+                          ? 'bg-green-100 dark:bg-green-300 text-green-800' 
+                          : 'bg-red-100 dark:bg-red-300 text-red-800'
+                        : 'bg-gray-50 text-gray-500 dark:text-gray-200'
                     }`}
                     title={game ? `${game.date}: ${game.victory ? 'Won' : 'Lost'} (${game.question_count}/${game.total_questions})${game.used_hint ? ' - Hint used' : ''}${typeof game.score === 'number' ? ` - Score: ${game.score}` : ''}` : ''}
                   >
@@ -250,15 +250,15 @@ Play at: ${window.location.origin}`;
             {/* Legend */}
             <div className="flex justify-center space-x-4 text-xs mb-4">
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
+                <div className="w-3 h-3 bg-green-100 dark:bg-green-300 border border-green-200 rounded"></div>
                 <span>Won</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
+                <div className="w-3 h-3 bg-red-100 dark:bg-red-300 border border-red-200 rounded"></div>
                 <span>Lost</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded"></div>
+                <div className="w-3 h-3 bg-gray-50 border border-gray-200  dark:border-gray-800 rounded"></div>
                 <span>No Game</span>
               </div>
               {gameMode === 'player-guesses' && (
