@@ -67,10 +67,11 @@ describe('PlayerGuessesGame', () => {
     render(<PlayerGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
 
-    expect(mockProps.setStarted).toHaveBeenCalledWith(true);
+    // The component should enter a loading state right away.
     expect(mockProps.setLoading).toHaveBeenCalledWith(true);
 
     await waitFor(() => {
+      expect(mockProps.setStarted).toHaveBeenCalledWith(true);
       expect(mockProps.setSessionId).toHaveBeenCalledWith('test-session-id');
       expect(mockProps.setGameMessage).toHaveBeenCalledWith("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
       expect(mockProps.setLoading).toHaveBeenCalledWith(false);

@@ -53,12 +53,10 @@ function AIGuessesGame({
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const startGameAI = async () => {
+    // Clear any previous error state so the banner disappears immediately.
     setErrorMessage(null);
-    setStarted(true);
-    setQuestionCount(0);
-    setChatHistory([]);
+    // Show a pending state while we contact the backend.
     setLoading(true);
-    setGameMessage("Okay, let's begin! I'll ask my first question.");
 
     try {
       const response = await fetch(`${getApiUrl()}/ai-guesses/start`, {
@@ -77,18 +75,23 @@ function AIGuessesGame({
       const data = await response.json();
       const { sessionId: newSessionId, aiResponse, questionCount: newQuestionCount } = data;
 
+      // ✅ Only update the UI to *started* after a successful response.
+      setStarted(true);
       setSessionId(newSessionId);
       setQuestionCount(newQuestionCount);
-      setGameMessage("Your turn to answer!");
 
-      setChatHistory((prevHistory) => [
-        ...prevHistory,
+      // Reset chat history for the brand-new game session.
+      setChatHistory([
         { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
+
+      setGameMessage("Your turn to answer!");
 
     } catch (error: unknown) {
       const err = error as Error;
       setErrorMessage(`Error starting game: ${err.message}`);
+      // Roll back optimistic flag in case it was toggled previously.
+      setStarted(false);
     } finally {
       setLoading(false);
     }
@@ -168,7 +171,7 @@ function AIGuessesGame({
       {errorMessage && (
         <ErrorBanner
           message={errorMessage}
-          onRetry={() => setErrorMessage(null)}
+          onClose={() => setErrorMessage(null)}
         />
       )}
 

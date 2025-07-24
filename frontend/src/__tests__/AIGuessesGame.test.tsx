@@ -69,10 +69,13 @@ describe('AIGuessesGame', () => {
     render(<AIGuessesGame {...mockProps} />);
     fireEvent.click(screen.getByText('Start Game'));
 
-    expect(mockProps.setStarted).toHaveBeenCalledWith(true);
+    // Loading indicator should appear immediately.
     expect(mockProps.setLoading).toHaveBeenCalledWith(true);
 
+    // The game should only transition to *started* state after the fetch
+    // succeeds.
     await waitFor(() => {
+      expect(mockProps.setStarted).toHaveBeenCalledWith(true);
       expect(mockProps.setSessionId).toHaveBeenCalledWith('test-session-id');
       expect(mockProps.setLoading).toHaveBeenCalledWith(false);
     });

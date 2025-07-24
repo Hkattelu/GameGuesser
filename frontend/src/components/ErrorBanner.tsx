@@ -6,9 +6,12 @@ interface ErrorBannerProps {
    */
   message: string;
   /**
-   * Optional click handler invoked when the user presses the Retry button.
+   * Optional click handler invoked when the user presses the Close button.
+   *
+   * Callers typically pass a `() => setErrorMessage(null)` lambda to clear the
+   * banner, but any custom behaviour can be supplied.
    */
-  onRetry?: () => void;
+  onClose?: () => void;
 }
 
 /**
@@ -18,7 +21,7 @@ interface ErrorBannerProps {
 * optional *Retry* button so users can quickly attempt the failed action
 * again without reloading the entire page.
 */
-function ErrorBanner({ message, onRetry }: ErrorBannerProps) {
+function ErrorBanner({ message, onClose }: ErrorBannerProps) {
   return (
     <div
       role="alert"
@@ -26,12 +29,12 @@ function ErrorBanner({ message, onRetry }: ErrorBannerProps) {
       className="flex items-center justify-between bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
     >
       <span className="flex-1 pr-4">{message}</span>
-      {onRetry && (
+      {onClose && (
         <button
-          onClick={onRetry}
+          onClick={onClose}
           className="ml-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded"
         >
-          Retry
+          Close
         </button>
       )}
     </div>

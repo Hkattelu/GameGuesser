@@ -72,13 +72,10 @@ function PlayerGuessesGame({
    *   started.
    */
   const startGamePlayerGuesses = async () => {
+    // Clear any previous error so the banner disappears, then show a loading
+    // state while we contact the backend.
     setErrorMessage(null);
-    setStarted(true);
-    setQuestionCount(0);
-    setChatHistory([]);
     setLoading(true);
-    setSessionId(null);
-    setGameMessage("I'm thinking of a game. Please wait...");
 
     try {
       const response = await fetch(`${getApiUrl()}/player-guesses/start`, {
@@ -95,11 +92,19 @@ function PlayerGuessesGame({
       }
 
       const data = await response.json();
+
+      // ✅ Only mark the game as started after getting a positive response.
+      setStarted(true);
+      setQuestionCount(0);
+      setChatHistory([]);
+
       setSessionId(data.sessionId);
       setGameMessage("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
     } catch (error: unknown) {
       const err = error as Error;
       setErrorMessage(`Error starting the game: ${err.message}`);
+      // Ensure the user can try again if the backend call fails.
+      setStarted(false);
     } finally {
       setLoading(false);
     }
@@ -226,9 +231,8 @@ function PlayerGuessesGame({
       {errorMessage && (
         <ErrorBanner
           message={errorMessage}
-          onRetry={() => {
-            // Simply clear the error – the player can click the same action
-            // button again (start or submit) to retry.
+          onClose={() => {
+            // Clear the error banner. The user can simply try the action again.
             setErrorMessage(null);
           }}
         />
