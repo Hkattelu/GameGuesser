@@ -158,10 +158,10 @@ function PlayerGuessesGame({
       } else if (type === 'guessResult') {
         const { correct, response, score, usedHint } = content as any;
         if (correct) {
-          endGame(`You guessed it! The game was ${response}.`, true);
+          endGame(response, true);
           setChatHistory((prevHistory) => [
             ...prevHistory,
-            { role: 'model', parts: [{ text: `You guessed it! The game was ${response}.` }] },
+            { role: 'model', parts: [{ text: response }] },
           ]);
         } else if (typeof score === 'number' && score > 0) {
           setGameMessage(`Close! ${response} (${score} pts)${usedHint ? ' - Hint used' : ''}`);

@@ -112,10 +112,11 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     session.chatHistory,
   );
 
+  jsonResponse.questionCount = session.questionCount;
   if (jsonResponse.type === 'guessResult') {
     const isCorrect = jsonResponse.content.correct;
     jsonResponse.content.usedHint = session.usedHint || false;
-    jsonResponse.content.score = isCorrect ? (session.usedHint ? 1 : 0.5) : 0;
+    jsonResponse.content.score = isCorrect ? (session.usedHint ? .5 : 1) : 0;
   }
 
   session.chatHistory.push({
