@@ -22,7 +22,7 @@ export interface ConversationHistoryProps {
 function formatMessages(messages: ChatMessage[], gameMode: GameMode): ChatTurn[] {
   const turns: ChatTurn[] = [];
 
-  const filteredMessages = messages.filter(message => message.role !== 'system');
+  const filteredMessages = (messages || []).filter(message => message.role !== 'system');
 
   if (gameMode === 'player-guesses') {
     for (let i = 0; i < filteredMessages.length; i++) {
@@ -132,12 +132,14 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
         id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
         className={`${containerClasses} flex justify-center items-center`}
       >
-        <LoadingIndicator />
+        <div className="flex flex-col items-center justify-center h-screen text-xl">
+          <p className="mt-4 text-gray-600 dark:text-gray-300 animate-pulse"></p>
+        </div>
       </div>
     );
   }
 
-  if (chatHistory.filter(message => message.role !== 'system').length === 0) {
+  if (chatHistory?.filter(message => message.role !== 'system').length === 0) {
     return null;
   }
 

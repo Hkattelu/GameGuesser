@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router';
 
-import AuthPage from './AuthPage';
 import SettingsButton from './components/SettingsButton';
 import LoadingIndicator from './components/LoadingIndicator';
 
@@ -10,12 +9,9 @@ import { wrapNavigate } from './utils/transition-utils';
 import './styles/startScreen.css';
 import { getApiUrl } from './env_utils';
 import { isGameCompleted } from './utils/gameCompletion';
-import { useTokenInvalidation } from './utils/useTokenInvalidation';
 
-interface AuthPayload {
-  token: string;
-  username: string;
-}
+import { useAuth } from './AuthContext';
+import { auth } from './firebase';
 
 /**
  * The StartScreen is shown when a user first visits `/`.
@@ -28,13 +24,7 @@ interface AuthPayload {
  * handled by the router.
  */
 function StartScreen() {
-  // Pull any previously stored credentials so page refreshes stay logged-in.
-  const [token, setToken] = useState<string | null>(
-    typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null,
-  );
-  const [username, setUsername] = useState<string | null>(
-    typeof localStorage !== 'undefined' ? localStorage.getItem('username') : null,
-  );
+  const { currentUser } = useAuth();
   const mouseWatchArea = useRef(null);
   const leftEye = useRef(null);
   const rightEye = useRef(null);
@@ -45,28 +35,14 @@ function StartScreen() {
 
   const navigate = wrapNavigate(useNavigate());
 
-  const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
-    setToken(newToken);
-    setUsername(newUsername);
-
-    // If the token was obtained after an expiration, restore the user's last
-    // location (if it still exists and is routable) then clear the flag so it
-    // does not persist across refreshes.
-    const redirectPath = localStorage.getItem('postLoginRedirect');
-    if (redirectPath) {
-      localStorage.removeItem('postLoginRedirect');
-      navigate(redirectPath as any);
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      // No need to navigate here, AuthWrapper will handle it
+    } catch (err) {
+      console.error("Error signing out:", err);
     }
   };
-
-  const handleLogout = async () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    handleAuth({token: null, username: null});
-  };
-
-  // Listen for global token invalidation events and log the user out.
-  useTokenInvalidation(handleLogout);
 
   const handleSelectGame = (path: '/ai-guesses' | '/player-guesses') => {
     const direction = path === '/ai-guesses' ? 'left' : 'right';
@@ -75,12 +51,16 @@ function StartScreen() {
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const today = new Date().toISOString().slice(0, 10);
     const maxQuestions = 20;
     const fetchCompletion = async (gameType: 'ai-guesses' | 'player-guesses', setter: (b: boolean) => void) => {
       try {
+        const token = await currentUser.getIdToken();
         const response = await fetch(`${getApiUrl()}/game-state?gameMode=${gameType}&date=${today}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -105,7 +85,7 @@ function StartScreen() {
       fetchCompletion('ai-guesses', setAIGuessesCompletedToday),
       fetchCompletion('player-guesses', setPlayerGuessesCompletedToday),
     ]).finally(() => setLoading(false));
-  }, [token]);
+  }, [currentUser]);
 
   useEffect(() => {
     const moveEye = (eye: HTMLElement, event: MouseEvent) => {
@@ -132,10 +112,6 @@ function StartScreen() {
       }
     };
   });
-
-  if (!token) {
-    return <AuthPage onAuth={handleAuth} />;
-  }
 
   if (loading) {
     return <LoadingIndicator />;
@@ -167,7 +143,7 @@ function StartScreen() {
         <h1 className="text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
           {AI_NAME}'s Arcade
         </h1>
-        <p className="text-lg mb-8">Welcome, {username}! Choose a game to play!</p>
+        <p className="text-lg mb-8">Welcome, {currentUser?.displayName || currentUser?.email || 'Guest'}! Choose a game to play!</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">

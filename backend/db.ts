@@ -90,7 +90,7 @@ export async function saveConversationMessage(
   content: string,
 ): Promise<void> {
   await conversationsCol.add({
-    user_id: userId || null,
+    user_id: userId === undefined ? null : userId,
     session_id: sessionId,
     game_type: gameType,
     role,
@@ -107,11 +107,8 @@ export async function getConversationHistory(
   userId: string | undefined,
   date?: string,
 ): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[]> {
-  let query = conversationsCol.where('user_id', '==', userId);
-
-  if (!userId) {
-    query = conversationsCol.where('user_id', '==', null);
-  }
+  const queryUserId = userId === undefined ? null : userId;
+  let query = conversationsCol.where('user_id', '==', queryUserId);
 
   if (date) {
     const startOfDay = new Date(date);
@@ -164,11 +161,8 @@ export async function getGameHistory(
   startDate?: string,
   endDate?: string,
 ): Promise<GameSession[]> {
-  let query = conversationsCol.where('user_id', '==', userId);
-
-  if (!userId) {
-    query = conversationsCol.where('user_id', '==', null);
-  }
+  const queryUserId = userId === undefined ? null : userId;
+  let query = conversationsCol.where('user_id', '==', queryUserId);
 
   if (startDate && endDate) {
     const start = new Date(startDate);
@@ -363,25 +357,14 @@ export async function getLatestSession(
   const endOfDay = new Date(date);
   endOfDay.setUTCHours(23, 59, 59, 999);
 
+  const queryUserId = userId === undefined ? null : userId;
   let query = conversationsCol
-    .where('user_id', '==', userId)
+    .where('user_id', '==', queryUserId)
     .where('game_type', '==', gameType)
     .where('created_at', '>=', Timestamp.fromDate(startOfDay))
     .where('created_at', '<=', Timestamp.fromDate(endOfDay))
     .orderBy('created_at', 'desc')
     .limit(1);
-
-
-  // This should never happen.
-  if (!userId) {
-    query = conversationsCol
-      .where('user_id', '==', null)
-      .where('game_type', '==', gameType)
-      .where('created_at', '>=', Timestamp.fromDate(startOfDay))
-      .where('created_at', '<=', Timestamp.fromDate(endOfDay))
-      .orderBy('created_at', 'desc')
-      .limit(1);
-  }
 
   const snap = await query.get();
 

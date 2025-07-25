@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import ConfettiExplosion from "react-confetti-explosion";
 
-import AuthPage from './AuthPage';
 import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 import MascotImage from './components/MascotImage';
-import RulesIcon from './components/RulesIcon'; // Import RulesIcon
+import RulesIcon from './components/RulesIcon';
 import GameResultsDialog from './components/GameResultsDialog';
 import GameHistoryCalendar from './components/GameHistoryCalendar';
 import SettingsButton from './components/SettingsButton';
@@ -17,39 +16,16 @@ import { isGameCompleted } from './utils/gameCompletion';
 import { MAX_QUESTIONS } from './constants';
 import { getApiUrl } from './env_utils';
 import { wrapNavigate } from './utils/transition-utils';
-import { useTokenInvalidation } from './utils/useTokenInvalidation';
 
-interface AuthPayload {
-  token: string;
-  username: string;
-}
+import { useAuth } from './AuthContext';
+import { auth } from './firebase'; // Import auth for signOut
 
-interface AppProps {
-  /**
-   * Optional callback to navigate back to the home / start screen. When
-   * provided the component will call this callback on logout instead of
-   * using React-Router's `useNavigate` to push `/`. This lets the component
-   * be rendered in isolation (e.g. in unit tests or Storybook) without
-   * requiring a Router context.
-   */
-  onNavigateHome?: () => void;
-}
-
-function App({
-  onNavigateHome,
-}: AppProps) {
-  // Authentication state
-  const [token, setToken] = useState<string | null>(
-    typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null,
-  );
-  const [username, setUsername] = useState<string | null>(
-    typeof localStorage !== 'undefined' ? localStorage.getItem('username') : null,
-  );
+function App() {
+  const { currentUser } = useAuth();
 
   const location = useLocation();
   const initialGameMode = location.pathname.includes('player-guesses') ? 'player-guesses' : 'ai-guesses';
 
-  // Game-specific state
   const [gameMode, setGameMode] = useState<GameMode>(initialGameMode);
   const [started, setStarted] = useState<boolean>(false);
   const [victory, setVictory] = useState<boolean>(false);
@@ -65,9 +41,21 @@ function App({
   const [aiGuessesCompletedToday, setAIGuessesCompletedToday] = useState<boolean>(false);
   const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
   const [confidence, setConfidence] = useState<number | undefined>(undefined);
-  // Track whether the player used a hint and the final score (for player-guesses mode).
   const [usedHint, setUsedHint] = useState<boolean | undefined>(undefined);
   const [score, setScore] = useState<number | undefined>(undefined);
+  const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getToken = async () => {
+      if (currentUser) {
+        const token = await currentUser.getIdToken();
+        setFirebaseToken(token);
+      } else {
+        setFirebaseToken(null);
+      }
+    };
+    getToken();
+  }, [currentUser]);
 
   const handleGameCompletion = (mode: GameMode) => {
     if (mode === 'ai-guesses') {
@@ -76,31 +64,18 @@ function App({
       setPlayerGuessesCompletedToday(true);
     }
   };
-  // ---------------- Authentication helpers ----------------
-  const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
-    setToken(newToken);
-    setUsername(newUsername);
-  };
 
   const navigate = wrapNavigate(useNavigate());
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    setToken(null);
-    setUsername(null);
-    resetGame();
-    // Navigate back to the StartScreen once the user logs out.
-    if (onNavigateHome) {
-      onNavigateHome();
-    } else {
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      resetGame();
       navigate('/');
+    } catch (err) {
+      console.error("Error signing out:", err);
     }
-
   };
-
-  // Logout automatically when the backend returns HTTP 401 for any request.
-  useTokenInvalidation(handleLogout);
 
   /** Returns the mascot image URL appropriate for the current UI state. */
   const getMascotMood = () => {
@@ -140,10 +115,19 @@ function App({
 
   // Load conversation history and check completion when the user logs-in or game mode changes
   useEffect(() => {
-    if (!token) return;
+    if (!currentUser) {
+      setChatHistory([]);
+      setSessionId(null);
+      setQuestionCount(0);
+      setStarted(false);
+      setAIGuessesCompletedToday(false);
+      setPlayerGuessesCompletedToday(false);
+      return;
+    }
 
     const fetchGameState = async () => {
       try {
+        const token = await currentUser.getIdToken();
         const response = await fetch(`${getApiUrl()}/game-state?gameMode=${gameMode}&date=${new Date().toISOString().slice(0, 10)}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -158,7 +142,7 @@ function App({
         const gameState = await response.json();
 
         if (gameState) {
-          const history = gameState.chatHistory.map((r) => ({
+          const history = gameState.chatHistory.map((r: any) => ({
             role: r.role,
             parts: [{ text: r.content }],
             gameType: r.game_type,
@@ -169,7 +153,6 @@ function App({
           setStarted(true);
           setConfidence(gameState.confidence);
 
-          // Check completion for both game types
           const completed = isGameCompleted(gameMode, history, gameState.questionCount, maxQuestions);
           if (gameMode === 'ai-guesses') setAIGuessesCompletedToday(completed);
           if (gameMode === 'player-guesses') setPlayerGuessesCompletedToday(completed);
@@ -178,27 +161,24 @@ function App({
           setSessionId(null);
           setQuestionCount(0);
           setStarted(false);
-          if (gameMode === 'ai-guesses') setAIGuessesCompletedToday(false);
-          if (gameMode === 'player-guesses') setPlayerGuessesCompletedToday(false);
+          setAIGuessesCompletedToday(false);
+          setPlayerGuessesCompletedToday(false);
         }
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('Error fetching game state', err);
         setChatHistory([]);
         setSessionId(null);
         setQuestionCount(0);
         setStarted(false);
-        if (gameMode === 'ai-guesses') setAIGuessesCompletedToday(false);
-        if (gameMode === 'player-guesses') setPlayerGuessesCompletedToday(false);
+        setAIGuessesCompletedToday(false);
+        setPlayerGuessesCompletedToday(false);
       }
     };
 
     fetchGameState();
-  }, [token, gameMode, maxQuestions]);
+  }, [currentUser, gameMode, maxQuestions]);
 
-  if (!token) {
-    return <AuthPage onAuth={handleAuth} />;
-  }
+
 
   return (
     <>
@@ -264,15 +244,15 @@ function App({
           victory={victory}
           maxQuestions={maxQuestions}
           sessionId={sessionId}
-          username={username}
+          username={currentUser?.displayName || 'Guest'}
           score={score}
           usedHint={usedHint}
         />
       )}
-      
+
       {showHistory && (
         <GameHistoryCalendar
-          token={token}
+          token={firebaseToken}
           gameMode={gameMode}
           isOpen={showHistory}
           onClose={() => setShowHistory(false)}
@@ -281,7 +261,7 @@ function App({
 
       {gameMode === 'ai-guesses' && (
         <AIGuessesGame
-          token={token}
+          token={firebaseToken}
           gameMode={gameMode}
           preGame={false}
           started={started}
@@ -308,7 +288,7 @@ function App({
 
       {gameMode === 'player-guesses' && (
         <PlayerGuessesGame
-          token={token}
+          token={firebaseToken}
           gameMode={gameMode}
           preGame={false}
           started={started}
@@ -333,7 +313,7 @@ function App({
           onGameCompleted={() => handleGameCompletion('player-guesses')}
         />
       )}
-      
+
       {((gameMode === 'player-guesses' && playerGuessesCompletedToday) ||
        (gameMode === 'ai-guesses' && aiGuessesCompletedToday)) && (
         <button

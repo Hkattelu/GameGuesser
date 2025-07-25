@@ -58,20 +58,3 @@ export type AIJsonResponse = z.infer<typeof AIJsonResponseSchema>;
 
 // Literal union shared with the frontend for button rendering.
 export type ResponseOption = 'Yes' | 'No' | 'Unsure';
-
-// Re-export everything from the canonical shared module so downstream imports
-// can gradually move over while still relying on this file.
-
-// -----------------------------------------------------------------------
-// Augment Express `Request` so that `req.user` is recognised everywhere.
-// -----------------------------------------------------------------------
-
-declare global {
-  namespace Express {
-    export interface Request {
-      user?: {
-        username: string;
-      };
-    }
-  }
-}

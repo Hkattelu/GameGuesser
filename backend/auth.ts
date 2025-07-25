@@ -1,104 +1,30 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { OAuth2Client } from 'google-auth-library';
-
-import { createUser, findUserByUsername } from './db.js';
+import admin from './firebaseAdmin.js';
 import './types.js';
 
-const oAuth2Client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-export interface UserJwtPayload {
-  username: string;
-  isGuest: boolean;
-};
-
-const isProd = process.env.NODE_ENV === 'production';
-
-if (!process.env.JWT_SECRET && isProd) {
-  throw new Error('JWT_SECRET must be configured in production');
-}
-
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-game-boy-key';
-
-export async function register(username: string, password: string): Promise<string> {
-  if (!username || !password) throw new Error('Username and password required');
-
-  const existing = await findUserByUsername(username);
-  if (existing) throw new Error('Username already taken');
-
-  const passwordHash = bcrypt.hashSync(password, 10);
-  await createUser(username, passwordHash);
-  return generateToken({ username, isGuest: false });
-}
-
-export async function login(username: string, password: string): Promise<string> {
-  const user = await findUserByUsername(username);
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    throw new Error('Invalid credentials');
-  }
-  return generateToken({ username: user.username, isGuest: false });
-}
-
-export function generateGuestToken(): string {
-  return generateToken({ isGuest: true, username: 'guest' });
-}
-
-export async function oidcAuth(token: string): Promise<{ token: string; username: string }> {
-  try {
-    const ticket = await oAuth2Client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-    if (!payload || !payload.email) {
-      throw new Error('Invalid OIDC token payload');
+declare global {
+  namespace Express {
+    interface Request {
+      user?: admin.auth.DecodedIdToken;
     }
-    const username = payload.email;
-    // In a real app, you might want to create a user in your DB here if they don't exist
-    // For this example, we'll just generate a token for them
-    const appToken = generateToken({ username, isGuest: false });
-    return { token: appToken, username };
-  } catch (error) {
-    console.error('Error verifying OIDC token:', error);
-    throw new Error('Invalid OIDC token');
   }
 }
 
-function generateToken(payload: UserJwtPayload): string {
-  // Token valid for 7 days, plenty for a casual web game.
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
-}
-
-// Express-style middleware – validates the Bearer token and populates req.user.
 import type { Request, Response, NextFunction } from 'express';
 
-/**
- * Express middleware that authenticates a request using a JWT Bearer token.
- * 
- * Extracts the Bearer token from the Authorization header and verifies it
- * using the server's secret key. If the token is valid, the decoded payload
- * is attached to `req.user`. If the token is missing or invalid, a 401
- * Unauthorized response is sent.
- * 
- * @param {Request} req - The Express request object, expected to have an Authorization header.
- * @param {Response} res - The Express response object, used to send a response in case of error.
- * @param {NextFunction} next - The next middleware function in the stack.
- */
-export function authenticateToken(req: Request, res: Response, next: NextFunction) {
+export async function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Missing token' });
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err || !user) return res.status(401).json({ error: 'Invalid token' });
+  if (!token) {
+    return res.status(401).json({ error: 'Missing token' });
+  }
 
-    const payload = user as UserJwtPayload;
-    if (payload.isGuest) {
-      req.user = payload;
-      return next();
-    }
-
-    req.user = payload;
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
     next();
-  });
+  } catch (error) {
+    console.error('Error verifying Firebase ID token:', error);
+    return res.status(403).json({ error: 'Invalid token' });
+  }
 }

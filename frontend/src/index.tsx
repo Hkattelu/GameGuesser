@@ -2,25 +2,24 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 
-import StartScreen from './StartScreen';
+import { AuthProvider } from './AuthContext';
 import App from './App';
+import AuthWrapper from './AuthWrapper';
 import ProtectedRoute from './ProtectedRoute';
 
 import './index.css';
 
-// Install the global 401 interceptor *before* any other imports that might
-// issue network requests during module evaluation. This ensures we never miss
-// an early unauthorized response.
 import { setupGlobalUnauthorizedInterceptor } from './utils/fetchInterceptor';
 
 setupGlobalUnauthorizedInterceptor();
 
-function Root() {
-  return (
-    <React.StrictMode>
-      <BrowserRouter>
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+root.render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<StartScreen />} />
+          <Route path="/" element={<AuthWrapper />} />
 
           {/* Game routes (protected) */}
           <Route
@@ -43,10 +42,8 @@ function Root() {
           {/* Catch-all – redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
-    </React.StrictMode>
-  );
-}
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-root.render(<Root />);

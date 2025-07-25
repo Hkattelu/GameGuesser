@@ -25,6 +25,8 @@
     "dailyGameStore.ts",
     "db.ts",
     "game.ts",
+    "firebaseAdmin.ts",
+    "firebase-admin-keys.json",
     "prompts.ts",
     "rawg.ts",
     "rawgDetails.ts",
