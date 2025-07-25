@@ -2,6 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 
+// Install global fetch wrapper **before** any component mounts so that all
+// network requests are automatically monitored for session expiry.
+import { setupSessionExpiredHandler } from './utils/sessionExpiredHandler';
+
+setupSessionExpiredHandler();
+
 import StartScreen from './StartScreen';
 import App from './App';
 import ProtectedRoute from './ProtectedRoute';
