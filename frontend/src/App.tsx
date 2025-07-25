@@ -16,6 +16,7 @@ import { isGameCompleted } from './utils/gameCompletion';
 import { MAX_QUESTIONS } from './constants';
 import { getApiUrl } from './env_utils';
 import { wrapNavigate } from './utils/transition-utils';
+import { useTokenInvalidation } from './utils/useTokenInvalidation';
 
 interface AuthPayload {
   token: string;
@@ -91,7 +92,11 @@ function App({
     } else {
       navigate('/');
     }
+
   };
+
+  // Logout automatically when the backend returns HTTP 401 for any request.
+  useTokenInvalidation(handleLogout);
 
   /** Returns the mascot image URL appropriate for the current UI state. */
   const getMascotMood = () => {

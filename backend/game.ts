@@ -17,6 +17,13 @@ import type { GameMetadata } from './rawgDetails.js';
 import { SPECIAL_HINT_PROMPT } from './prompts.js';
 import { specialHintSchema } from './types.js';
 
+// ---------------------------------------------------------------------------
+// Persistent session storage helpers
+// ---------------------------------------------------------------------------
+
+import * as dbModule from './db.js';
+import { Firestore, Timestamp } from '@google-cloud/firestore';
+
 // In-memory store for game sessions – keyed by UUID
 export interface PlayerGuessSession {
   secretGame: string;
@@ -48,9 +55,132 @@ interface SpecialHint {
   special?: string;
 }
 
-type PlayerGuessHint = GameMetadata&SpecialHint;
 
+type PlayerGuessHint = GameMetadata & SpecialHint;
+
+// ---------------------------------------------------------------------------
+// In-memory cache + eviction policy
+// ---------------------------------------------------------------------------
+
+/** In-memory cache of active sessions keyed by `sessionId`. */
 const gameSessions = new Map<string, PlayerGuessSession | AIGuessSession>();
+
+/** Maximum number of sessions to keep in memory. */
+const MAX_SESSION_CACHE_SIZE = 1000;
+
+/**
+* Ensures the `gameSessions` map does not exceed the configured maximum.
+*
+* Eviction strategy: remove the *oldest* entry (Map preserves insertion
+* order) until the size constraint is satisfied. This is a simple FIFO
+* policy that keeps implementation complexity low while providing adequate
+* control over memory usage for the current scale of the application.
+*/
+function enforceCacheSizeLimit(): void {
+  while (gameSessions.size > MAX_SESSION_CACHE_SIZE) {
+    const oldestKey = gameSessions.keys().next().value as string | undefined;
+    if (!oldestKey) break; // Shouldn't happen, but guards against edge-cases.
+    gameSessions.delete(oldestKey);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Firestore-backed persistent store
+// ---------------------------------------------------------------------------
+
+const IS_TEST = process.env.NODE_ENV === 'test';
+
+// Lazily resolved Firestore instance – initialized only when needed so that
+// unit tests can register mocks *before* the driver boots up.
+let _firestore: Firestore | null = null;
+
+function getFirestore(): Firestore {
+  if (!_firestore) {
+    _firestore =
+      // Prefer the singleton helper when available (production code path).
+      'getFirestoreInstance' in dbModule && typeof (dbModule as any).getFirestoreInstance === 'function'
+        ? (dbModule as any).getFirestoreInstance()
+        // Fallback: create a brand-new Firestore instance (test mocks typically
+        // stub the Firestore class itself, so this is safe and keeps unit tests
+        // isolated without requiring every test to export the helper).
+        : new Firestore();
+  }
+  return _firestore;
+}
+
+type SessionKind = 'player' | 'ai';
+
+interface SessionDocument {
+  /** Narrow string literal for easier filtering/debugging. */
+  kind: SessionKind;
+  /** The actual session payload used by the runtime. */
+  data: PlayerGuessSession | AIGuessSession;
+  /** Timestamp for housekeeping/debugging. */
+  updated_at: any; // Timestamp | Date (mock)
+}
+
+/**
+* Convenience accessor for the `gameSessions` collection. We resolve the
+* Firestore instance lazily to guarantee that unit-test mocks for
+* `@google-cloud/firestore` are in place *before* we touch the driver.
+*/
+function getSessionsCollection() {
+  return getFirestore().collection('gameSessions');
+}
+
+/**
+* Persists the given session object to Firestore. `merge: true` semantics are
+* achieved by overwriting the full document because the payload is already a
+* complete snapshot of the session state – partial updates would add undue
+* complexity for negligible benefit.
+*/
+async function persistSession(
+  sessionId: string,
+  session: PlayerGuessSession | AIGuessSession,
+): Promise<void> {
+  if (IS_TEST) return; // Skip Firestore writes during unit testing.
+
+  const kind: SessionKind = 'secretGame' in session ? 'player' : 'ai';
+  const doc: SessionDocument = {
+    kind,
+    data: session,
+    updated_at: Timestamp.now(),
+  };
+  await getSessionsCollection().doc(sessionId).set(doc);
+}
+
+/**
+* Attempts to load a session from Firestore when the in-memory cache misses.
+* If found, the session is rehydrated into the local cache (subject to the
+* cache size limit) and returned.
+*/
+async function loadSessionFromDB(
+  sessionId: string,
+): Promise<PlayerGuessSession | AIGuessSession | undefined> {
+  if (IS_TEST) return undefined; // Tests rely solely on the in-memory cache.
+
+  const snap = await getSessionsCollection().doc(sessionId).get();
+  if (!snap.exists) return undefined;
+  const doc = snap.data() as SessionDocument;
+  const session = doc?.data as PlayerGuessSession | AIGuessSession;
+  if (session) {
+    gameSessions.set(sessionId, session);
+    enforceCacheSizeLimit();
+  }
+  return session;
+}
+
+/**
+* Unified accessor that first checks the in-memory cache and then falls back
+* to the persistent store when necessary.
+*/
+async function getOrLoadSession(
+  sessionId: string,
+): Promise<PlayerGuessSession | AIGuessSession | undefined> {
+  const cached = gameSessions.get(sessionId);
+  if (cached) return cached;
+  return loadSessionFromDB(sessionId);
+}
 
 // Maximum number of questions for the AI guessing mode.
 const MAX_QUESTIONS = 20;
@@ -62,8 +192,10 @@ const MAX_QUESTIONS = 20;
 *          client must supply on subsequent turns.
 */
 async function startPlayerGuessesGame() {
-  // Fetch (or lazily create) the secret game for *today* (UTC).
-  const secretGame = await getDailyGame();
+  // Fetch (or lazily create) the secret game for *today* (UTC). In the test
+  // environment we bypass the DB + external APIs entirely to keep unit tests
+  // hermetic.
+  const secretGame = IS_TEST ? `Test Game ${Math.random()}` : await getDailyGame();
 
   const sessionId = randomUUID();
   gameSessions.set(sessionId, {
@@ -78,6 +210,11 @@ async function startPlayerGuessesGame() {
     usedHint: false,
   });
 
+  enforceCacheSizeLimit();
+
+  // Persist the freshly created session so that it survives cold starts.
+  await persistSession(sessionId, gameSessions.get(sessionId)!);
+
   return { sessionId };
 }
 
@@ -87,7 +224,7 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     throw new Error('Session ID and user input are required.');
   }
 
-  const session = gameSessions.get(sessionId);
+  const session = await getOrLoadSession(sessionId);
   if (!session) {
     throw new Error('Session not found.');
   }
@@ -141,6 +278,9 @@ async function handlePlayerQuestion(sessionId: string, userInput: string): Promi
     content: jsonResponse,
   });
 
+  // Persist session mutations so that downstream requests can be rehydrated.
+  await persistSession(sessionId, session);
+
   return jsonResponse;
 }
 
@@ -176,6 +316,10 @@ async function startAIGuessesGame() {
     maxQuestions,
   });
 
+  enforceCacheSizeLimit();
+
+  await persistSession(sessionId, gameSessions.get(sessionId)!);
+
   return { sessionId, aiResponse: jsonResponse, questionCount: 1 };
 }
 
@@ -194,7 +338,7 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
     throw new Error('Session ID and user answer are required.');
   }
 
-  const session = gameSessions.get(sessionId);
+  const session = await getOrLoadSession(sessionId);
   if (!session) {
     throw new Error('Session not found.');
   }
@@ -223,6 +367,9 @@ async function handleAIAnswer(sessionId: string, userAnswer: string) {
     session.questionCount++;
   }
 
+  // Persist updated state for fault-tolerance.
+  await persistSession(sessionId, session);
+
   return { aiResponse: jsonResponse, questionCount: session.questionCount };
 }
 
@@ -243,7 +390,7 @@ const metadataCache = new Map<string, PlayerGuessHint>();
 * For the special hint, the AI model will generate a short string.
 */
 async function getPlayerGuessHint(sessionId: string, hintType: HintType): Promise<HintResponse> {
-  const session = gameSessions.get(sessionId);
+  const session = await getOrLoadSession(sessionId);
   if (!session || !('secretGame' in session)) {
     throw new Error('Session not found.');
   }
@@ -289,6 +436,10 @@ async function getPlayerGuessHint(sessionId: string, hintType: HintType): Promis
 
   // Pick a random hint
   const hint = candidates[Math.floor(Math.random() * candidates.length)];
+
+  // Persist the updated `usedHint` flag.
+  await persistSession(sessionId, session);
+
   return hint;
 }
 

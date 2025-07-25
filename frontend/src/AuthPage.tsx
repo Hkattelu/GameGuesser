@@ -12,6 +12,11 @@ function AuthPage({ onAuth }: AuthPageProps) {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
+  // Detect if the user landed here because their previous session expired.
+  const [sessionExpired, setSessionExpired] = useState(
+    typeof localStorage !== 'undefined' && localStorage.getItem('sessionExpired') === 'true',
+  );
+
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     setError(null);
@@ -35,6 +40,11 @@ function AuthPage({ onAuth }: AuthPageProps) {
       localStorage.setItem('token', token);
       localStorage.setItem('username', username);
 
+      // Clear any session-expired flag now that the user has successfully
+      // authenticated again.
+      localStorage.removeItem('sessionExpired');
+      setSessionExpired(false);
+
       onAuth({ token, username });
     } catch (err) {
       setError((err as Error).message);
@@ -50,6 +60,11 @@ function AuthPage({ onAuth }: AuthPageProps) {
       </h2>
 
       <form onSubmit={handleSubmit}>
+        {sessionExpired && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert" data-testid="session-expired-banner">
+            Your session has expired. Please log in again.
+          </div>
+        )}
         <div className="mb-4">
           <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="username">
             Username

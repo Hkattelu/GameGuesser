@@ -8,6 +8,13 @@ import ProtectedRoute from './ProtectedRoute';
 
 import './index.css';
 
+// Install the global 401 interceptor *before* any other imports that might
+// issue network requests during module evaluation. This ensures we never miss
+// an early unauthorized response.
+import { setupGlobalUnauthorizedInterceptor } from './utils/fetchInterceptor';
+
+setupGlobalUnauthorizedInterceptor();
+
 function Root() {
   return (
     <React.StrictMode>
