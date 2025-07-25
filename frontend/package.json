@@ -13,6 +13,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@react-oauth/google": "^0.12.2",
     "@tailwindcss/vite": "^4.1.11",
     "@vitejs/plugin-react": "^4.6.0",
     "react": "^18.2.0",
