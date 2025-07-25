@@ -89,9 +89,6 @@ function PlayerGuessesGame({
     setErrorMessage(null);
     setError(false);
     setLoading(true);
-    // Reset score and hint usage when a new game starts.
-    if (setScore) setScore(undefined);
-    if (setUsedHint) setUsedHint(undefined);
 
     try {
       const response = await fetch(`${getApiUrl()}/player-guesses/start`, {
@@ -108,6 +105,10 @@ function PlayerGuessesGame({
       }
 
       const data = await response.json();
+
+      // Only clear previous score/hint once a new session is successfully established.
+      if (setScore) setScore(undefined);
+      if (setUsedHint) setUsedHint(undefined);
 
       setStarted(true);
       setQuestionCount(0);
