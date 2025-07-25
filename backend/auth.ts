@@ -7,7 +7,10 @@ import './types.js';
 
 const oAuth2Client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export type UserJwtPayload = Record<'username', string> & Record<'isGuest', boolean> & Record<string, string>;
+export interface UserJwtPayload {
+  username: string;
+  isGuest: boolean;
+};
 
 const isProd = process.env.NODE_ENV === 'production';
 
