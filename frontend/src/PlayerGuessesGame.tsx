@@ -30,6 +30,14 @@ export interface PlayerGuessesGameProps {
   token?: string | null;
   gameCompletedToday?: boolean;
   onGameCompleted?: () => void;
+
+  /**
+   * Optional setters that allow this component to propagate the player's final
+   * score and whether a hint was used up to the parent component. These values
+   * are displayed in the GameResultsDialog.
+   */
+  setUsedHint?: React.Dispatch<React.SetStateAction<boolean | undefined>>;
+  setScore?: React.Dispatch<React.SetStateAction<number | undefined>>;
 }
 
 /** Shuffle an array of elements randomly. */
@@ -64,6 +72,8 @@ function PlayerGuessesGame({
   setError,
   gameCompletedToday = false,
   onGameCompleted,
+  setUsedHint,
+  setScore,
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
@@ -81,6 +91,9 @@ function PlayerGuessesGame({
     // Clear any previous error so the banner disappears, then show a loading
     // state while we contact the backend.
     setSessionId(null);
+    // Clear previous score / hint usage when starting a fresh game.
+    setUsedHint?.(undefined);
+    setScore?.(undefined);
     setErrorMessage(null);
     setError(false);
     setLoading(true);
@@ -178,6 +191,16 @@ function PlayerGuessesGame({
         }
       } else if (type === 'guessResult') {
         const { correct, response, score, usedHint } = content as PlayerGuessResponse;
+
+        // Bubble the results up to the parent so the GameResultsDialog can
+        // display them. Only update when the corresponding setter exists.
+        if (typeof usedHint !== 'undefined') {
+          setUsedHint?.(usedHint);
+        }
+        if (typeof score !== 'undefined') {
+          setScore?.(score);
+        }
+
         const finalMessage = `${response} (${score} pts)${usedHint ? ' - Hint used' : ''}`;
         if (correct) {
           endGame(finalMessage, true);
