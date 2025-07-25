@@ -89,7 +89,7 @@ function PlayerGuessesGame({
   gameCompletedToday = false,
   callbacks,
 }: PlayerGuessesGameProps) {
-  // --- Local, UI-only state -------------------------------------------------
+  // Local UI-only state
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [suggestions, setSuggestions] = useState(
     shuffleStrings(SUGGESTIONS).slice(0, MAX_SUGGESTIONS),
@@ -115,9 +115,7 @@ function PlayerGuessesGame({
     onGameCompleted,
   } = callbacks;
 
-  // -----------------------------------------------------------------------
   // Helper functions
-  // -----------------------------------------------------------------------
 
   /** Kick off a fresh session (POST /player-guesses/start). */
   const startGame = async () => {
@@ -273,13 +271,11 @@ function PlayerGuessesGame({
     setTimeout(() => setShowResults(true), 1500);
   };
 
-  // -----------------------------------------------------------------------
-  // JSX
-  // -----------------------------------------------------------------------
+  // Render
 
   return (
     <div id="player-guesses-game">
-      {/* Hint modal -------------------------------------------------------- */}
+      {/* Hint modal */}
       <HintDialog
         isOpen={isHintDialogOpen}
         onClose={() => setIsHintDialogOpen(false)}
@@ -287,7 +283,7 @@ function PlayerGuessesGame({
         token={token}
       />
 
-      {/* Error banner ------------------------------------------------------ */}
+      {/* Error banner */}
       {errorMessage && (
         <ErrorBanner
           message={errorMessage}
@@ -295,14 +291,14 @@ function PlayerGuessesGame({
         />
       )}
 
-      {/* Conversation feed -------------------------------------------------- */}
+      {/* Conversation feed */}
       <ConversationHistory
         chatHistory={chatHistory}
         gameMode={gameMode}
         loading={loading}
       />
 
-      {/* Question counter --------------------------------------------------- */}
+      {/* Question counter */}
       {started && !loading && !gameCompletedToday && (
         <div
           id="player-question-count"
@@ -312,7 +308,7 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      {/* Input + suggestion chips ------------------------------------------ */}
+      {/* Input and suggestion chips */}
       {started && !loading && !gameCompletedToday && (
         <>
           <div className="mb-6">
@@ -354,7 +350,7 @@ function PlayerGuessesGame({
         </>
       )}
 
-      {/* Pregame state ------------------------------------------------------ */}
+      {/* Pregame state */}
       {!started && !loading && !gameCompletedToday && (
         <button
           type="button"
