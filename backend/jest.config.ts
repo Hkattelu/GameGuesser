@@ -42,13 +42,24 @@ const config: JestConfigWithTsJest = {
   ],
   verbose: true,
 
+  // Register global mocks *after* the Jest environment is ready so helpers like
+  // `beforeAll` are already wired. We only rely on `jest.unstable_mockModule`,
+  // which works fine at this stage.
+  setupFilesAfterEnv: ['<rootDir>/testSetup.ts'],
+
   // Support TypeScript "NodeNext" style imports that append `.js` when
   // referencing `.ts` source files. The regexp strips the trailing `.js`
   // so Jest's resolver can locate the underlying `.ts` module during tests.
   // Without this, imports like "./db.js" fail because Jest looks for an actual
   // JavaScript file on disk instead of the source `.ts` file.
   moduleNameMapper: {
-    '^(\.{1,2}/.*)\.js$': '$1',
+    // Ignore any path that ends with `.cjs` – this prevents Jest from trying
+    // to strip the extension from package-internal files like `external.cjs`.
+    //
+    //   ./db.js            → ./db             ✅ stripped
+    //   ./v3/external.js  → ./v3/external    ✅ stripped
+    //   ./v3/external.cjs → *no match*        ❌ untouched
+    '^(\.{1,2}/(?:(?!\.cjs$).)*?)\.js$': '$1',
   },
 };
 
