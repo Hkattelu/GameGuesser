@@ -105,7 +105,7 @@ function getFirestore(): Firestore {
         // isolated without requiring every test to export the helper).
         : new Firestore();
   }
-  return _firestore;
+  return _firestore!;
 }
 
 type SessionKind = 'player' | 'ai';

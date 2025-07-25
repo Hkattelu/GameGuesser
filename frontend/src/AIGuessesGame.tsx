@@ -223,7 +223,7 @@ function AIGuessesGame({
         </button>
       )}
       {!started && gameCompletedToday && (
-        <div className="mt-8 text-lg text-gray-500 font-semibold">You have already played AI Guesses today. Come back tomorrow!</div>
+        <div className="mt-8 text-lg text-gray-500 font-semibold">You have already played Quiz Bot Guesses today. Come back tomorrow!</div>
       )}
     </div>
   );

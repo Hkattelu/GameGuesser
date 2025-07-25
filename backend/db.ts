@@ -83,14 +83,14 @@ export async function findUserByUsername(username: string): Promise<UserRow | un
  * sub-collection queries and keeps indexes simple.
  */
 export async function saveConversationMessage(
-  userId: string,
+  userId: string | undefined,
   sessionId: string,
   gameType: GameType,
   role: ConversationRow['role'],
   content: string,
 ): Promise<void> {
   await conversationsCol.add({
-    user_id: userId,
+    user_id: userId || null,
     session_id: sessionId,
     game_type: gameType,
     role,
@@ -104,10 +104,14 @@ export async function saveConversationMessage(
  * If no date is provided, it fetches conversations from all time.
  */
 export async function getConversationHistory(
-  userId: string,
+  userId: string | undefined,
   date?: string,
 ): Promise<Pick<ConversationRow, 'session_id' | 'role' | 'content' | 'created_at'>[]> {
   let query = conversationsCol.where('user_id', '==', userId);
+
+  if (!userId) {
+    query = conversationsCol.where('user_id', '==', null);
+  }
 
   if (date) {
     const startOfDay = new Date(date);
@@ -156,11 +160,15 @@ export interface GameSession {
  * Analyzes conversation history to extract game sessions and their outcomes.
  */
 export async function getGameHistory(
-  userId: string,
+  userId: string | undefined,
   startDate?: string,
   endDate?: string,
 ): Promise<GameSession[]> {
   let query = conversationsCol.where('user_id', '==', userId);
+
+  if (!userId) {
+    query = conversationsCol.where('user_id', '==', null);
+  }
 
   if (startDate && endDate) {
     const start = new Date(startDate);
@@ -330,7 +338,7 @@ export async function getRecentDailyGames(n: number): Promise<DailyGameRow[]> {
 }
 
 export async function getLatestSession(
-  userId: string,
+  userId: string | undefined,
   gameType: GameType,
   date: string,
 ): Promise<{ sessionId: string; questionCount: number; chatHistory: ConversationRow[] } | null> {
@@ -340,13 +348,23 @@ export async function getLatestSession(
   const endOfDay = new Date(date);
   endOfDay.setUTCHours(23, 59, 59, 999);
 
-  const query = conversationsCol
+  let query = conversationsCol
     .where('user_id', '==', userId)
     .where('game_type', '==', gameType)
     .where('created_at', '>=', Timestamp.fromDate(startOfDay))
     .where('created_at', '<=', Timestamp.fromDate(endOfDay))
     .orderBy('created_at', 'desc')
     .limit(1);
+
+  if (!userId) {
+    query = conversationsCol
+      .where('user_id', '==', null)
+      .where('game_type', '==', gameType)
+      .where('created_at', '>=', Timestamp.fromDate(startOfDay))
+      .where('created_at', '<=', Timestamp.fromDate(endOfDay))
+      .orderBy('created_at', 'desc')
+      .limit(1);
+  }
 
   const snap = await query.get();
 

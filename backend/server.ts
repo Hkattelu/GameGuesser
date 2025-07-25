@@ -11,7 +11,7 @@ import {
   getPlayerGuessHint,
   HintType,
 } from './game.js';
-import { authenticateToken, register, login } from './auth.js';
+import { authenticateToken, register, login, generateGuestToken, oidcAuth } from './auth.js';
 import {
   saveConversationMessage,
   getConversationHistory,
@@ -76,22 +76,45 @@ app.post('/auth/login', async (req: Request, res: Response) => {
   }
 });
 
-/**
- * Fetches the conversation history for the logged-in user. Can be filtered by
- * day by providing a `date=YYYY-MM-DD` query parameter.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- */
+app.post('/auth/guest', async (req: Request, res: Response) => {
+  try {
+    const token = generateGuestToken();
+    return res.json({ token });
+  } catch (err) {
+    return res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post('/auth/oidc', async (req: Request, res: Response) => {
+  const { token } = req.body as { token: string };
+  if (!token) return res.status(400).json({ error: 'Token is required' });
+
+  try {
+    const { token: appToken, username } = await oidcAuth(token);
+    return res.json({ token: appToken, username });
+  } catch (err) {
+    return res.status(401).json({ error: (err as Error).message });
+  }
+});
+
 app.get('/conversations/history', authenticateToken, async (req: Request, res: Response) => {
   try {
     const date = req.query.date as string | undefined;
-    const rows = await getConversationHistory(req.user!.username, date);
+    const rows = await getConversationHistory(req.user?.username, date);
     return res.json(rows);
   } catch (err) {
     console.error('Error fetching history', err);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+/**
+ * Fetches the conversation history for the logged-in user. Can be filtered by
+ * day by providing a `date=YYYY-MM-DD` query parameter.
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ */
+
 
 /**
  * Fetches the conversation history for a specific session.
@@ -139,7 +162,7 @@ app.get('/games/history/:gameType', authenticateToken, async (req: Request, res:
 
     // Delegate heavy lifting to the existing helper and then filter locally –
     // avoids touching the DB layer for what is essentially a simple predicate.
-    const allHistory = await getGameHistory(req.user!.username, startDate, endDate);
+    const allHistory = await getGameHistory(req.user?.username, startDate, endDate);
     const filtered = allHistory.filter((h) => h.game_mode === gameType);
 
     return res.json(filtered);
@@ -157,7 +180,7 @@ app.get('/game-state', authenticateToken, async (req: Request, res: Response) =>
       return res.status(400).json({ error: 'Missing or invalid `gameMode` or `date` query parameter' });
     }
 
-    const gameState = await getLatestSession(req.user!.username, gameMode, date);
+    const gameState = await getLatestSession(req.user?.username, gameMode, date);
 
     if (!gameState) {
       return res.json(null);
@@ -180,7 +203,7 @@ app.post('/player-guesses/start', authenticateToken, async (req: Request, res: R
   try {
     const result = await startPlayerGuessesGame();
     await saveConversationMessage(
-      req.user!.username,
+      req.user?.username,
       result.sessionId,
       'player-guesses',
       'system',
@@ -205,7 +228,7 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
   try {
     // Persist user question
     await saveConversationMessage(
-      req.user!.username,
+      req.user?.username,
       sessionId,
       'player-guesses',
       'user',
@@ -216,7 +239,7 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
 
     // Persist model response as raw JSON string for readability
     await saveConversationMessage(
-      req.user!.username,
+      req.user?.username,
       sessionId,
       'player-guesses',
       'model',
@@ -243,7 +266,7 @@ app.get('/player-guesses/:sessionId/hint/:hintType', authenticateToken, async (r
   try {
     const hint = await getPlayerGuessHint(sessionId, hintType);
     await saveConversationMessage(
-      req.user!.username,
+      req.user?.username,
       sessionId,
       'player-guesses',
       'system',
@@ -274,14 +297,14 @@ app.post('/ai-guesses/start', authenticateToken, async (req: Request, res: Respo
 
     // Persist system message and first AI question
     await saveConversationMessage(
-      req.user!.username,
+      req.user?.username,
       result.sessionId,
       'ai-guesses',
       'system',
       'AI-guesses game started',
     );
     await saveConversationMessage(
-      req.user!.username,
+      req.user?.username,
       result.sessionId,
       'ai-guesses',
       'model',
@@ -305,7 +328,7 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
   try {
     // Persist user answer
     await saveConversationMessage(
-      req.user!.username,
+      req.user?.username,
       sessionId,
       'ai-guesses',
       'user',
@@ -316,7 +339,7 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
 
     // Persist model response
     await saveConversationMessage(
-      req.user!.username,
+      req.user?.username,
       sessionId,
       'ai-guesses',
       'model',

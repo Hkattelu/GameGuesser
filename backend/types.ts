@@ -41,7 +41,7 @@ export const AIQuestionSchema = z.object({
 export const AIGuessesGameSchema = z.object({
   type: z.enum(['guess']),
   content: z.boolean(),
-  confidence: z.number().optional(),
+  confidence: z.number().optional().describe('A number from 1 to 10 representing how confident the AI is that it will win.'),
 });
 
 export const AIJsonResponseSchema = AIQuestionSchema.or(AIGuessesGameSchema);

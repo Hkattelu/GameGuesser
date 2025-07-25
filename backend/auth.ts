@@ -1,10 +1,13 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 
 import { createUser, findUserByUsername } from './db.js';
 import './types.js';
 
-export type UserJwtPayload = Record<'username', string> & Record<string, string>;
+const oAuth2Client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export type UserJwtPayload = Record<'username', string> & Record<'isGuest', boolean> & Record<string, string>;
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -22,7 +25,7 @@ export async function register(username: string, password: string): Promise<stri
 
   const passwordHash = bcrypt.hashSync(password, 10);
   await createUser(username, passwordHash);
-  return generateToken({ username });
+  return generateToken({ username, isGuest: false });
 }
 
 export async function login(username: string, password: string): Promise<string> {
@@ -30,7 +33,32 @@ export async function login(username: string, password: string): Promise<string>
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
     throw new Error('Invalid credentials');
   }
-  return generateToken({ username: user.username });
+  return generateToken({ username: user.username, isGuest: false });
+}
+
+export function generateGuestToken(): string {
+  return generateToken({ isGuest: true, username: 'guest' });
+}
+
+export async function oidcAuth(token: string): Promise<{ token: string; username: string }> {
+  try {
+    const ticket = await oAuth2Client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      throw new Error('Invalid OIDC token payload');
+    }
+    const username = payload.email;
+    // In a real app, you might want to create a user in your DB here if they don't exist
+    // For this example, we'll just generate a token for them
+    const appToken = generateToken({ username, isGuest: false });
+    return { token: appToken, username };
+  } catch (error) {
+    console.error('Error verifying OIDC token:', error);
+    throw new Error('Invalid OIDC token');
+  }
 }
 
 function generateToken(payload: UserJwtPayload): string {
@@ -53,14 +81,21 @@ import type { Request, Response, NextFunction } from 'express';
  * @param {Response} res - The Express response object, used to send a response in case of error.
  * @param {NextFunction} next - The next middleware function in the stack.
  */
-export function authenticateToken(req: Request<UserJwtPayload>, res: Response, next: NextFunction) {
+export function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Missing token' });
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err || !user) return res.status(401).json({ error: 'Invalid token' });
-    req.user = user as UserJwtPayload;
+
+    const payload = user as UserJwtPayload;
+    if (payload.isGuest) {
+      req.user = payload;
+      return next();
+    }
+
+    req.user = payload;
     next();
   });
 }
