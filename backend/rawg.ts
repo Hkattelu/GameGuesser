@@ -24,6 +24,8 @@ interface RawgGameDetails {
   background_image: string | null;
   metacritic: number | null;
   stores: Array<{ store: { name: string; domain: string } }>;
+  description_raw: string;
+  website: string;
 }
 
 /**
@@ -46,23 +48,37 @@ export async function fetchGameDetailsByName(gameName: string): Promise<RawgGame
     throw new Error('RAWG_API_KEY environment variable is required.');
   }
 
-  const url = new URL('https://api.rawg.io/api/games');
-  url.searchParams.set('key', apiKey);
-  url.searchParams.set('search', gameName);
-  url.searchParams.set('page_size', '1'); // Only need the first result
-
   try {
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`RAWG API request failed with status ${res.status}`);
+    // Step 1: Search for the game by name to get its ID
+    const searchUrl = new URL('https://api.rawg.io/api/games');
+    searchUrl.searchParams.set('key', apiKey);
+    searchUrl.searchParams.set('search', gameName);
+    searchUrl.searchParams.set('page_size', '1');
+
+    const searchRes = await fetch(searchUrl);
+    if (!searchRes.ok) {
+      throw new Error(`RAWG search failed with status ${searchRes.status}`);
     }
 
-    const data = await res.json() as { results: RawgGameDetails[] };
-    if (data.results && data.results.length > 0) {
-      return data.results[0];
-    } else {
-      return null;
+    const searchData = await searchRes.json() as { results: Game[] };
+    if (!searchData.results || searchData.results.length === 0) {
+      return null; // Game not found
     }
+
+    const gameId = searchData.results[0].id;
+
+    // Step 2: Fetch full details using the game ID
+    const detailsUrl = new URL(`https://api.rawg.io/api/games/${gameId}`);
+    detailsUrl.searchParams.set('key', apiKey);
+
+    const detailsRes = await fetch(detailsUrl);
+    if (!detailsRes.ok) {
+      throw new Error(`RAWG details fetch failed with status ${detailsRes.status}`);
+    }
+
+    const gameDetails = await detailsRes.json() as RawgGameDetails;
+    return gameDetails;
+
   } catch (error) {
     console.error('Error fetching game details from RAWG:', error);
     return null;

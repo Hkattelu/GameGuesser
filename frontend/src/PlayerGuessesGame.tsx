@@ -59,9 +59,23 @@ function PlayerGuessesGame() {
   const openRulesDialog = () => setIsRulesDialogOpen(true);
   const closeRulesDialog = () => setIsRulesDialogOpen(false);
   const openHistoryDialog = () => setShowHistory(true);
-  const closeHistoryDialog = () => setShowHistory(false);
   const openHintDialog = () => setIsHintDialogOpen(true);
   const closeHintDialog = () => setIsHintDialogOpen(false);
+
+  const renderRawgDetails = () => {
+    fetch(`${getApiUrl()}/game-details?sessionId=${sessionId}`, {
+      headers: {
+        Authorization: `Bearer ${firebaseToken}`,
+      },
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data) {
+          setRawgGameDetails(data);
+        }
+      })
+      .catch(error => console.error('Error fetching RAWG details:', error));
+  };
 
   useEffect(() => {
     const getToken = async () => {
@@ -74,6 +88,14 @@ function PlayerGuessesGame() {
     };
     getToken();
   }, [currentUser]);
+
+  // If the game is already over and we reloaded, just the rawgDetails again
+  useEffect(() => {
+    if (!rawgGameDetails && playerGuessesCompletedToday) {
+      renderRawgDetails();
+    }
+
+  }, [playerGuessesCompletedToday, rawgGameDetails]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -318,6 +340,7 @@ function PlayerGuessesGame() {
     }
   };
 
+
   const endGame = (finalMessage: string, victoryStatus: boolean) => {
     setStarted(false);
     setLoading(false);
@@ -325,20 +348,7 @@ function PlayerGuessesGame() {
     setGameMessage(finalMessage);
     setModelResponseText('');
     setPlayerGuessesCompletedToday(true);
-
-    fetch(`${getApiUrl()}/game-details`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(firebaseToken ? { Authorization: `Bearer ${firebaseToken}` } : {}),
-        },
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data) {
-          setRawgGameDetails(data);
-        }
-      })
-      .catch(error => console.error('Error fetching RAWG details:', error));
+    renderRawgDetails();
 
     setTimeout(() => setShowResults(true), 1500);
   };
@@ -437,6 +447,37 @@ function PlayerGuessesGame() {
           Start Game
         </button>
       )}
+
+      {rawgGameDetails && (
+        <div className="mt-6 text-left">
+          <h4 className="text-xl font-bold mb-2">Game Details</h4>
+          {rawgGameDetails.background_image && (
+            <img src={rawgGameDetails.background_image} alt={rawgGameDetails.name} className="w-full h-48 object-contain rounded-md mb-4" />
+          )}
+          <p className="text-lg font-semibold">{rawgGameDetails.name}</p>
+          {rawgGameDetails.metacritic && (
+            <p className="text-sm text-gray-600 dark:text-gray-300">Metacritic: {rawgGameDetails.metacritic}</p>
+          )}
+          {rawgGameDetails.metacritic_url && (
+            <a className="text-sm" href={rawgGameDetails.metacritic_url}>Metacritic link</a>
+          )}
+          {rawgGameDetails.stores && rawgGameDetails.stores.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm font-semibold">Available on:</p>
+              <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300">
+                {rawgGameDetails.stores.filter((store: any) => store.store.domain).map((store: any) => (
+                  <li key={store.store.id}>
+                    <a href={`http://${store.store.domain}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                      {store.store.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       {playerGuessesCompletedToday && (
         <>
           <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
@@ -478,7 +519,6 @@ function PlayerGuessesGame() {
           username={currentUser?.displayName || currentUser?.email || 'Guest'}
           score={score}
           usedHint={usedHint}
-          rawgGameDetails={rawgGameDetails}
         />
       )}
 

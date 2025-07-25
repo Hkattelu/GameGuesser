@@ -13,7 +13,6 @@ interface GameResultsDialogProps {
   username: string | null;
   score?: number;
   usedHint?: boolean;
-  rawgGameDetails?: any;
 }
 
 const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
@@ -27,7 +26,6 @@ const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
   username,
   score,
   usedHint,
-  rawgGameDetails,
 }) => {
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -217,33 +215,6 @@ Play at: ${window.location.origin}`;
             victory={victory}
             maxQuestions={maxQuestions}
           />
-
-          {rawgGameDetails && (
-            <div className="mt-6 text-left">
-              <h4 className="text-xl font-bold mb-2">Game Details</h4>
-              {rawgGameDetails.background_image && (
-                <img src={rawgGameDetails.background_image} alt={rawgGameDetails.name} className="w-full h-48 object-cover rounded-md mb-4" />
-              )}
-              <p className="text-lg font-semibold">{rawgGameDetails.name}</p>
-              {rawgGameDetails.metacritic && (
-                <p className="text-sm text-gray-600 dark:text-gray-300">Metacritic: {rawgGameDetails.metacritic}</p>
-              )}
-              {rawgGameDetails.stores && rawgGameDetails.stores.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm font-semibold">Available on:</p>
-                  <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300">
-                    {rawgGameDetails.stores.map((store: any) => (
-                      <li key={store.store.id}>
-                        <a href={`http://${store.store.domain}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                          {store.store.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="flex flex-col gap-3">

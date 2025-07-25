@@ -215,6 +215,16 @@ async function startPlayerGuessesGame() {
   // Persist the freshly created session so that it survives cold starts.
   await persistSession(sessionId, gameSessions.get(sessionId)!);
 
+  // Save the secret game as part of the initial conversation message
+  await dbModule.saveConversationMessage(
+    undefined, // userId is not available here
+    sessionId,
+    'player-guesses',
+    'system',
+    `The secret game is ${secretGame}.`,
+    secretGame,
+  );
+
   return { sessionId };
 }
 
