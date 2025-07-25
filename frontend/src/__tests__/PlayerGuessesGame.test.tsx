@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import { vi } from 'vitest';
-import PlayerGuessesGame from '../PlayerGuessesGame';
+import PlayerGuessesGame, { PlayerGuessesGameCallbacks } from '../PlayerGuessesGame';
 import { GameMode } from '../types';
 
 // Mock child components
@@ -26,16 +26,7 @@ vi.mock('../components/HintDialog', () => ({
 // Mock fetch
 global.fetch = vi.fn();
 
-const mockProps = {
-  gameMode: 'player-guesses' as GameMode,
-  preGame: true,
-  started: false,
-  loading: false,
-  questionCount: 0,
-  maxQuestions: 20,
-  chatHistory: [],
-  sessionId: null,
-  setPreGame: vi.fn(),
+const mockCallbacks: PlayerGuessesGameCallbacks = {
   setStarted: vi.fn(),
   setQuestionCount: vi.fn(),
   setChatHistory: vi.fn(),
@@ -46,9 +37,21 @@ const mockProps = {
   setShowResults: vi.fn(),
   setConfidence: vi.fn(),
   setError: vi.fn(),
-  token: null,
   setScore: vi.fn(),
   setUsedHint: vi.fn(),
+  onGameCompleted: vi.fn(),
+};
+
+const mockProps = {
+  gameMode: 'player-guesses' as GameMode,
+  started: false,
+  loading: false,
+  questionCount: 0,
+  maxQuestions: 20,
+  chatHistory: [],
+  sessionId: null,
+  token: null,
+  callbacks: mockCallbacks,
 };
 
 describe('PlayerGuessesGame', () => {
@@ -72,13 +75,13 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Start Game'));
 
     // The component should enter a loading state right away.
-    expect(mockProps.setLoading).toHaveBeenCalledWith(true);
+    expect(mockCallbacks.setLoading).toHaveBeenCalledWith(true);
 
     await waitFor(() => {
-      expect(mockProps.setStarted).toHaveBeenCalledWith(true);
-      expect(mockProps.setSessionId).toHaveBeenCalledWith('test-session-id');
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
-      expect(mockProps.setLoading).toHaveBeenCalledWith(false);
+      expect(mockCallbacks.setStarted).toHaveBeenCalledWith(true);
+      expect(mockCallbacks.setSessionId).toHaveBeenCalledWith('test-session-id');
+      expect(mockCallbacks.setGameMessage).toHaveBeenCalledWith("I'm thinking of a game. Ask me a yes/no question, or try to guess the game!");
+      expect(mockCallbacks.setLoading).toHaveBeenCalledWith(false);
     });
   });
 
@@ -99,11 +102,11 @@ describe('PlayerGuessesGame', () => {
     fireEvent.change(input, { target: { value: 'Is it a strategy game?' } });
     fireEvent.click(screen.getByText('Submit'));
 
-    expect(mockProps.setLoading).toHaveBeenCalledWith(true);
+    expect(mockCallbacks.setLoading).toHaveBeenCalledWith(true);
 
     await waitFor(() => {
-      expect(mockProps.setChatHistory).toHaveBeenCalled();
-      expect(mockProps.setLoading).toHaveBeenCalledWith(false);
+      expect(mockCallbacks.setChatHistory).toHaveBeenCalled();
+      expect(mockCallbacks.setLoading).toHaveBeenCalledWith(false);
     });
   });
 
@@ -124,7 +127,7 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Submit'));
 
     await waitFor(() => {
-      expect(mockProps.setVictory).toHaveBeenCalledWith(true);
+      expect(mockCallbacks.setVictory).toHaveBeenCalledWith(true);
     });
   });
 
@@ -145,7 +148,7 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Submit'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Starcraft (0.5 pts) - Hint used');
+      expect(mockCallbacks.setGameMessage).toHaveBeenCalledWith('Starcraft (0.5 pts) - Hint used');
     });
   });
 
@@ -166,7 +169,7 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Submit'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Close but not quite');
+      expect(mockCallbacks.setGameMessage).toHaveBeenCalledWith('Close but not quite');
     });
   });
 
@@ -199,7 +202,7 @@ describe('PlayerGuessesGame', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('error-banner')).toBeInTheDocument();
-      expect(mockProps.setQuestionCount).not.toHaveBeenCalled();
+      expect(mockCallbacks.setQuestionCount).not.toHaveBeenCalled();
     });
   });
 
@@ -219,7 +222,7 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Submit'));
 
     await waitFor(() => {
-      expect(mockProps.setGameMessage).toHaveBeenCalledWith('Incorrect guess.');
+      expect(mockCallbacks.setGameMessage).toHaveBeenCalledWith('Incorrect guess.');
     });
   });
 
@@ -240,7 +243,7 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Submit'));
 
     await waitFor(() => {
-      expect(mockProps.setVictory).toHaveBeenCalledWith(false);
+      expect(mockCallbacks.setVictory).toHaveBeenCalledWith(false);
     });
   });
 
@@ -265,7 +268,7 @@ describe('PlayerGuessesGame', () => {
     fireEvent.click(screen.getByText('Start Game'));
 
     await waitFor(() => {
-      expect(mockProps.setError).toHaveBeenCalledWith(true);
+      expect(mockCallbacks.setError).toHaveBeenCalledWith(true);
     });
   });
 
@@ -284,8 +287,8 @@ describe('PlayerGuessesGame', () => {
       fireEvent.click(screen.getByText('Start Game'));
 
       // Immediately after clicking, fetch is pending so setters should NOT have been called yet
-      expect(mockProps.setScore).not.toHaveBeenCalled();
-      expect(mockProps.setUsedHint).not.toHaveBeenCalled();
+      expect(mockCallbacks.setScore).not.toHaveBeenCalled();
+      expect(mockCallbacks.setUsedHint).not.toHaveBeenCalled();
 
       // Fulfill the fetch promise with a successful response object
       resolveFetch!({
@@ -294,8 +297,8 @@ describe('PlayerGuessesGame', () => {
       });
 
       await waitFor(() => {
-        expect(mockProps.setScore).toHaveBeenCalledWith(undefined);
-        expect(mockProps.setUsedHint).toHaveBeenCalledWith(undefined);
+        expect(mockCallbacks.setScore).toHaveBeenCalledWith(undefined);
+        expect(mockCallbacks.setUsedHint).toHaveBeenCalledWith(undefined);
       });
     });
 
@@ -309,12 +312,12 @@ describe('PlayerGuessesGame', () => {
       fireEvent.click(screen.getByText('Start Game'));
 
       await waitFor(() => {
-        expect(mockProps.setError).toHaveBeenCalledWith(true);
+        expect(mockCallbacks.setError).toHaveBeenCalledWith(true);
       });
 
       // Ensure score/hint were never reset
-      expect(mockProps.setScore).not.toHaveBeenCalled();
-      expect(mockProps.setUsedHint).not.toHaveBeenCalled();
+      expect(mockCallbacks.setScore).not.toHaveBeenCalled();
+      expect(mockCallbacks.setUsedHint).not.toHaveBeenCalled();
     });
 
     it('propagates score and hint from guessResult message', async () => {
@@ -339,8 +342,8 @@ describe('PlayerGuessesGame', () => {
       fireEvent.click(screen.getByText('Submit'));
 
       await waitFor(() => {
-        expect(mockProps.setScore).toHaveBeenCalledWith(0.7);
-        expect(mockProps.setUsedHint).toHaveBeenCalledWith(true);
+        expect(mockCallbacks.setScore).toHaveBeenCalledWith(0.7);
+        expect(mockCallbacks.setUsedHint).toHaveBeenCalledWith(true);
       });
     });
   });

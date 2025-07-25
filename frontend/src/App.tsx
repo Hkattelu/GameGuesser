@@ -310,27 +310,28 @@ function App({
         <PlayerGuessesGame
           token={token}
           gameMode={gameMode}
-          preGame={false}
           started={started}
           loading={loading}
           questionCount={questionCount}
           maxQuestions={maxQuestions}
           chatHistory={chatHistory}
           sessionId={sessionId}
-          setStarted={setStarted}
-          setQuestionCount={setQuestionCount}
-          setChatHistory={setChatHistory}
-          setLoading={setLoading}
-          setSessionId={setSessionId}
-          setGameMessage={setGameMessage}
-          setConfidence={setConfidence}
-          setVictory={setVictory}
-          setShowResults={setShowResults}
-          setError={setError}
-          setScore={setScore}
-          setUsedHint={setUsedHint}
+          callbacks={{
+            setStarted,
+            setQuestionCount,
+            setChatHistory,
+            setLoading,
+            setSessionId,
+            setGameMessage,
+            setConfidence,
+            setVictory,
+            setShowResults,
+            setError,
+            setScore,
+            setUsedHint,
+            onGameCompleted: () => handleGameCompletion('player-guesses'),
+          }}
           gameCompletedToday={playerGuessesCompletedToday}
-          onGameCompleted={() => handleGameCompletion('player-guesses')}
         />
       )}
       
