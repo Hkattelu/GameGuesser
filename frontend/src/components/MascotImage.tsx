@@ -53,9 +53,13 @@ const confidenceToUrl = (confidence: number) => {
 }
 
 function MascotImage({ mood, confidence, error, loading }: MascotImageProps) {
-  if (loading) return '/bot_boy/thinking.png';
-  else if (error) return '/bot_boy/error.png';
-  const imageUrl = confidence ? confidenceToUrl(confidence) : moodToUrl(mood || 'default');
+  let imageUrl = '';
+  if (loading) {
+    imageUrl = '/bot_boy/thinking.png';
+  } else if (error) {
+    imageUrl = '/bot_boy/error.png';
+  }
+  imageUrl = confidence ? confidenceToUrl(confidence) : moodToUrl(mood || 'default');
   return (
     <div className="flex justify-center mb-4 max-w-50">
       <img src={imageUrl} alt="Game Boy mascot" />
