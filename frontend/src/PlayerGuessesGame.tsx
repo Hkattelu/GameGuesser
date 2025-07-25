@@ -3,7 +3,7 @@ import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
 import { MAX_SUGGESTIONS, SUGGESTIONS } from './constants';
-import { ChatMessage, GameMode, ChatTurn } from './types';
+import { ChatMessage, GameMode, PlayerQuestionResponse, PlayerGuessResponse } from './types';
 import HintIcon from './components/HintIcon';
 import HintDialog from './components/HintDialog';
 import ErrorBanner from './components/ErrorBanner';
@@ -101,7 +101,6 @@ function PlayerGuessesGame({
 
       const data = await response.json();
 
-      // ✅ Only mark the game as started after getting a positive response.
       setStarted(true);
       setQuestionCount(0);
       setChatHistory([]);
@@ -149,7 +148,7 @@ function PlayerGuessesGame({
 
       setQuestionCount(newQuestionCount);
       if (content && typeof content === 'object') {
-        setConfidence((content as any).confidence);
+        setConfidence((content as PlayerQuestionResponse).confidence);
       }
 
       if (type === 'question' || type === 'answer') {
@@ -160,8 +159,9 @@ function PlayerGuessesGame({
           answerText = content;
           answerLiteral = content;
         } else if (content && typeof content === 'object') {
-          answerLiteral = (content as any).answer;
-          answerText = (content as any).answer + ((content as any).clarification ? ` - ${(content as any).clarification}` : '');
+          const playerQuestionResponse = content as PlayerQuestionResponse;
+          answerLiteral = playerQuestionResponse.answer;
+          answerText = playerQuestionResponse.answer + (playerQuestionResponse.clarification ? ` - ${playerQuestionResponse.clarification}` : '');
         }
 
         setChatHistory((prevHistory) => [
@@ -177,7 +177,7 @@ function PlayerGuessesGame({
           endGame(`You're out of questions! The game was ${answerText}.`, false);
         }
       } else if (type === 'guessResult') {
-        const { correct, response, score, usedHint } = content as any;
+        const { correct, response, score, usedHint } = content as PlayerGuessResponse;
         const finalMessage = `${response} (${score} pts)${usedHint ? ' - Hint used' : ''}`;
         if (correct) {
           endGame(finalMessage, true);
@@ -195,10 +195,23 @@ function PlayerGuessesGame({
       }
     } catch (error: unknown) {
       const err = error as Error;
-      // Surface a user-friendly error banner instead of splicing raw error
-      // strings into the main game feed.
-      setErrorMessage(`Error processing your question: ${err.message}`);
-      setError(true);
+      // Handle "Session not found" error by resetting the game state
+      if (err.message === 'Session not found.') {
+        setErrorMessage('Your game session has expired. Starting a new game...');
+        setError(true);
+        // Reset session and start a new game after a short delay
+        setSessionId(null);
+        setTimeout(() => {
+          setErrorMessage(null);
+          setError(false);
+          startGamePlayerGuesses();
+        }, 2000);
+      } else {
+        // Surface a user-friendly error banner instead of splicing raw error
+        // strings into the main game feed.
+        setErrorMessage(`Error processing your question: ${err.message}`);
+        setError(true);
+      }
     } finally {
       setPlayerGuessInput('');
       setLoading(false);
@@ -311,4 +324,3 @@ function PlayerGuessesGame({
 }
 
 export default PlayerGuessesGame;
-

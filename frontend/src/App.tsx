@@ -138,6 +138,10 @@ function App({
             Authorization: `Bearer ${token}`,
           },
         });
+        if (response.status === 401) {
+          handleLogout();
+          return;
+        }
         if (!response.ok) throw new Error('Failed to load game state');
 
         const gameState = await response.json();
@@ -306,6 +310,7 @@ function App({
           setLoading={setLoading}
           setSessionId={setSessionId}
           setGameMessage={setGameMessage}
+          setConfidence={setConfidence}
           setVictory={setVictory}
           setShowResults={setShowResults}
           setError={setError}

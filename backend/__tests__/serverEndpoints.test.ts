@@ -210,7 +210,7 @@ describe('POST /player-guesses/question', () => {
   });
 
   it.each([
-    { err: new Error('Session not found.'), status: 404 },
+    { err: new Error('Session not found.'), status: 401 },
     { err: new Error('Session ID and user input are required.'), status: 400 },
   ])('maps %p to HTTP $status', async ({ err, status }) => {
     handlePlayerQuestionMock.mockRejectedValue(err);
@@ -260,7 +260,7 @@ describe('POST /ai-guesses/answer', () => {
   });
 
   it.each([
-    { err: new Error('Session not found.'), status: 404 },
+    { err: new Error('Session not found.'), status: 401 },
     { err: new Error('Session ID and user answer are required.'), status: 400 },
   ])('maps %p to HTTP $status', async ({ err, status }) => {
     handleAIAnswerMock.mockRejectedValue(err);

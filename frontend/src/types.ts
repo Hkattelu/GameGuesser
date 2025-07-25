@@ -1,14 +1,3 @@
-// Frontend-local utility types plus re-exports of shared request/response
-// contracts that are consumed across both packages. Importing from
-// `@shared/types` (configured via `paths` in `tsconfig.json`) avoids brittle
-// relative paths like "../../shared".
-
-export * from '@shared/types';
-
-// ---------------------------------------------------------------------------
-// UI-specific helper types (not needed by the backend but convenient for React)
-// ---------------------------------------------------------------------------
-
 export type GameMode = 'ai-guesses' | 'player-guesses';
 
 export interface ChatPart {
@@ -25,4 +14,17 @@ export interface ChatMessage {
 export interface ChatTurn {
   user: string;
   model?: string;
+}
+
+export interface PlayerQuestionResponse {
+  confidence: number;
+  answer: string;
+  clarification? : string;
+}
+
+export interface PlayerGuessResponse {
+  correct: boolean;
+  response: string;
+  score?: number;
+  usedHint?: boolean;
 }

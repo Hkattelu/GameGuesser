@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import ResponseButtons from './components/ResponseButtons';
 import ConversationHistory from './components/ConversationHistory';
@@ -54,11 +54,12 @@ function AIGuessesGame({
   setVictory,
   setError,
   setShowResults,
+  setConfidence,
   gameCompletedToday = false,
   onGameCompleted,
 }: AIGuessesGameProps) {
 
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const startGameAI = async () => {
     // Clear any previous error state so the banner disappears immediately.
@@ -156,8 +157,21 @@ function AIGuessesGame({
       }
     } catch (error: unknown) {
       const err = error as Error;
-      setErrorMessage(`Error communicating with Quiz Bot: ${err.message}`);
-      setError(true);
+      // Handle "Session not found" error by resetting the game state
+      if (err.message === 'Session not found.') {
+        setErrorMessage('Your game session has expired. Starting a new game...');
+        setError(true);
+        // Reset session and start a new game after a short delay
+        setSessionId(null);
+        setTimeout(() => {
+          setErrorMessage(null);
+          setError(false);
+          startGameAI();
+        }, 2000);
+      } else {
+        setErrorMessage(`Error communicating with Quiz Bot: ${err.message}`);
+        setError(true);
+      }
     } finally {
       setLoading(false);
     }

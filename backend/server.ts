@@ -226,7 +226,7 @@ app.post('/player-guesses/question', authenticateToken, async (req: Request, res
     res.json(result);
   } catch (error: unknown) {
     const err = error as Error;
-    if (err.message === 'Session not found.') return res.status(404).json({ error: err.message });
+    if (err.message === 'Session not found.') return res.status(401).json({ error: err.message });
     if (err.message === 'Session ID and user input are required.')
       return res.status(400).json({ error: err.message });
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
@@ -326,7 +326,7 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
     res.json(result);
   } catch (error: unknown) {
     const err = error as Error;
-    if (err.message === 'Session not found.') return res.status(404).json({ error: err.message });
+    if (err.message === 'Session not found.') return res.status(401).json({ error: err.message });
     if (err.message === 'Session ID and user answer are required.')
       return res.status(400).json({ error: err.message });
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
