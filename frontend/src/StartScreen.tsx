@@ -9,6 +9,7 @@ import { wrapNavigate } from './utils/transition-utils';
 import './styles/startScreen.css';
 import { getApiUrl } from './env_utils';
 import { isGameCompleted } from './utils/gameCompletion';
+import { useTokenInvalidation } from './utils/useTokenInvalidation';
 
 interface AuthPayload {
   token: string;
@@ -46,6 +47,15 @@ function StartScreen() {
   const handleAuth = ({ token: newToken, username: newUsername }: AuthPayload) => {
     setToken(newToken);
     setUsername(newUsername);
+
+    // If the token was obtained after an expiration, restore the user's last
+    // location (if it still exists and is routable) then clear the flag so it
+    // does not persist across refreshes.
+    const redirectPath = localStorage.getItem('postLoginRedirect');
+    if (redirectPath) {
+      localStorage.removeItem('postLoginRedirect');
+      navigate(redirectPath as any);
+    }
   };
 
   const handleLogout = async () => {
@@ -53,6 +63,9 @@ function StartScreen() {
     localStorage.removeItem('username');
     handleAuth({token: null, username: null});
   };
+
+  // Listen for global token invalidation events and log the user out.
+  useTokenInvalidation(handleLogout);
 
   const handleSelectGame = (path: '/ai-guesses' | '/player-guesses') => {
     const direction = path === '/ai-guesses' ? 'left' : 'right';
