@@ -1,7 +1,4 @@
 .start-screen {
-  transition:
-    opacity 500ms ease-in-out,
-    transform 500ms ease-in-out;
   width: 100%;
   height: 100%;
 }

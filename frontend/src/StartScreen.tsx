@@ -5,7 +5,7 @@ import AuthPage from './AuthPage';
 import SettingsButton from './components/SettingsButton';
 
 import { AI_NAME } from './constants';
-import { wrapNavigate } from './transition-utils';
+import { wrapNavigate } from './utils/transition-utils';
 import './styles/startScreen.css';
 import { getApiUrl } from './env_utils';
 import { isGameCompleted } from './utils/gameCompletion';
@@ -39,6 +39,7 @@ function StartScreen() {
   const [aiGuessesCompletedToday, setAIGuessesCompletedToday] = useState<boolean>(false);
   const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
 
   const navigate = wrapNavigate(useNavigate());
 
@@ -47,8 +48,16 @@ function StartScreen() {
     setUsername(newUsername);
   };
 
+  const handleLogout = async () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    handleAuth({token: null, username: null});
+  };
+
   const handleSelectGame = (path: '/ai-guesses' | '/player-guesses') => {
-    navigate(path);
+    const direction = path === '/ai-guesses' ? 'left' : 'right';
+    setTransitionDirection(direction);
+    navigate(path, direction);
   };
 
   useEffect(() => {
@@ -122,7 +131,15 @@ function StartScreen() {
 
   return (
     <>
-      <SettingsButton />
+      <div className="absolute top-4 left-4 flex gap-2">
+        <SettingsButton />
+        <button
+          onClick={handleLogout}
+          className="cursor-pointer px-4 py-2 bg-gray-600 text-white rounded-md shadow-md hover:bg-gray-700 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
       <div
         className={`start-screen flex flex-col items-center justify-center px-4 text-center mb-4`}
         ref={mouseWatchArea}
@@ -145,8 +162,7 @@ function StartScreen() {
             type="button"
             onClick={() => handleSelectGame('/ai-guesses')}
             className="w-100 game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full sm:w-1/2"
-            style={{ viewTransitionName: 'ai-guesses-card' }}
-          >
+            >
             <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">{AI_NAME} guesses</h2>
             <p className="text-gray-600 dark:text-gray-300 text-sm">
               Think of any video game and let {AI_NAME} try to guess it by asking you questions.
@@ -159,8 +175,7 @@ function StartScreen() {
             type="button"
             onClick={() => handleSelectGame('/player-guesses')}
             className="game-option-card hover-anim cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full sm:w-1/2"
-            style={{ viewTransitionName: 'player-guesses-card' }}
-          >
+            >
             <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">You guess</h2>
             <p className="text-gray-600 dark:text-gray-300 text-sm">
               {AI_NAME} is thinking of a game — can you figure it out within twenty questions?

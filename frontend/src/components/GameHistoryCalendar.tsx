@@ -258,7 +258,7 @@ Play at: ${window.location.origin}`;
                 <span>Lost</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-3 h-3 bg-gray-50 border border-gray-200  dark:border-gray-800 rounded"></div>
+                <div className="w-3 h-3 bg-gray-50 border border-gray-200 dark:border-gray-800 rounded"></div>
                 <span>No Game</span>
               </div>
               {gameMode === 'player-guesses' && (

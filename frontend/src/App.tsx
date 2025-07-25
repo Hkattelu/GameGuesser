@@ -15,6 +15,7 @@ import { ChatMessage, GameMode, Role } from './types';
 import { isGameCompleted } from './utils/gameCompletion';
 import { MAX_QUESTIONS } from './constants';
 import { getApiUrl } from './env_utils';
+import { wrapNavigate } from './utils/transition-utils';
 
 interface AuthPayload {
   token: string;
@@ -76,7 +77,7 @@ function App({
     setUsername(newUsername);
   };
 
-  const navigate = useNavigate();
+  const navigate = wrapNavigate(useNavigate());
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -189,12 +190,11 @@ function App({
       <SettingsButton />
       <div
         className="game-container bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 text-center text-gray-900 dark:text-white"
-        style={{ viewTransitionName: 'game-container' }}
       >
       {location.pathname !== '/' && <RulesIcon gameMode={gameMode} />}
       <div className="flex justify-between items-center mb-4">
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/', gameMode === 'ai-guesses' ? 'right' : 'left')}
           className="cursor-pointer flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
         >
           <svg 
@@ -226,7 +226,7 @@ function App({
       </div>
 
       <div className="flex justify-center items-center ml-4 mr-4">
-        <MascotImage mood={getMascotMood()} confidence={confidence} />
+        <MascotImage mood={getMascotMood()} confidence={confidence} error={error} loading={loading} />
         <p id="game-message" className="text-lg text-gray-600 dark:text-gray-300 mb-4">{gameMessage}</p>
       </div>
 
@@ -283,9 +283,9 @@ function App({
           setVictory={setVictory}
           setShowResults={setShowResults}
           setConfidence={setConfidence}
+          setError={setError}
           gameCompletedToday={aiGuessesCompletedToday}
           onGameCompleted={() => handleGameCompletion('ai-guesses')}
-          setError={setError}
         />
       )}
 
@@ -308,10 +308,9 @@ function App({
           setGameMessage={setGameMessage}
           setVictory={setVictory}
           setShowResults={setShowResults}
-          setConfidence={setConfidence}
+          setError={setError}
           gameCompletedToday={playerGuessesCompletedToday}
           onGameCompleted={() => handleGameCompletion('player-guesses')}
-          setError={setError}
         />
       )}
       

@@ -12,16 +12,7 @@
   }
 }
 
-@keyframes slide-from-right {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes slide-to-left {
+@keyframes slide-left-out {
   from {
     transform: translateX(0);
   }
@@ -30,14 +21,48 @@
   }
 }
 
-::view-transition-old(game-container) {
-  animation: slide-to-left 0.5s ease-in-out;
+@keyframes slide-right-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 
-::view-transition-new(game-container) {
-  animation: slide-from-right 0.5s ease-in-out;
+@keyframes slide-left-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
+@keyframes slide-right-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+html[data-transition-direction="right"]::view-transition-old(root) {
+  animation: slide-left-out 0.5s ease-in-out forwards;
+}
+
+html[data-transition-direction="right"]::view-transition-new(root) {
+  animation: slide-right-in 0.5s ease-in-out forwards;
+}
+
+html[data-transition-direction="left"]::view-transition-old(root) {
+  animation: slide-right-out 0.5s ease-in-out forwards;
+}
+
+html[data-transition-direction="left"]::view-transition-new(root) {
+  animation: slide-left-in 0.5s ease-in-out forwards;
+}
 
 @keyframes spin {
   0% { transform: rotate(0deg); }

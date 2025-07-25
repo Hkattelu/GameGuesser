@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import ResponseButtons from './components/ResponseButtons';
 import ConversationHistory from './components/ConversationHistory';
 import { ChatMessage, GameMode } from './types';
 import { getApiUrl } from './env_utils';
 import ErrorBanner from './components/ErrorBanner';
+import { wrapNavigate } from './utils/transition-utils';
 
 export interface AIGuessesGameProps {
   gameMode: GameMode;
@@ -29,6 +31,7 @@ export interface AIGuessesGameProps {
   token?: string | null;
   gameCompletedToday?: boolean;
   onGameCompleted?: () => void;
+  navigate: ReturnType<typeof wrapNavigate>;
 }
 
 function AIGuessesGame({
