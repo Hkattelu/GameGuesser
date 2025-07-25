@@ -30,6 +30,9 @@ export interface PlayerGuessesGameProps {
   token?: string | null;
   gameCompletedToday?: boolean;
   onGameCompleted?: () => void;
+  // New setters to propagate hint usage and score to the parent (App)
+  setScore?: React.Dispatch<React.SetStateAction<number | undefined>>;
+  setUsedHint?: React.Dispatch<React.SetStateAction<boolean | undefined>>;
 }
 
 /** Shuffle an array of elements randomly. */
@@ -64,6 +67,8 @@ function PlayerGuessesGame({
   setError,
   gameCompletedToday = false,
   onGameCompleted,
+  setScore,
+  setUsedHint,
 }: PlayerGuessesGameProps) {
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
@@ -100,6 +105,10 @@ function PlayerGuessesGame({
       }
 
       const data = await response.json();
+
+      // Only clear previous score/hint once a new session is successfully established.
+      if (setScore) setScore(undefined);
+      if (setUsedHint) setUsedHint(undefined);
 
       setStarted(true);
       setQuestionCount(0);
@@ -179,6 +188,9 @@ function PlayerGuessesGame({
       } else if (type === 'guessResult') {
         const { correct, response, score, usedHint } = content as PlayerGuessResponse;
         const finalMessage = `${response} (${score} pts)${usedHint ? ' - Hint used' : ''}`;
+        // Propagate score and hint usage to parent component for results dialog.
+        if (setScore) setScore(score);
+        if (setUsedHint) setUsedHint(!!usedHint);
         if (correct) {
           endGame(finalMessage, true);
           setChatHistory((prevHistory) => [

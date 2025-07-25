@@ -64,6 +64,9 @@ function App({
   const [aiGuessesCompletedToday, setAIGuessesCompletedToday] = useState<boolean>(false);
   const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
   const [confidence, setConfidence] = useState<number | undefined>(undefined);
+  // Track whether the player used a hint and the final score (for player-guesses mode).
+  const [usedHint, setUsedHint] = useState<boolean | undefined>(undefined);
+  const [score, setScore] = useState<number | undefined>(undefined);
 
   const handleGameCompletion = (mode: GameMode) => {
     if (mode === 'ai-guesses') {
@@ -120,6 +123,8 @@ function App({
     setShowResults(false);
     setShowHistory(false);
     setConfidence(undefined);
+    setUsedHint(undefined);
+    setScore(undefined);
     if (!started) {
       setGameMessage(
         gameMode === 'ai-guesses'
@@ -259,6 +264,8 @@ function App({
           maxQuestions={maxQuestions}
           sessionId={sessionId}
           username={username}
+          score={score}
+          usedHint={usedHint}
         />
       )}
       
@@ -319,6 +326,8 @@ function App({
           setVictory={setVictory}
           setShowResults={setShowResults}
           setError={setError}
+          setScore={setScore}
+          setUsedHint={setUsedHint}
           gameCompletedToday={playerGuessesCompletedToday}
           onGameCompleted={() => handleGameCompletion('player-guesses')}
         />
