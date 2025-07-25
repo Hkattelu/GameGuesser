@@ -43,6 +43,18 @@ describe('GameResultsDialog', () => {
     usedHint: true,
   };
 
+  const defaultPropsNoHintWithScore = {
+    ...defaultProps,
+    score: 0.8,
+    usedHint: false,
+  };
+
+  const defaultPropsUndefinedValues = {
+    ...defaultProps,
+    score: undefined,
+    usedHint: undefined,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -257,5 +269,23 @@ describe('GameResultsDialog', () => {
     render(<GameResultsDialog {...defaultProps} />);
     
     expect(screen.queryByText('💡 Hint used')).not.toBeInTheDocument();
+  });
+
+  it('displays score without hint indicator when hint was not used', () => {
+    render(<GameResultsDialog {...defaultPropsNoHintWithScore} />);
+
+    // Score text should appear
+    expect(screen.getByText('Score: 0.8 points')).toBeInTheDocument();
+
+    // Hint indicator should be absent
+    expect(screen.queryByText('💡 Hint used')).not.toBeInTheDocument();
+  });
+
+  it('renders safely when score and usedHint are undefined', () => {
+    render(<GameResultsDialog {...defaultPropsUndefinedValues} />);
+
+    // Should still show standard results summary without crashing
+    expect(screen.getByText('Game Results')).toBeInTheDocument();
+    expect(screen.getByText('Player Guesses - Won')).toBeInTheDocument();
   });
 });

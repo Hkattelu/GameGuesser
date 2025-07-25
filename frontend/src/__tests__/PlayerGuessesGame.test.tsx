@@ -47,6 +47,8 @@ const mockProps = {
   setConfidence: vi.fn(),
   setError: vi.fn(),
   token: null,
+  setScore: vi.fn(),
+  setUsedHint: vi.fn(),
 };
 
 describe('PlayerGuessesGame', () => {
@@ -264,6 +266,82 @@ describe('PlayerGuessesGame', () => {
 
     await waitFor(() => {
       expect(mockProps.setError).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe('usedHint & score propagation', () => {
+    it('resets score and hint only after successful start game request', async () => {
+      // Create a promise we can resolve later to control async timing
+      let resolveFetch: (value: unknown) => void;
+      const fetchPromise = new Promise((res) => {
+        resolveFetch = res;
+      });
+
+      // @ts-ignore resolveFetch will be assigned synchronously above
+      (global.fetch as vi.Mock).mockReturnValueOnce(fetchPromise);
+
+      render(<PlayerGuessesGame {...mockProps} />);
+      fireEvent.click(screen.getByText('Start Game'));
+
+      // Immediately after clicking, fetch is pending so setters should NOT have been called yet
+      expect(mockProps.setScore).not.toHaveBeenCalled();
+      expect(mockProps.setUsedHint).not.toHaveBeenCalled();
+
+      // Fulfill the fetch promise with a successful response object
+      resolveFetch!({
+        ok: true,
+        json: () => Promise.resolve({ sessionId: 'session-after' }),
+      });
+
+      await waitFor(() => {
+        expect(mockProps.setScore).toHaveBeenCalledWith(undefined);
+        expect(mockProps.setUsedHint).toHaveBeenCalledWith(undefined);
+      });
+    });
+
+    it('does not reset score or hint when start game request fails', async () => {
+      (global.fetch as vi.Mock).mockResolvedValueOnce({
+        ok: false,
+        json: () => Promise.resolve({ error: 'Backend down' }),
+      });
+
+      render(<PlayerGuessesGame {...mockProps} />);
+      fireEvent.click(screen.getByText('Start Game'));
+
+      await waitFor(() => {
+        expect(mockProps.setError).toHaveBeenCalledWith(true);
+      });
+
+      // Ensure score/hint were never reset
+      expect(mockProps.setScore).not.toHaveBeenCalled();
+      expect(mockProps.setUsedHint).not.toHaveBeenCalled();
+    });
+
+    it('propagates score and hint from guessResult message', async () => {
+      (global.fetch as vi.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          type: 'guessResult',
+          content: {
+            correct: true,
+            response: 'You guessed it!',
+            score: 0.7,
+            usedHint: true,
+          },
+        }),
+      });
+
+      const props = { ...mockProps, started: true, sessionId: 'sess-123' };
+      render(<PlayerGuessesGame {...props} />);
+
+      const input = screen.getByPlaceholderText('e.g., Is the game a first-person shooter?');
+      fireEvent.change(input, { target: { value: 'My final guess' } });
+      fireEvent.click(screen.getByText('Submit'));
+
+      await waitFor(() => {
+        expect(mockProps.setScore).toHaveBeenCalledWith(0.7);
+        expect(mockProps.setUsedHint).toHaveBeenCalledWith(true);
+      });
     });
   });
 });
