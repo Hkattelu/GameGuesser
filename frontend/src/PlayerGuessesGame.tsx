@@ -51,6 +51,7 @@ function PlayerGuessesGame() {
   const [score, setScore] = useState<number | undefined>(undefined);
   const [usedHint, setUsedHint] = useState<boolean | undefined>(undefined);
   const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
+  const [rawgGameDetails, setRawgGameDetails] = useState<any>(null);
   const [maxQuestions] = useState<number>(MAX_QUESTIONS);
   const [isRulesDialogOpen, setIsRulesDialogOpen] = useState(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
@@ -324,6 +325,21 @@ function PlayerGuessesGame() {
     setGameMessage(finalMessage);
     setModelResponseText('');
     setPlayerGuessesCompletedToday(true);
+
+    fetch(`${getApiUrl()}/game-details`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(firebaseToken ? { Authorization: `Bearer ${firebaseToken}` } : {}),
+        },
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data) {
+          setRawgGameDetails(data);
+        }
+      })
+      .catch(error => console.error('Error fetching RAWG details:', error));
+
     setTimeout(() => setShowResults(true), 1500);
   };
 
@@ -462,6 +478,7 @@ function PlayerGuessesGame() {
           username={currentUser?.displayName || currentUser?.email || 'Guest'}
           score={score}
           usedHint={usedHint}
+          rawgGameDetails={rawgGameDetails}
         />
       )}
 

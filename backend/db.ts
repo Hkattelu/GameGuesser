@@ -1,5 +1,6 @@
 import { Firestore, Timestamp } from '@google-cloud/firestore';
 import type { GameType } from './gameType.js';
+import { string } from 'zod';
 
 export const firestore = new Firestore({
   /** GCP project ID */
@@ -37,6 +38,7 @@ export interface ConversationRow {
   id: string; // Firestore document ID
   user_id: string;
   session_id: string;
+  secretGame?: string;
   /**
    * Distinguishes between the two currently supported game modes so that the
    * conversation history shown in the frontend is scoped to the *specific*
@@ -350,7 +352,7 @@ export async function getLatestSession(
   userId: string | undefined,
   gameType: GameType,
   date: string,
-): Promise<{ sessionId: string; questionCount: number; chatHistory: ConversationRow[] } | null> {
+): Promise<{ sessionId: string; secretGame?: string; questionCount: number; chatHistory: ConversationRow[] } | null> {
   const startOfDay = new Date(date);
   startOfDay.setUTCHours(0, 0, 0, 0);
 
@@ -374,6 +376,7 @@ export async function getLatestSession(
 
   const latestMessage = snap.docs[0].data() as ConversationRow;
   const sessionId = latestMessage.session_id;
+  const secretGame = latestMessage.secretGame;
 
   const sessionMessages = await getConversationsBySession(sessionId, gameType);
 
@@ -384,6 +387,7 @@ export async function getLatestSession(
   return {
     sessionId,
     questionCount,
+    secretGame,
     chatHistory: sessionMessages.map((row) => ({
       ...row,
       id: '',

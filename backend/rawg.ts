@@ -18,6 +18,14 @@ interface Game {
   slug: string;
 };
 
+interface RawgGameDetails {
+  id: number;
+  name: string;
+  background_image: string | null;
+  metacritic: number | null;
+  stores: Array<{ store: { name: string; domain: string } }>;
+}
+
 /**
 * Partial shape of RAWG’s `/games` list response we care about.
 * {@link https://api.rawg.io/docs#operation/games_list}
@@ -25,6 +33,41 @@ interface Game {
 interface RawgGamesListResponse {
   results: Game[];
 };
+
+/**
+* Fetches detailed information for a game by its name from RAWG.
+*
+* @param {string} gameName - The name of the game to search for.
+* @returns {Promise<RawgGameDetails | null>} Detailed game information or null if not found.
+*/
+export async function fetchGameDetailsByName(gameName: string): Promise<RawgGameDetails | null> {
+  const apiKey = process.env.RAWG_API_KEY;
+  if (!apiKey) {
+    throw new Error('RAWG_API_KEY environment variable is required.');
+  }
+
+  const url = new URL('https://api.rawg.io/api/games');
+  url.searchParams.set('key', apiKey);
+  url.searchParams.set('search', gameName);
+  url.searchParams.set('page_size', '1'); // Only need the first result
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`RAWG API request failed with status ${res.status}`);
+    }
+
+    const data = await res.json() as { results: RawgGameDetails[] };
+    if (data.results && data.results.length > 0) {
+      return data.results[0];
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching game details from RAWG:', error);
+    return null;
+  }
+}
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;

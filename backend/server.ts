@@ -3,6 +3,7 @@ dotenv.config({ path: '.development.env' });
 import express from 'express';
 import cors from 'cors';
 import type { Express, Request, Response } from 'express';
+import { getDailyGame } from './dailyGameStore.js';
 import {
   startPlayerGuessesGame,
   handlePlayerQuestion,
@@ -12,6 +13,7 @@ import {
   HintType,
 } from './game.js';
 import { authenticateToken } from './auth.js';
+import { fetchGameDetailsByName } from './rawg.js';
 import {
   saveConversationMessage,
   getConversationHistory,
@@ -297,6 +299,22 @@ app.post('/ai-guesses/answer', authenticateToken, async (req: Request, res: Resp
     if (err.message === 'Session not found.') return res.status(401).json({ error: err.message });
     if (err.message === 'Session ID and user answer are required.')
       return res.status(400).json({ error: err.message });
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  }
+});
+
+app.get('/game-details', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const secretGame = await getDailyGame();
+    const gameDetails = await fetchGameDetailsByName(secretGame);
+    if (gameDetails) {
+      res.json(gameDetails);
+    } else {
+      res.status(404).json({ error: 'Game details not found.' });
+    }
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('Error fetching game details:', err);
     res.status(500).json({ error: 'Internal Server Error', details: err.message });
   }
 });
