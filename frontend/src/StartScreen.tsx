@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 
 import AuthPage from './AuthPage';
 import SettingsButton from './components/SettingsButton';
+import LoadingIndicator from './components/LoadingIndicator';
 
 import { AI_NAME } from './constants';
 import { wrapNavigate } from './utils/transition-utils';
@@ -137,7 +138,7 @@ function StartScreen() {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen text-xl">Loading...</div>;
+    return <LoadingIndicator />;
   }
 
   const bothCompleted = aiGuessesCompletedToday && playerGuessesCompletedToday;

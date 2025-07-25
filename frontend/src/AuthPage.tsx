@@ -181,7 +181,7 @@ function AuthPage({ onAuth }: AuthPageProps) {
             )}
           </p>
           <p className="mt-2">
-            <button className="cursor-pointer text-gray-500 hover:underline" onClick={handleGuestAuth}>
+            <button className="cursor-pointer text-gray-500 dark:text-gray-200 hover:underline" onClick={handleGuestAuth}>
               Or play as a guest
             </button>
           </p>

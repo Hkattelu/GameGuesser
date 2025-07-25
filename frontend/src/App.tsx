@@ -10,6 +10,7 @@ import RulesIcon from './components/RulesIcon'; // Import RulesIcon
 import GameResultsDialog from './components/GameResultsDialog';
 import GameHistoryCalendar from './components/GameHistoryCalendar';
 import SettingsButton from './components/SettingsButton';
+import LoadingIndicator from './components/LoadingIndicator';
 
 import { ChatMessage, GameMode, Role } from './types';
 import { isGameCompleted } from './utils/gameCompletion';
