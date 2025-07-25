@@ -178,8 +178,8 @@ Play at: ${window.location.origin}`;
   const { totalQuestions, gameType, resultText } = getResultSummary();
 
   return (
-    <div className="fixed inset-0 bg-gray-600/60 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
-      <div className="relative p-6 border w-full max-w-md shadow-lg rounded-md bg-white mx-4 dark:bg-gray-800">
+    <div className="fixed inset-0 bg-gray-600/60 overflow-y-auto h-full w-full z-50 flex justify-center items-center" onClick={onClose}>
+      <div className="relative p-6 border w-full max-w-md shadow-lg rounded-md bg-white mx-4 dark:bg-gray-800" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Game Results</h3>
           <button

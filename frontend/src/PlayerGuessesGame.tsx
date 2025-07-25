@@ -1,39 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
-import { MAX_SUGGESTIONS, SUGGESTIONS } from './constants';
-import { ChatMessage, GameMode, PlayerQuestionResponse, PlayerGuessResponse } from './types';
+import { MAX_SUGGESTIONS, SUGGESTIONS, MAX_QUESTIONS } from './constants';
+import { ChatMessage, PlayerQuestionResponse, PlayerGuessResponse } from './types';
 import HintIcon from './components/HintIcon';
 import HintDialog from './components/HintDialog';
 import ErrorBanner from './components/ErrorBanner';
-
-export interface PlayerGuessesGameProps {
-  gameMode: GameMode;
-  preGame: boolean;
-  started: boolean;
-  loading: boolean;
-  questionCount: number;
-  maxQuestions: number;
-  chatHistory: ChatMessage[];
-  sessionId: string | null;
-  setStarted: React.Dispatch<React.SetStateAction<boolean>>;
-  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
-  setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
-  setGameMessage: React.Dispatch<React.SetStateAction<string>>;
-  setVictory: React.Dispatch<React.SetStateAction<boolean | 'guess'>>;
-  setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
-  setConfidence: React.Dispatch<React.SetStateAction<number | undefined>>;
-  setError: React.Dispatch<React.SetStateAction<boolean>>;
-  token?: string | null;
-  gameCompletedToday?: boolean;
-  onGameCompleted?: () => void;
-  // New setters to propagate hint usage and score to the parent (App)
-  setScore?: React.Dispatch<React.SetStateAction<number | undefined>>;
-  setUsedHint?: React.Dispatch<React.SetStateAction<boolean | undefined>>;
-}
+import MascotImage from './components/MascotImage';
+import { isGameCompleted } from './utils/gameCompletion';
+import { useAuth } from './AuthContext';
+import RulesIcon from './components/RulesIcon';
+import RulesDialog from './components/RulesDialog';
 
 /** Shuffle an array of elements randomly. */
 function shuffle(arr: string[]) {
@@ -45,36 +23,137 @@ function shuffle(arr: string[]) {
   return sortedArr;
 }
 
-function PlayerGuessesGame({
-  gameMode,
-  preGame,
-  started,
-  loading,
-  questionCount,
-  maxQuestions,
-  chatHistory,
-  sessionId,
-  token,
-  setStarted,
-  setQuestionCount,
-  setChatHistory,
-  setLoading,
-  setSessionId,
-  setGameMessage,
-  setVictory,
-  setShowResults,
-  setConfidence,
-  setError,
-  gameCompletedToday = false,
-  onGameCompleted,
-  setScore,
-  setUsedHint,
-}: PlayerGuessesGameProps) {
+const DEFAULT_MESSAGE = "I'm thinking of a game. Ask me a yes/no question, or try to guess the game!";
+
+function PlayerGuessesGame() {
+  const { currentUser } = useAuth();
+
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
   const [suggestions, setSuggestions] = useState(shuffle([...SUGGESTIONS]).slice(0, MAX_SUGGESTIONS));
   const [isHintDialogOpen, setIsHintDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [started, setStarted] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [questionCount, setQuestionCount] = useState<number>(0);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [gameMessage, setGameMessage] = useState<string>(DEFAULT_MESSAGE);
+  const [victory, setVictory] = useState<boolean | 'guess'>(false);
+  const [error, setError] = useState<boolean>(false);
+  const [showResults, setShowResults] = useState<boolean>(false);
+  const [confidence, setConfidence] = useState<number | undefined>(undefined);
+  const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
+  const [score, setScore] = useState<number | undefined>(undefined);
+  const [usedHint, setUsedHint] = useState<boolean | undefined>(undefined);
+  const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
+  const [maxQuestions] = useState<number>(MAX_QUESTIONS);
+  const [isRulesDialogOpen, setIsRulesDialogOpen] = useState(false);
+
+  const openRulesDialog = () => setIsRulesDialogOpen(true);
+  const closeRulesDialog = () => setIsRulesDialogOpen(false);
+
+  useEffect(() => {
+    const getToken = async () => {
+      if (currentUser) {
+        const token = await currentUser.getIdToken();
+        setFirebaseToken(token);
+      } else {
+        setFirebaseToken(null);
+      }
+    };
+    getToken();
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setChatHistory([]);
+      setSessionId(null);
+      setQuestionCount(0);
+      setStarted(false);
+      setPlayerGuessesCompletedToday(false);
+      return;
+    }
+
+    const fetchGameState = async () => {
+      setLoading(true);
+      try {
+        const token = await currentUser.getIdToken();
+        const response = await fetch(`${getApiUrl()}/game-state?gameMode=player-guesses&date=${new Date().toISOString().slice(0, 10)}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status === 401) {
+          // Handle logout if token is invalid
+          // navigate('/'); // Redirect to home/auth page
+          return;
+        }
+        if (!response.ok) throw new Error('Failed to load game state');
+
+        const gameState = await response.json();
+
+        if (gameState) {
+          const history = gameState.chatHistory.map((r: any) => ({
+            role: r.role,
+            parts: [{ text: r.content }],
+            gameType: r.game_type,
+          }));
+          setChatHistory(history);
+          setSessionId(gameState.sessionId);
+          setQuestionCount(gameState.questionCount);
+          setStarted(true);
+          setConfidence(gameState.confidence);
+
+          const completed = isGameCompleted('player-guesses', history, gameState.questionCount, maxQuestions);
+          setPlayerGuessesCompletedToday(completed);
+        } else {
+          setChatHistory([]);
+          setSessionId(null);
+          setQuestionCount(0);
+          setStarted(false);
+          setPlayerGuessesCompletedToday(false);
+        }
+      } catch (err) {
+        console.error('Error fetching game state', err);
+        setChatHistory([]);
+        setSessionId(null);
+        setQuestionCount(0);
+        setStarted(false);
+        setPlayerGuessesCompletedToday(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGameState();
+  }, [currentUser]);
+
+  const resetGame = () => {
+    setStarted(false);
+    setVictory(false);
+    setQuestionCount(0);
+    setChatHistory([]);
+    setLoading(false);
+    setSessionId(null);
+    setShowResults(false);
+    setConfidence(undefined);
+    setErrorMessage(null);
+    setError(false);
+    setPlayerGuessInput('');
+    setGameMessage(DEFAULT_MESSAGE);
+  };
+
+  const getMascotMood = () => {
+    if (error) return 'error';
+    if (loading) return 'thinking';
+    if (started) {
+      if (victory) return 'victory';
+      else return 'sad';
+    }
+    return 'default';
+  };
 
   /**
    * Starts a new game of 20 Questions where the AI thinks of a game
@@ -95,7 +174,7 @@ function PlayerGuessesGame({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(firebaseToken ? { Authorization: `Bearer ${firebaseToken}` } : {}),
         },
       });
 
@@ -142,7 +221,7 @@ function PlayerGuessesGame({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(firebaseToken ? { Authorization: `Bearer ${firebaseToken}` } : {}),
         },
         body: JSON.stringify({ sessionId: sessionId, userInput: playerGuessInput }),
       });
@@ -252,11 +331,21 @@ function PlayerGuessesGame({
 
   return (
     <div id="player-guesses-game">
+      <RulesIcon gameMode="player-guesses" onClick={openRulesDialog} />
+      <RulesDialog
+        isOpen={isRulesDialogOpen}
+        onClose={closeRulesDialog}
+        gameMode="player-guesses"
+      />
+      <div className="flex justify-center items-center ml-4 mr-4">
+        <MascotImage mood={getMascotMood()} confidence={confidence} error={error} loading={loading} />
+        <p id="game-message" className="text-lg text-gray-600 dark:text-gray-300 mb-4">{gameMessage}</p>
+      </div>
       <HintDialog
         isOpen={isHintDialogOpen}
         onClose={closeHintDialog}
         sessionId={sessionId}
-        token={token}
+        token={firebaseToken}
       />
       {started && !loading && modelResponseText && (
         <div id="model-response" className="text-lg font-semibold p-4 rounded-lg my-4" data-testid="model-response">
@@ -274,15 +363,15 @@ function PlayerGuessesGame({
         />
       )}
 
-      <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
+      <ConversationHistory chatHistory={chatHistory} gameMode={'player-guesses'} loading={loading} />
 
-      {started && !gameCompletedToday && (
+      {started && !playerGuessesCompletedToday && (
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
           Questions left: {maxQuestions - questionCount}/{maxQuestions}
         </div>
       )}
 
-      {started && !loading && !gameCompletedToday && (
+      {started && !loading && !playerGuessesCompletedToday && (
         <div className="mb-6">
           <label htmlFor="player-guess-input" className="block text-gray-700 text-sm font-semibold mb-2" aria-hidden="true"></label>
           <input
@@ -301,11 +390,11 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      {started && !loading && !gameCompletedToday && (
+      {started && !loading && !playerGuessesCompletedToday && (
         <SuggestionChips suggestions={suggestions} onSelectSuggestion={handleSelectSuggestion} />
       )}
 
-      {started && !loading && !gameCompletedToday && (
+      {started && !loading && !playerGuessesCompletedToday && (
         <div className="flex justify-center gap-6 mt-4">
           <button
             id="btn-submit-guess"
@@ -319,7 +408,7 @@ function PlayerGuessesGame({
         </div>
       )}
 
-      {!started && !gameCompletedToday && (
+      {!started && !playerGuessesCompletedToday && (
         <button
           id="btn-start-player-game"
           className="cursor-pointer mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
@@ -328,7 +417,7 @@ function PlayerGuessesGame({
           Start Game
         </button>
       )}
-      {gameCompletedToday && (
+      {playerGuessesCompletedToday && (
         <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
       )}
     </div>

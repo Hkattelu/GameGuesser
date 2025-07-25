@@ -35,7 +35,7 @@ function AuthPage() {
         <button
           type="button"
           onClick={handleGuestSignIn}
-          className="cursor-pointer mt-4 px-6 py-3 text-white font-bold rounded-lg shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+          className="cursor-pointer mt-4 px-6 py-3 dark:text-white font-bold rounded-lg shadow-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
         >
           Play as Guest
         </button>

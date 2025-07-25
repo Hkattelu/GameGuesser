@@ -1,74 +1,152 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import ResponseButtons from './components/ResponseButtons';
 import ConversationHistory from './components/ConversationHistory';
 import { ChatMessage, GameMode } from './types';
 import { getApiUrl } from './env_utils';
 import ErrorBanner from './components/ErrorBanner';
-import { wrapNavigate } from './utils/transition-utils';
+import GameResultsDialog from './components/GameResultsDialog';
+import { isGameCompleted } from './utils/gameCompletion';
+import { MAX_QUESTIONS } from './constants';
+import MascotImage from './components/MascotImage';
+import ConfettiExplosion from "react-confetti-explosion";
+import RulesIcon from './components/RulesIcon';
+import RulesDialog from './components/RulesDialog';
 
-export interface AIGuessesGameProps {
-  gameMode: GameMode;
-  preGame: boolean;
-  started: boolean;
-  loading: boolean;
-  questionCount: number;
-  maxQuestions: number;
-  chatHistory: ChatMessage[];
-  highlightedResponse: string | null;
-  sessionId: string | null;
-  setStarted: React.Dispatch<React.SetStateAction<boolean>>;
-  setQuestionCount: React.Dispatch<React.SetStateAction<number>>;
-  setChatHistory: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
-  setGameMessage: React.Dispatch<React.SetStateAction<string>>;
-  setVictory: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowResults: React.Dispatch<React.SetStateAction<boolean>>;
-  setConfidence: React.Dispatch<React.SetStateAction<number | undefined>>;
-  setError: React.Dispatch<React.SetStateAction<boolean>>;
-  // Optional JWT token for authenticated API requests
-  token?: string | null;
-  gameCompletedToday?: boolean;
-  onGameCompleted?: () => void;
-  navigate: ReturnType<typeof wrapNavigate>;
-}
+import { useAuth } from './AuthContext';
 
-function AIGuessesGame({
-  gameMode,
-  preGame,
-  started,
-  loading,
-  questionCount,
-  maxQuestions,
-  chatHistory,
-  highlightedResponse,
-  sessionId,
-  token,
-  setStarted,
-  setQuestionCount,
-  setChatHistory,
-  setLoading,
-  setSessionId,
-  setGameMessage,
-  setVictory,
-  setError,
-  setShowResults,
-  setConfidence,
-  gameCompletedToday = false,
-  onGameCompleted,
-}: AIGuessesGameProps) {
+const DEFAULT_MESSAGE = "Let's play! Think of a video game, and I'll try to guess it. Click \"Start Game\" when you're ready!";
 
+function AIGuessesGame() {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const [started, setStarted] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [questionCount, setQuestionCount] = useState<number>(0);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [gameMessage, setGameMessage] = useState<string>(DEFAULT_MESSAGE);
+  const [victory, setVictory] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+  const [showResults, setShowResults] = useState<boolean>(false);
+  const [confidence, setConfidence] = useState<number | undefined>(undefined);
+  const [aiGuessesCompletedToday, setAIGuessesCompletedToday] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
+  const [maxQuestions] = useState<number>(MAX_QUESTIONS);
+  const [isRulesDialogOpen, setIsRulesDialogOpen] = useState(false);
 
-  const startGameAI = async () => {
-    // Clear any previous error state so the banner disappears immediately.
+  const openRulesDialog = () => setIsRulesDialogOpen(true);
+  const closeRulesDialog = () => setIsRulesDialogOpen(false);
+
+  useEffect(() => {
+    const getToken = async () => {
+      if (currentUser) {
+        const token = await currentUser.getIdToken();
+        setFirebaseToken(token);
+      } else {
+        setFirebaseToken(null);
+      }
+    };
+    getToken();
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setChatHistory([]);
+      setSessionId(null);
+      setQuestionCount(0);
+      setStarted(false);
+      setAIGuessesCompletedToday(false);
+      return;
+    }
+
+    const fetchGameState = async () => {
+      setLoading(true);
+      try {
+        const token = await currentUser.getIdToken();
+        const response = await fetch(`${getApiUrl()}/game-state?gameMode=ai-guesses&date=${new Date().toISOString().slice(0, 10)}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status === 401) {
+          // Handle logout if token is invalid
+          navigate('/'); // Redirect to home/auth page
+          return;
+        }
+        if (!response.ok) throw new Error('Failed to load game state');
+
+        const gameState = await response.json();
+
+        if (gameState) {
+          const history = gameState.chatHistory.map((r: any) => ({
+            role: r.role,
+            parts: [{ text: r.content }],
+            gameType: r.game_type,
+          }));
+          setChatHistory(history);
+          setSessionId(gameState.sessionId);
+          setQuestionCount(gameState.questionCount);
+          setStarted(true);
+          setConfidence(gameState.confidence);
+
+          const completed = isGameCompleted('ai-guesses', history, gameState.questionCount, maxQuestions);
+          setAIGuessesCompletedToday(completed);
+        } else {
+          setChatHistory([]);
+          setSessionId(null);
+          setQuestionCount(0);
+          setStarted(false);
+          setAIGuessesCompletedToday(false);
+        }
+      } catch (err) {
+        console.error('Error fetching game state', err);
+        setChatHistory([]);
+        setSessionId(null);
+        setQuestionCount(0);
+        setStarted(false);
+        setAIGuessesCompletedToday(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGameState();
+  }, [currentUser]);
+
+  const getMascotMood = () => {
+    if (error) return 'error';
+    if (loading) return 'thinking';
+    if (!started) {
+      if (victory) return 'sad';
+      return 'default';
+    }
+    return 'default';
+  };
+
+  const resetGame = () => {
+    setStarted(false);
+    setVictory(false);
+    setQuestionCount(0);
+    setChatHistory([]);
+    setLoading(false);
+    setSessionId(null);
+    setShowResults(false);
+    setConfidence(undefined);
     setErrorMessage(null);
     setError(false);
-    // Show a pending state while we contact the backend.
+    setGameMessage(DEFAULT_MESSAGE);
+  };
+
+  const startGameAI = async () => {
+    setErrorMessage(null);
+    setError(false);
     setLoading(true);
 
-  try {
+    try {
+      const token = await currentUser?.getIdToken();
       const response = await fetch(`${getApiUrl()}/ai-guesses/start`, {
         method: 'POST',
         headers: {
@@ -85,12 +163,10 @@ function AIGuessesGame({
       const data = await response.json();
       const { sessionId: newSessionId, aiResponse, questionCount: newQuestionCount } = data;
 
-      // ✅ Only update the UI to *started* after a successful response.
       setStarted(true);
       setSessionId(newSessionId);
       setQuestionCount(newQuestionCount);
 
-      // Reset chat history for the brand-new game session.
       setChatHistory([
         { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
@@ -101,7 +177,6 @@ function AIGuessesGame({
       const err = error as Error;
       setErrorMessage(`Error starting game: ${err.message}`);
       setError(true);
-      // Roll back optimistic flag in case it was toggled previously.
       setStarted(false);
     } finally {
       setLoading(false);
@@ -121,6 +196,7 @@ function AIGuessesGame({
     ]);
 
     try {
+      const token = await currentUser?.getIdToken();
       const response = await fetch(`${getApiUrl()}/ai-guesses/answer`, {
         method: 'POST',
         headers: {
@@ -157,11 +233,9 @@ function AIGuessesGame({
       }
     } catch (error: unknown) {
       const err = error as Error;
-      // Handle "Session not found" error by resetting the game state
       if (err.message === 'Session not found.') {
         setErrorMessage('Your game session has expired. Starting a new game...');
         setError(true);
-        // Reset session and start a new game after a short delay
         setSessionId(null);
         setTimeout(() => {
           setErrorMessage(null);
@@ -182,15 +256,22 @@ function AIGuessesGame({
     setLoading(false);
     setVictory(victoryStatus);
     setGameMessage(victoryStatus ? 'Congratulations, you win!' : 'Victory!');
-    if (onGameCompleted) {
-      onGameCompleted();
-    }
-    // Show results dialog after a short delay
+    setAIGuessesCompletedToday(true);
     setTimeout(() => setShowResults(true), 1000);
   };
 
   return (
     <div id="ai-guesses-game">
+      <RulesIcon gameMode="ai-guesses" onClick={openRulesDialog} />
+      <RulesDialog
+        isOpen={isRulesDialogOpen}
+        onClose={closeRulesDialog}
+        gameMode="ai-guesses"
+      />
+      <div className="flex justify-center items-center ml-4 mr-4">
+        <MascotImage mood={getMascotMood()} confidence={confidence} error={error} loading={loading} />
+        <p id="game-message" className="text-lg text-gray-600 dark:text-gray-300 mb-4">{gameMessage}</p>
+      </div>
       {started && (
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
           Questions left: {maxQuestions - questionCount}/{maxQuestions}
@@ -204,16 +285,13 @@ function AIGuessesGame({
         />
       )}
 
-      {/* Conversation History */}
-      <ConversationHistory chatHistory={chatHistory} gameMode={gameMode} loading={loading} />
+      <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} />
 
-      {/* User Response Buttons */}
       {started && !loading && (
         <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
       )}
 
-      {/* Start Game Button */}
-      {!started && !gameCompletedToday && (
+      {!started && !aiGuessesCompletedToday && (
         <button
           id="btn-start-game"
           className="cursor-pointer mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
@@ -222,8 +300,23 @@ function AIGuessesGame({
           Start Game
         </button>
       )}
-      {!started && gameCompletedToday && (
+      {!started && aiGuessesCompletedToday && (
         <div className="mt-8 text-lg text-gray-500 font-semibold">You have already played Quiz Bot Guesses today. Come back tomorrow!</div>
+      )}
+
+      {showResults && (
+        <GameResultsDialog
+          isOpen={showResults}
+          onClose={() => setShowResults(false)}
+          chatHistory={chatHistory}
+          gameMode="ai-guesses"
+          victory={victory}
+          maxQuestions={maxQuestions}
+          sessionId={sessionId}
+          username={currentUser?.displayName || currentUser?.email || 'Guest'}
+          score={undefined}
+          usedHint={undefined}
+        />
       )}
     </div>
   );

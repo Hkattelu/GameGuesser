@@ -8,7 +8,6 @@ frontend/dist/*
 frontend/pnpm-lock.yaml
 frontend/pglite-debug.log
 frontend/tsconfig.tsbuildinfo
-frontend/src/firebase.ts
 
 # Firebase
 frontend/.firebase

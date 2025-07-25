@@ -6,6 +6,8 @@ import { AuthProvider } from './AuthContext';
 import App from './App';
 import AuthWrapper from './AuthWrapper';
 import ProtectedRoute from './ProtectedRoute';
+import AIGuessesGame from './AIGuessesGame';
+import PlayerGuessesGame from './PlayerGuessesGame';
 
 import './index.css';
 
@@ -21,23 +23,11 @@ root.render(
         <Routes>
           <Route path="/" element={<AuthWrapper />} />
 
-          {/* Game routes (protected) */}
-          <Route
-            path="/ai-guesses"
-            element={
-              <ProtectedRoute>
-                <App />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/player-guesses"
-            element={
-              <ProtectedRoute>
-                <App />
-              </ProtectedRoute>
-            }
-          />
+          {/* Authenticated game routes with App as layout */}
+          <Route element={<ProtectedRoute><App /></ProtectedRoute>}>
+            <Route path="ai-guesses" element={<AIGuessesGame />} />
+            <Route path="player-guesses" element={<PlayerGuessesGame />} />
+          </Route>
 
           {/* Catch-all – redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />

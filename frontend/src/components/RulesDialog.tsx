@@ -28,8 +28,8 @@ const RulesDialog: React.FC<RulesDialogProps> = ({ isOpen, onClose, gameMode }) 
   const title = gameMode === 'ai-guesses' ? "Rules: AI Guesses Your Game" : "Rules: You Guess My Game";
 
   return (
-    <div className="fixed inset-0 bg-gray-600/50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
-      <div className="relative p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+    <div className="fixed inset-0 bg-gray-600/50 overflow-y-auto h-full w-full z-50 flex justify-center items-center" onClick={onClose}>
+      <div className="relative p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800" onClick={(e) => e.stopPropagation()}>
         <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">{title}</h3>
         <ul className="list-disc list-inside text-left text-gray-700 dark:text-gray-200 mb-6">
           {rules.map((rule, index) => (
