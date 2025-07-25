@@ -12,6 +12,9 @@ import { isGameCompleted } from './utils/gameCompletion';
 import { useAuth } from './AuthContext';
 import RulesIcon from './components/RulesIcon';
 import RulesDialog from './components/RulesDialog';
+import GameResultsDialog from './components/GameResultsDialog';
+import GameHistoryCalendar from './components/GameHistoryCalendar';
+import ConfettiExplosion from 'react-confetti-explosion';
 
 /** Shuffle an array of elements randomly. */
 function shuffle(arr: string[]) {
@@ -50,9 +53,14 @@ function PlayerGuessesGame() {
   const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
   const [maxQuestions] = useState<number>(MAX_QUESTIONS);
   const [isRulesDialogOpen, setIsRulesDialogOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
 
   const openRulesDialog = () => setIsRulesDialogOpen(true);
   const closeRulesDialog = () => setIsRulesDialogOpen(false);
+  const openHistoryDialog = () => setShowHistory(true);
+  const closeHistoryDialog = () => setShowHistory(false);
+  const openHintDialog = () => setIsHintDialogOpen(true);
+  const closeHintDialog = () => setIsHintDialogOpen(false);
 
   useEffect(() => {
     const getToken = async () => {
@@ -315,9 +323,7 @@ function PlayerGuessesGame() {
     setVictory(victoryStatus);
     setGameMessage(finalMessage);
     setModelResponseText('');
-    if (onGameCompleted) {
-      onGameCompleted();
-    }
+    setPlayerGuessesCompletedToday(true);
     setTimeout(() => setShowResults(true), 1500);
   };
 
@@ -326,8 +332,6 @@ function PlayerGuessesGame() {
     setSuggestions(suggestions.filter(suggestion => suggestion !== question));
   };
 
-  const openHintDialog = () => setIsHintDialogOpen(true);
-  const closeHintDialog = () => setIsHintDialogOpen(false);
 
   return (
     <div id="player-guesses-game">
@@ -418,7 +422,56 @@ function PlayerGuessesGame() {
         </button>
       )}
       {playerGuessesCompletedToday && (
-        <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
+        <>
+          <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
+          <button 
+            onClick={openHistoryDialog}
+            className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105 mr-5"
+          >
+            📊 History
+          </button>
+          <button
+            onClick={() => setShowResults(true)}
+            className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+          >
+            View Results
+          </button>
+
+        </>
+      )}
+
+      {victory && (
+        <ConfettiExplosion
+          force={0.6}
+          duration={2000}
+          particleCount={100}
+          floorheight={1600}
+          floorwidth={1600}
+        />
+      )}
+
+      {showResults && (
+        <GameResultsDialog
+          isOpen={showResults}
+          onClose={() => setShowResults(false)}
+          chatHistory={chatHistory}
+          gameMode="player-guesses"
+          victory={victory}
+          maxQuestions={maxQuestions}
+          sessionId={sessionId}
+          username={currentUser?.displayName || currentUser?.email || 'Guest'}
+          score={score}
+          usedHint={usedHint}
+        />
+      )}
+
+      {showHistory && (
+        <GameHistoryCalendar
+          token={firebaseToken}
+          gameMode="player-guesses"
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
+        />
       )}
     </div>
   );

@@ -174,7 +174,7 @@ function StartScreen() {
           </button>
         </div>
       </div>
-      {bothCompleted && <div className="mt-8 text-lg text-gray-500 font-semibold">You have played both games today. Come back tomorrow!</div>}
+      {bothCompleted && <div className="mt-8 text-lg text-gray-500 dark:text-gray-300 font-semibold">You have played both games today. Come back tomorrow!</div>}
       </div>
     </>
   );

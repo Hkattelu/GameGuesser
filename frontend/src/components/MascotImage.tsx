@@ -58,8 +58,11 @@ function MascotImage({ mood, confidence, error, loading }: MascotImageProps) {
     imageUrl = '/bot_boy/thinking.png';
   } else if (error) {
     imageUrl = '/bot_boy/error.png';
+  } else if (mood === 'victory') {
+    imageUrl = '/bot_boy/victory.png';
+  } else {
+    imageUrl = confidence ? confidenceToUrl(confidence) : moodToUrl(mood || 'default');
   }
-  imageUrl = confidence ? confidenceToUrl(confidence) : moodToUrl(mood || 'default');
   return (
     <div className="flex justify-center mb-4 max-w-50">
       <img src={imageUrl} alt="Game Boy mascot" />

@@ -12,6 +12,7 @@ import MascotImage from './components/MascotImage';
 import ConfettiExplosion from "react-confetti-explosion";
 import RulesIcon from './components/RulesIcon';
 import RulesDialog from './components/RulesDialog';
+import GameHistoryCalendar from './components/GameHistoryCalendar';
 
 import { useAuth } from './AuthContext';
 
@@ -36,9 +37,12 @@ function AIGuessesGame() {
   const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
   const [maxQuestions] = useState<number>(MAX_QUESTIONS);
   const [isRulesDialogOpen, setIsRulesDialogOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
 
   const openRulesDialog = () => setIsRulesDialogOpen(true);
   const closeRulesDialog = () => setIsRulesDialogOpen(false);
+  const openHistoryDialog = () => setShowHistory(true);
+  const closeHistoryDialog = () => setShowHistory(false);
 
   useEffect(() => {
     const getToken = async () => {
@@ -272,6 +276,15 @@ function AIGuessesGame() {
         <MascotImage mood={getMascotMood()} confidence={confidence} error={error} loading={loading} />
         <p id="game-message" className="text-lg text-gray-600 dark:text-gray-300 mb-4">{gameMessage}</p>
       </div>
+      {victory && (
+        <ConfettiExplosion
+          force={0.6}
+          duration={2000}
+          particleCount={100}
+          floorheight={1600}
+          floorwidth={1600}
+        />
+      )}
       {started && (
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
           Questions left: {maxQuestions - questionCount}/{maxQuestions}
@@ -301,7 +314,21 @@ function AIGuessesGame() {
         </button>
       )}
       {!started && aiGuessesCompletedToday && (
-        <div className="mt-8 text-lg text-gray-500 font-semibold">You have already played Quiz Bot Guesses today. Come back tomorrow!</div>
+        <>
+          <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
+          <button 
+            onClick={openHistoryDialog}
+            className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105 mr-5"
+          >
+            📊 History
+          </button>
+          <button
+            onClick={() => setShowResults(true)}
+            className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+          >
+            View Results
+          </button>
+        </>
       )}
 
       {showResults && (
@@ -316,6 +343,15 @@ function AIGuessesGame() {
           username={currentUser?.displayName || currentUser?.email || 'Guest'}
           score={undefined}
           usedHint={undefined}
+        />
+      )}
+
+      {showHistory && (
+        <GameHistoryCalendar
+          token={firebaseToken}
+          gameMode="ai-guesses"
+          isOpen={showHistory}
+          onClose={() => setShowHistory(false)}
         />
       )}
     </div>
