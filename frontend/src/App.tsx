@@ -157,8 +157,10 @@ function App({
 
         const gameState = await response.json();
 
-        if (gameState) {
-          const history = gameState.chatHistory.map((r) => ({
+        const hasHistory = gameState && Array.isArray(gameState.chatHistory);
+
+        if (hasHistory) {
+          const history = gameState.chatHistory.map((r: any) => ({
             role: r.role,
             parts: [{ text: r.content }],
             gameType: r.game_type,
@@ -308,15 +310,17 @@ function App({
 
       {gameMode === 'player-guesses' && (
         <PlayerGuessesGame
+          /* Authentication */
           token={token}
-          gameMode={gameMode}
-          preGame={false}
+
+          /* Game metadata */
           started={started}
           loading={loading}
           questionCount={questionCount}
-          maxQuestions={maxQuestions}
           chatHistory={chatHistory}
           sessionId={sessionId}
+
+          /* State updaters */
           setStarted={setStarted}
           setQuestionCount={setQuestionCount}
           setChatHistory={setChatHistory}
@@ -327,8 +331,12 @@ function App({
           setVictory={setVictory}
           setShowResults={setShowResults}
           setError={setError}
+
+          /* Scoring details */
           setScore={setScore}
           setUsedHint={setUsedHint}
+
+          /* Daily completion */
           gameCompletedToday={playerGuessesCompletedToday}
           onGameCompleted={() => handleGameCompletion('player-guesses')}
         />

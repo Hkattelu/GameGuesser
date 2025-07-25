@@ -36,8 +36,8 @@ const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
       !msg.parts[0]?.text.includes('Game Started') && 
       !msg.parts[0]?.text.includes('answered:')).length;
 
-    const gameType = gameMode === 'player-guesses' ? 'Player Guesses' : 'Quiz Bot Guesses';
-    const resultText = victory === true ? 'Won' : victory === 'guess' ? 'Quiz Bot Guessed' : 'Lost';
+    const gameType = gameMode === 'player-guesses' ? 'Player Guesses' : 'AI Guesses';
+    const resultText = victory === true ? 'Won' : victory === 'guess' ? 'AI Guessed' : 'Lost';
     
     return {
       totalQuestions,
@@ -63,7 +63,7 @@ const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
       scoreText = '\n💡 Hint used';
     }
     
-    const shareText = `🎮 Quiz Bot's Arcade - ${date}
+    const shareText = `Bot Boy's Game Guessr - ${date}
 
 Mode: ${gameType}
 Result: ${resultText} (${totalQuestions}/${maxQuestions} questions)${scoreText}

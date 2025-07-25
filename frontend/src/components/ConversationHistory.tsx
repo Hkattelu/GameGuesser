@@ -132,7 +132,9 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
         id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
         className={`${containerClasses} flex justify-center items-center`}
       >
-        <LoadingIndicator />
+        <div id="loading-indicator">
+          <LoadingIndicator />
+        </div>
       </div>
     );
   }

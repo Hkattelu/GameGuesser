@@ -2,19 +2,33 @@ import { useState } from 'react';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
-import { MAX_SUGGESTIONS, SUGGESTIONS } from './constants';
+import { MAX_SUGGESTIONS, SUGGESTIONS, MAX_QUESTIONS } from './constants';
 import { ChatMessage, GameMode, PlayerQuestionResponse, PlayerGuessResponse } from './types';
 import HintIcon from './components/HintIcon';
 import HintDialog from './components/HintDialog';
 import ErrorBanner from './components/ErrorBanner';
 
 export interface PlayerGuessesGameProps {
-  gameMode: GameMode;
-  preGame: boolean;
+  /**
+   * The current game mode. Defaults to `'player-guesses'` if omitted.
+   * Consumers (like <App />) no longer need to pass this prop because the
+   * component assumes its own canonical mode.
+   */
+  gameMode?: GameMode;
+  /**
+   * Whether the component should render its pre-game splash. Retained for
+   * backwards-compatibility with existing tests but no longer required by
+   * <App />. Unused internally.
+   */
+  preGame?: boolean;
   started: boolean;
   loading: boolean;
   questionCount: number;
-  maxQuestions: number;
+  /**
+   * Maximum number of questions allowed. Defaults to the value from
+   * `constants.MAX_QUESTIONS` if not provided.
+   */
+  maxQuestions?: number;
   chatHistory: ChatMessage[];
   sessionId: string | null;
   setStarted: React.Dispatch<React.SetStateAction<boolean>>;
@@ -46,12 +60,12 @@ function shuffle(arr: string[]) {
 }
 
 function PlayerGuessesGame({
-  gameMode,
-  preGame,
+  gameMode = 'player-guesses',
+  preGame = false,
   started,
   loading,
   questionCount,
-  maxQuestions,
+  maxQuestions = MAX_QUESTIONS,
   chatHistory,
   sessionId,
   token,
