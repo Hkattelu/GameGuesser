@@ -125,7 +125,7 @@ function StartScreen() {
         <SettingsButton />
         <button
           onClick={handleLogout}
-          className="cursor-pointer px-4 py-2 bg-gray-600 text-white rounded-md shadow-md hover:bg-gray-700 transition-colors"
+          className="cursor-pointer px-4 py-2 bg-white dark:bg-gray-600 dark:text-white rounded-md shadow-md hover:bg-gray-700 transition-colors"
         >
           Logout
         </button>
