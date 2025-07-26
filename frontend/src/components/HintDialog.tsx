@@ -74,8 +74,8 @@ const HintDialog: React.FC<HintDialogProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-white text-gray-900 dark:text-white dark:bg-gray-800 p-8 m-8 rounded-lg" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center mb-4 w-80">
+      <div className="flex flex-col bg-white text-gray-900 dark:text-white dark:bg-gray-800 p-8 m-8 rounded-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4 w-100">
           <h2 className="text-2xl font-bold flex-1">Need a hint?</h2>
           <button
             onClick={onClose}
@@ -84,9 +84,9 @@ const HintDialog: React.FC<HintDialogProps> = ({
             ×
           </button>
         </div>
-        <div className="flex-col">
+        <div className="flex-col w-100">
           <div className="flex justify-between items-center mb-4">
-            <div>Publisher</div>
+            <div className="mr-10">Publisher</div>
             {publisher ? (<div>{publisher}</div>) :
             <button
               onClick={() => handleRevealHint(HintType.PUBLISHER)}
@@ -97,7 +97,7 @@ const HintDialog: React.FC<HintDialogProps> = ({
             </button> }
           </div>
           <div className="flex justify-between items-center mb-4">
-            <div>Developer</div>
+            <div className="mr-10">Developer</div>
             {developer ? (<div>{developer}</div>) :
             <button
               onClick={() => handleRevealHint(HintType.DEVELOPER)}
@@ -108,7 +108,7 @@ const HintDialog: React.FC<HintDialogProps> = ({
             </button>}
           </div>
           <div className="flex justify-between items-center mb-4">
-            <div>Release Year</div>
+            <div className="mr-10">Release Year</div>
             {releaseYear ? (<div>{releaseYear}</div>) :
             <button
               onClick={() => handleRevealHint(HintType.RELEASE_YEAR)}
@@ -119,7 +119,7 @@ const HintDialog: React.FC<HintDialogProps> = ({
             </button>}
           </div>
           <div className="flex justify-between items-center mb-4">
-            <div>Special ✨</div>
+            <div className="mr-10">Special ✨</div>
             {special ? (<div>{special}</div>) :
             <button
               onClick={() => handleRevealHint(HintType.SPECIAL)}

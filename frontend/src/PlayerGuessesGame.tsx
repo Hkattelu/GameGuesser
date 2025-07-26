@@ -161,21 +161,6 @@ function PlayerGuessesGame() {
     fetchGameState();
   }, [currentUser]);
 
-  const resetGame = () => {
-    setStarted(false);
-    setVictory(false);
-    setQuestionCount(0);
-    setChatHistory([]);
-    setLoading(false);
-    setSessionId(null);
-    setShowResults(false);
-    setConfidence(undefined);
-    setErrorMessage(null);
-    setError(false);
-    setPlayerGuessInput('');
-    setGameMessage(DEFAULT_MESSAGE);
-  };
-
   const getMascotMood = () => {
     if (error) return 'error';
     if (loading) return 'thinking';
@@ -241,7 +226,6 @@ function PlayerGuessesGame() {
     if (!playerGuessInput || !sessionId) return;
 
     setErrorMessage(null);
-    setLoading(true);
     setChatHistory((prevHistory) => [
       ...prevHistory,
       { role: "user", parts: [{ text: playerGuessInput }] },
@@ -336,7 +320,6 @@ function PlayerGuessesGame() {
       }
     } finally {
       setPlayerGuessInput('');
-      setLoading(false);
     }
   };
 
@@ -407,7 +390,7 @@ function PlayerGuessesGame() {
           <input
             type="text"
             id="player-guess-input"
-            placeholder="e.g., Is the game a first-person shooter?"
+            placeholder="e.g., Is the game a first-person shooter? 🤔"
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
             value={playerGuessInput}
             onChange={(e) => setPlayerGuessInput(e.target.value)}
@@ -438,7 +421,7 @@ function PlayerGuessesGame() {
         </div>
       )}
 
-      {!started && !playerGuessesCompletedToday && (
+      {!started && !loading && !playerGuessesCompletedToday && (
         <button
           id="btn-start-player-game"
           className="cursor-pointer mt-2 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"

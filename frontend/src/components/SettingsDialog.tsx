@@ -59,7 +59,8 @@ function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
           <h3 className="text-lg mb-2 font-medium">Credits</h3>
           <p className="text-sm">
             Made by <a href="https://hkattelu.com" target="_blank" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Himanshu</a><br />
-            Icons by <a target="_blank" href="https://icons8.com" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Icons8</a>
+            Icons by <a target="_blank" href="https://icons8.com" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Icons8</a><br />
+            Arcade loader by <a target="_blank" href="https://css-loaders.com/arcade/" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Temani Afif</a>
           </p>
         </div>
       </div>

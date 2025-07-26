@@ -56,17 +56,7 @@ function formatMessages(messages: ChatMessage[], gameMode: GameMode): ChatTurn[]
  * Given a string which may or may not contain JSON content, parse it and
  * return a string which is easier to read in the conversation history.
  *
- * The following types of JSON content are supported:
- *
- * - {"type": "question", "content": string} - renders as just the content.
- * - {"type": "guess", "content": string} - renders as "(Guess): content"
- * - {"type": "answer", "content": string} - renders as just the content.
- * - {"type": "answer", "content": {"answer": string, "clarification": string}} - renders as
- *   "answer - clarification".
- * - {"type": "guessResult", "content": {"response": string, "score": number, "usedHint": boolean}} -
- *   renders as "response (score pts)(hint)"
- *
- * If the content is not one of the above formats, it is returned unchanged.
+ * See backend/types.ts for more detail.
  *
  * @param maybeJsonString The string which may or may not contain JSON content.
  * @return The formatted string.
@@ -115,26 +105,14 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
 
   // Keep the most recent message in view when the list changes.
   useEffect(() => {
-    if (typeof screen.orientation !== 'undefined') {
-      // Mobile browsers do nothing
-      return;
-    }
-    // For desktop, scroll to the bottom.
-    historyEndRef.current?.scrollIntoView();
+    // Scroll to the bottom.
+    historyEndRef.current?.scrollIntoView({block: 'end'});
   }, [chatHistory]);
-
-  const containerClasses =
-    'text-left mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg max-h-60 overflow-y-auto';
 
   if (loading) {
     return (
-      <div
-        id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
-        className={`${containerClasses} flex justify-center items-center`}
-      >
-        <div className="flex flex-col items-center justify-center h-screen text-xl">
-          <p className="mt-4 text-gray-600 dark:text-gray-300 animate-pulse"></p>
-        </div>
+      <div className="loader-container conversation-screen">
+        <div className="arcade-loader"></div>
       </div>
     );
   }
@@ -144,29 +122,27 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
   }
 
   return (
-    <table
+    <div
       id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
-      className={`${containerClasses} space-y-2 w-full`}
+      className={'mb-6 conversation-screen w-full'}
     >
-      <thead>
-        <tr>
-          <th scope="col" className="border-2 border-r-1">{gameMode === 'player-guesses' ? 'You' : 'Quiz Bot'}</th>
-          <th scope="col" className="border-2 border-l-1 text-right">{gameMode === 'player-guesses' ? 'Quiz Bot' : 'You'}</th>
-        </tr>
-      </thead>
-      <tbody>
       {formatMessages(chatHistory, gameMode).map((turn, index) => {
         return (
-          <tr key={index} className="even:bg-gray-100 dark:even:bg-gray-700">
-            <td>{gameMode === 'player-guesses' ? formatJsonContent(turn.user) :  formatJsonContent(turn.model)}</td>
-            <td className="text-right">{gameMode === 'player-guesses' ? (turn.model ? formatJsonContent(turn.model) : '-') : (turn.user ? formatJsonContent(turn.user) : '-')}</td>
-          </tr>
+          <>
+            <div className="left-message"> 
+              <div className="underline">{gameMode === 'player-guesses' ? 'You' : 'Quiz Bot'}</div>
+              {gameMode === 'player-guesses' ? formatJsonContent(turn.user) :  formatJsonContent(turn.model)}
+            </div>
+            <div className="right-message">
+              <div className="underline">{gameMode === 'player-guesses' ? 'Quiz Bot' : 'You'}</div>
+              {gameMode === 'player-guesses' ? (turn.model ? formatJsonContent(turn.model) : (<div className="dots-loader"></div>)) : (turn.user ? formatJsonContent(turn.user) : (<div className="dots-loader"></div>))}
+            </div>
+          </>
         );
       })}
-      </tbody>
       {/* Dummy element so we can scrollIntoView() smoothly. */}
-      <tfoot ref={historyEndRef}></tfoot>
-    </table>
+      <div ref={historyEndRef}></div>
+    </div>
   );
 }
 
