@@ -7,7 +7,7 @@ function SettingsButton() {
   return (
     <>
       <button
-        className="cursor-pointer fixed top-4 right-4 z-40 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white p-3 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 hover:scale-105"
+        className="cursor-pointer absolute top-4 right-4 z-40 p-0 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-100 hover:text-gray-800 dark:hover:text-white p-3 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 hover:scale-105"
         onClick={() => setShowSettings(true)}
         title="Settings"
       >

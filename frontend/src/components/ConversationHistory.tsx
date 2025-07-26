@@ -131,7 +131,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
           <>
             <div className="left-message"> 
               <div className="underline">{gameMode === 'player-guesses' ? 'You' : 'Quiz Bot'}</div>
-              {gameMode === 'player-guesses' ? formatJsonContent(turn.user) :  formatJsonContent(turn.model)}
+              {gameMode === 'player-guesses' ? (turn.user ? formatJsonContent(turn.user) : (<div className="dots-loader"></div>)) : (turn.model ? formatJsonContent(turn.model) : (<div className="dots-loader"></div>))}
             </div>
             <div className="right-message">
               <div className="underline">{gameMode === 'player-guesses' ? 'Quiz Bot' : 'You'}</div>

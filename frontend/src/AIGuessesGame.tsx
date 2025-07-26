@@ -192,7 +192,6 @@ function AIGuessesGame() {
 
     setErrorMessage(null);
     setError(false);
-    setLoading(true);
     setGameMessage(`You answered "${answer}". Thinking...`);
     setChatHistory((prevHistory) => [
       ...prevHistory,
@@ -251,7 +250,6 @@ function AIGuessesGame() {
         setError(true);
       }
     } finally {
-      setLoading(false);
     }
   };
 

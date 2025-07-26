@@ -444,16 +444,13 @@ function PlayerGuessesGame() {
           {rawgGameDetails.metacritic_url && (
             <a className="text-sm" href={rawgGameDetails.metacritic_url}>Metacritic link</a>
           )}
-          {rawgGameDetails.stores && rawgGameDetails.stores.length > 0 && (
+          {rawgGameDetails.description && (<div className="mt-2 mb-2 max-h-50 overflow-y-auto" dangerouslySetInnerHTML={{ __html: rawgGameDetails.description }}></div>)}
+          {rawgGameDetails.platforms && rawgGameDetails.platforms.length > 0 && (
             <div className="mt-2">
               <p className="text-sm font-semibold">Available on:</p>
               <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300">
-                {rawgGameDetails.stores.filter((store: any) => store.store.domain).map((store: any) => (
-                  <li key={store.store.id}>
-                    <a href={`http://${store.store.domain}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                      {store.store.name}
-                    </a>
-                  </li>
+                {rawgGameDetails.platforms.filter((platform: any) => platform.platform.name).map((platform: any) => (
+                  <li key={platform.platform.id}>{platform.platform.name}</li>
                 ))}
               </ul>
             </div>

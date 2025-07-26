@@ -333,6 +333,11 @@ html.dark .hover-anim {
   max-height: 400px;
   overflow-y: auto;
 
+  &::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0,0.3);
+    background-color: #acd47d !important;
+  }
+
   .left-message {
     width: 100%;
     text-align: left;
@@ -358,6 +363,7 @@ html.dark .hover-anim {
  }
 }
 
+
 .dots-loader {
   width: 2em;
   margin-top: 8px;
@@ -370,11 +376,13 @@ html.dark .hover-anim {
 /* Scrollbar */
 ::-webkit-scrollbar {
 	width: 12px;
+  border-radius: 10px;
 }
   
 ::-webkit-scrollbar-track { /* TRACK */
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0,0.3);
   background-color: #13082c;
+  border-radius: 10px;
 }
 
 html.dark  ::-webkit-scrollbar-thumb {
@@ -383,7 +391,8 @@ html.dark  ::-webkit-scrollbar-thumb {
 
 html.dark ::-webkit-scrollbar-track { /* TRACK */
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0,0.3);
-  background-color: #acd47d;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
 }
 
 ::-webkit-scrollbar-thumb { /* Cursor */
