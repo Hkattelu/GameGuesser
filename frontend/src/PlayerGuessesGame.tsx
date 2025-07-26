@@ -158,7 +158,8 @@ function PlayerGuessesGame() {
       }
     };
 
-    fetchGameState();
+    setLoading(true);
+    // fetchGameState();
   }, [currentUser]);
 
   const getMascotMood = () => {

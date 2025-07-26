@@ -326,7 +326,7 @@ html.dark .hover-anim {
   border-radius: 16px;
   box-shadow: 0 0 0 5px #acd47d, /* Inner "border" */
               0 0 0 10px #13082c; /* Outer "border" */
-  font-family: 'Courier New';
+  font-family: monospace;
   font-weight: bold;
   font-size: 1.2em;
   line-height: 1.2em;
@@ -465,13 +465,15 @@ html.dark ::-webkit-scrollbar-track { /* TRACK */
   position: relative;
   animation: l9-0 2s infinite;
 }
-html.dark {
-  color: white;
+
+html.dark .arcade-loader::before {
+  color: rgb(26, 104, 8);
 }
 
 @keyframes l1 {to{clip-path: inset(0 -34% 0 0)}}
 .arcade-loader::before {
   content:"Loading";
+  color: rgb(26, 104, 8);
 }
 .arcade-loader::after {
   content: "";
