@@ -21,6 +21,7 @@ const RulesDialog: React.FC<RulesDialogProps> = ({ isOpen, onClose, gameMode }) 
     "You're thinking of a video game, and I'll try to guess it.",
     "You can ask me up to 20 yes/no questions.",
     "I will respond with 'Yes', 'No', or 'Unsure'",
+    "Using a hint will cost you half a point!",
     "Try to guess my game before you run out of questions!",
   ];
 

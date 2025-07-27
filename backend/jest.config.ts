@@ -48,8 +48,9 @@ const config: JestConfigWithTsJest = {
   // Without this, imports like "./db.js" fail because Jest looks for an actual
   // JavaScript file on disk instead of the source `.ts` file.
   moduleNameMapper: {
-    '^(\.{1,2}/.*)\.js$': '$1',
-  },
+    '^(\.{1,2}/.*)\.js': '$1',
+    '@google-cloud/firestore': '<rootDir>/__tests__/mocks/firestoreMock.js',
+  }
 };
 
 export default config;
