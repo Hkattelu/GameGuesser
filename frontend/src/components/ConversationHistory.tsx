@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import {AI_NAME} from '../constants';
 import { ChatMessage, GameMode, ChatTurn } from '../types';
-import LoadingIndicator from './LoadingIndicator';
 
 
 export interface ConversationHistoryProps {
@@ -125,17 +124,17 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
       id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
       className={'mb-6 conversation-screen w-full'}
     >
-      {formatMessages(chatHistory, gameMode).map((turn, index) => {
+      {formatMessages(chatHistory, gameMode).map((turn, index, list) => {
         return (
           <div key={index}>
             <div className="left-message"> 
-              <div className="underline">{gameMode === 'player-guesses' ? 'You' : 'Quiz Bot'}</div>
+              <div className="underline">{gameMode === 'player-guesses' ? 'You' : AI_NAME}</div>
               {gameMode === 'player-guesses' ? formatJsonContent(turn.user) :  formatJsonContent(turn.model)}
             </div>
-            <div className="right-message">
-              <div className="underline">{gameMode === 'player-guesses' ? 'Quiz Bot' : 'You'}</div>
+            {index !== (list.length-1) && (<div className="right-message">
+              <div className="underline">{gameMode === 'player-guesses' ? AI_NAME : 'You'}</div>
               {gameMode === 'player-guesses' ? (turn.model ? formatJsonContent(turn.model) : (<div className="dots-loader"></div>)) : (turn.user ? formatJsonContent(turn.user) : (<div className="dots-loader"></div>))}
-            </div>
+            </div>)}
           </div>
         );
       })}

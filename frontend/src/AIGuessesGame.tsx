@@ -290,7 +290,7 @@ function AIGuessesGame() {
         />
       )}
 
-      <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} />
+      <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} isGameCompleted={aiGuessesCompletedToday} />
 
       {started && !loading && !aiGuessesCompletedToday  && (
         <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />

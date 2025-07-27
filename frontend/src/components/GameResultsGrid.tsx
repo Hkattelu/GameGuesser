@@ -12,7 +12,7 @@ interface GameResult {
   questionNumber: number;
   userInput: string;
   aiResponse: string;
-  responseType: 'Yes' | 'No' | 'Unsure' | 'Guess' | 'Unknown';
+  responseType: 'Yes' | 'No' | 'Unsure' | 'Win' | 'Guess' | 'Unknown';
 }
 
 const GameResultsGrid: React.FC<GameResultsGridProps> = ({
@@ -57,8 +57,11 @@ const GameResultsGrid: React.FC<GameResultsGridProps> = ({
               } else if (content.includes('Unsure') || content.includes("I don't know")) {
                 responseType = 'Unsure';
                 aiResponse = content;
-              } else if (content.includes('You guessed it') || content.includes('correct')) {
+              } else if (content.includes('correct: false')) {
                 responseType = 'Guess';
+                aiResponse = content;
+              } else if (content.includes('You guessed the game!')){
+                responseType = 'Win';
                 aiResponse = content;
               } else {
                 aiResponse = content;
@@ -105,6 +108,8 @@ const GameResultsGrid: React.FC<GameResultsGridProps> = ({
         return 'bg-yellow-500';
       case 'Guess':
         return victory ? 'bg-purple-500' : 'bg-gray-500';
+      case 'Win':
+        return 'bg-purple-500';
       default:
         return 'bg-gray-300';
     }

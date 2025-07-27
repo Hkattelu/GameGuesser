@@ -46,12 +46,6 @@ function App() {
           Back to Games
         </button>
         <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => setShowHistory(true)}
-            className="cursor-pointer text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-          >
-            📊 History
-          </button>
           <button className="cursor-pointer text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline" onClick={handleLogout}>
             Logout
           </button>

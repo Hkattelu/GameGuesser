@@ -378,7 +378,7 @@ function PlayerGuessesGame() {
         />
       )}
 
-      <ConversationHistory chatHistory={chatHistory} gameMode={'player-guesses'} loading={loading} />
+      <ConversationHistory chatHistory={chatHistory} gameMode={'player-guesses'} loading={loading} isGameCompleted={playerGuessesCompletedToday}/>
 
       {started && !playerGuessesCompletedToday && (
         <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">

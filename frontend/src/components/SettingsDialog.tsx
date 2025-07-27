@@ -56,7 +56,7 @@ function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
           <div className="toggle-switch"></div>
         </form>
         <div>
-          <h3 className="text-lg mb-2 font-medium">Credits</h3>
+          <h2 className="text-xl mb-2 font-medium">Credits</h2>
           <p className="text-sm">
             <span>Made by <a href="https://www.youtube.com/@Glowstringman" target="_blank" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Glowstringman</a>. <a href="https://ko-fi.com/glowstringman" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Donation link</a>. </span> <br />
             Icons by <a target="_blank" href="https://icons8.com" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Icons8</a><br />

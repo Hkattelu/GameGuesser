@@ -140,11 +140,11 @@ function StartScreen() {
       </div>
       <div className="p-6 bg-white border-2 border-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">
         <h1 className="pixel-game text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
-          {AI_NAME.split('').map((char, index) => (
+          {`${AI_NAME} 's`.split('').map((char, index) => (
             <span key={index} className="char-fall-in" style={{ animationDelay: `${index * 0.05}s` }}>
               {char}
             </span>
-          ))}'s {'Arcade'.split('').map((char, index) => (
+          ))} {'Arcade'.split('').map((char, index) => (
             <span key={index} className="char-fall-in" style={{ animationDelay: `${(AI_NAME.length + index) * 0.05}s` }}>
               {char}
             </span>
