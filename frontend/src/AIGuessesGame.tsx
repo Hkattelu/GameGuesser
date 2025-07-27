@@ -98,6 +98,9 @@ function AIGuessesGame() {
 
           const completed = isGameCompleted('ai-guesses', history, gameState.questionCount, maxQuestions);
           setAIGuessesCompletedToday(completed);
+          if (completed) {
+            endGame('Congratulations on playing today! Come back tomorrow!', completed);
+          }
         } else {
           setChatHistory([]);
           setSessionId(null);
@@ -123,25 +126,12 @@ function AIGuessesGame() {
   const getMascotMood = () => {
     if (error) return 'error';
     if (loading) return 'thinking';
+    if (victory) return 'victory'
     if (!started) {
       if (victory) return 'sad';
       return 'default';
     }
     return 'default';
-  };
-
-  const resetGame = () => {
-    setStarted(false);
-    setVictory(false);
-    setQuestionCount(0);
-    setChatHistory([]);
-    setLoading(false);
-    setSessionId(null);
-    setShowResults(false);
-    setConfidence(undefined);
-    setErrorMessage(null);
-    setError(false);
-    setGameMessage(DEFAULT_MESSAGE);
   };
 
   const startGameAI = async () => {
@@ -298,7 +288,7 @@ function AIGuessesGame() {
 
       <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} />
 
-      {started && !loading && (
+      {started && !loading && !aiGuessesCompletedToday  && (
         <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
       )}
 
