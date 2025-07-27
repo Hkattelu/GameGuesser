@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
@@ -30,6 +31,7 @@ const DEFAULT_MESSAGE = "I'm thinking of a game. Ask me a yes/no question, or tr
 
 function PlayerGuessesGame() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const [playerGuessInput, setPlayerGuessInput] = useState('');
   const [modelResponseText, setModelResponseText] = useState('');
@@ -117,8 +119,8 @@ function PlayerGuessesGame() {
           },
         });
         if (response.status === 401) {
-          // Handle logout if token is invalid
-          // navigate('/'); // Redirect to home/auth page
+          setErrorMessage('Your login credentials are stale. Refreshing the page...');
+          setTimeout(() => navigate('/'), 500);
           return;
         }
         if (!response.ok) throw new Error('Failed to load game state');
@@ -158,8 +160,7 @@ function PlayerGuessesGame() {
       }
     };
 
-    setLoading(true);
-    // fetchGameState();
+    fetchGameState();
   }, [currentUser]);
 
   const getMascotMood = () => {
@@ -496,8 +497,6 @@ function PlayerGuessesGame() {
           gameMode="player-guesses"
           victory={victory}
           maxQuestions={maxQuestions}
-          sessionId={sessionId}
-          username={currentUser?.displayName || currentUser?.email || 'Guest'}
           score={score}
           usedHint={usedHint}
         />

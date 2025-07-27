@@ -334,8 +334,12 @@ html.dark .hover-anim {
   overflow-y: auto;
 
   &::-webkit-scrollbar-track {
-  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0,0.3);
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0,0.3);
     background-color: #acd47d !important;
+    color: #13082c;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #13082c;
   }
 
   .left-message {

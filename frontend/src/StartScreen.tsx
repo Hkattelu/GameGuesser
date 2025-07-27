@@ -122,7 +122,6 @@ function StartScreen() {
   return (
     <>
       <div className="absolute top-4 left-4 flex gap-2">
-        <SettingsButton />
         <button
           onClick={handleLogout}
           className="cursor-pointer px-4 py-2 bg-white dark:bg-gray-600 dark:text-white rounded-md shadow-md hover:bg-gray-700 transition-colors"
@@ -130,6 +129,7 @@ function StartScreen() {
           Logout
         </button>
       </div>
+      <SettingsButton />
       <div
         className={`start-screen flex flex-col items-center justify-center px-4 text-center mb-4`}
         ref={mouseWatchArea}

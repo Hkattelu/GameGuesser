@@ -1,12 +1,14 @@
 import { useNavigate, useLocation, Outlet } from 'react-router';
+import { wrapNavigate } from './utils/transition-utils';
 import { useAuth } from './AuthContext';
 import SettingsButton from './components/SettingsButton';
 import { auth } from './firebase'; // Import auth for signOut
 
 function App() {
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
+  const navigate = wrapNavigate(useNavigate());
   const location = useLocation();
+  const direction =  location.pathname.includes('player-guesses') ? 'left' : 'right';
 
   const handleLogout = async () => {
     try {
@@ -25,7 +27,7 @@ function App() {
       >
       <div className="flex justify-between items-center mb-4">
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/', direction)}
           className="cursor-pointer flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
         >
           <svg 

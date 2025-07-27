@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import ResponseButtons from './components/ResponseButtons';
 import ConversationHistory from './components/ConversationHistory';
@@ -42,7 +42,6 @@ function AIGuessesGame() {
   const openRulesDialog = () => setIsRulesDialogOpen(true);
   const closeRulesDialog = () => setIsRulesDialogOpen(false);
   const openHistoryDialog = () => setShowHistory(true);
-  const closeHistoryDialog = () => setShowHistory(false);
 
   useEffect(() => {
     const getToken = async () => {
@@ -77,6 +76,7 @@ function AIGuessesGame() {
         });
         if (response.status === 401) {
           // Handle logout if token is invalid
+          setErrorMessage('Your login credentials are stale. Refreshing the page...');
           navigate('/'); // Redirect to home/auth page
           return;
         }
@@ -337,8 +337,6 @@ function AIGuessesGame() {
           gameMode="ai-guesses"
           victory={victory}
           maxQuestions={maxQuestions}
-          sessionId={sessionId}
-          username={currentUser?.displayName || currentUser?.email || 'Guest'}
           score={undefined}
           usedHint={undefined}
         />

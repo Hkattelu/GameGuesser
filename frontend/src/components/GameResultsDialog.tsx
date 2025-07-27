@@ -9,8 +9,6 @@ interface GameResultsDialogProps {
   gameMode: GameMode;
   victory: boolean | 'guess';
   maxQuestions: number;
-  sessionId: string | null;
-  username: string | null;
   score?: number;
   usedHint?: boolean;
 }
@@ -22,8 +20,6 @@ const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
   gameMode,
   victory,
   maxQuestions,
-  sessionId,
-  username,
   score,
   usedHint,
 }) => {
@@ -37,7 +33,7 @@ const GameResultsDialog: React.FC<GameResultsDialogProps> = ({
       !msg.parts[0]?.text.includes('answered:')).length;
 
     const gameType = gameMode === 'player-guesses' ? 'Player Guesses' : 'Quiz Bot Guesses';
-    const resultText = victory === true ? 'Won' : victory === 'guess' ? 'Quiz Bot Guessed' : 'Lost';
+    const resultText = victory === true ? 'Won' : 'Lost';
     
     return {
       totalQuestions,
