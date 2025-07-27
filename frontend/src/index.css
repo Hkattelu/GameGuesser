@@ -87,8 +87,21 @@ html[data-transition-direction="left"]::view-transition-new(root) {
   height: 100%;
 }
 
+@font-face {
+  font-family: 'PixelGame';
+  src: url('/ARCADECLASSIC.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.pixel-game {
+  font-family: 'PixelGame';
+  letter-spacing: 4px;
+}
+
 body {
   font-family: 'Inter', sans-serif;
+  cursor: url('/default.cur'), auto;
   background: linear-gradient(90deg, #f0f2f5, #e6e9ee, #f0f2f5);
   background-size: 200% 200%;
   overflow-x: hidden;
@@ -101,6 +114,11 @@ body {
   margin: 0;
   padding: 20px;
   box-sizing: border-box;
+}
+
+button, a, .cursor-pointer {
+  cursor: url('/pointer.cur'), auto;
+
 
   @media (max-width: 767px) {
     padding: 12px;

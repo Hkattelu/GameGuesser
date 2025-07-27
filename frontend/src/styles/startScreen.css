@@ -2,3 +2,56 @@
   width: 100%;
   height: 100%;
 }
+
+@keyframes fall-in {
+  from {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fall-in {
+  animation: fall-in 1s ease-out forwards;
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(10px);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 1s ease-out forwards;
+}
+
+@keyframes char-fall-in {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.char-fall-in {
+  display: inline-block; /* Required for transform to work on inline elements */
+  animation: char-fall-in 0.5s ease-out forwards;
+  opacity: 0; /* Start with opacity 0 to hide before animation */
+}

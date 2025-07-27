@@ -12,6 +12,7 @@ import PlayerGuessesGame from './PlayerGuessesGame';
 import './index.css';
 
 import { setupGlobalUnauthorizedInterceptor } from './utils/fetchInterceptor';
+import AudioButton from './components/AudioButton';
 
 setupGlobalUnauthorizedInterceptor();
 
@@ -20,6 +21,7 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
+        <AudioButton />
         <Routes>
           <Route path="/" element={<AuthWrapper />} />
 

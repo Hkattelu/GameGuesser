@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router';
 
 import SettingsButton from './components/SettingsButton';
 import LoadingIndicator from './components/LoadingIndicator';
-
 import { AI_NAME } from './constants';
 import { wrapNavigate } from './utils/transition-utils';
 import './styles/startScreen.css';
@@ -140,8 +139,16 @@ function StartScreen() {
         <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />
       </div>
       <div className="p-6 bg-white border-2 border-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">
-        <h1 className="text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
-          {AI_NAME}'s Arcade
+        <h1 className="pixel-game text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
+          {AI_NAME.split('').map((char, index) => (
+            <span key={index} className="char-fall-in" style={{ animationDelay: `${index * 0.05}s` }}>
+              {char}
+            </span>
+          ))}'s {'Arcade'.split('').map((char, index) => (
+            <span key={index} className="char-fall-in" style={{ animationDelay: `${(AI_NAME.length + index) * 0.05}s` }}>
+              {char}
+            </span>
+          ))}
         </h1>
         <p className="text-lg mb-8">Welcome, {currentUser?.displayName || currentUser?.email || 'Guest'}! Choose a game to play!</p>
       </div>
@@ -151,9 +158,9 @@ function StartScreen() {
           <button
             type="button"
             onClick={() => handleSelectGame('/ai-guesses')}
-            className="w-100 game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full sm:w-1/2"
+            className=" animate-bounce-in w-100 game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full sm:w-1/2"
             >
-            <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">{AI_NAME} guesses</h2>
+            <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">{AI_NAME} guesses</h2>
             <p className="text-gray-600 dark:text-gray-300 text-sm">
               Think of any video game and let {AI_NAME} try to guess it by asking you questions.
             </p>
@@ -164,9 +171,9 @@ function StartScreen() {
           <button
             type="button"
             onClick={() => handleSelectGame('/player-guesses')}
-            className="game-option-card hover-anim cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full sm:w-1/2"
+            className=" animate-bounce-in game-option-card hover-anim cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full sm:w-1/2"
             >
-            <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">You guess</h2>
+            <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">You guess</h2>
             <p className="text-gray-600 dark:text-gray-300 text-sm">
               {AI_NAME} is thinking of a game — can you figure it out within twenty questions?
             </p>
@@ -176,7 +183,7 @@ function StartScreen() {
       </div>
       {bothCompleted && <div className="mt-8 text-lg text-gray-500 dark:text-gray-300 font-semibold">You have played both games today. Come back tomorrow!</div>}
       </div>
-    </>
+      </>
   );
 }
 
