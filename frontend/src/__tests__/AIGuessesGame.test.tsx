@@ -1,4 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { AuthProvider } from '../AuthContext';
+import { MemoryRouter } from 'react-router-dom';
+
+const renderWithProviders = (ui: React.ReactElement) => {
+  return render(
+    <AuthProvider>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </AuthProvider>
+  );
+};
 import '@testing-library/jest-dom';
 import AIGuessesGame from '../AIGuessesGame';
 import { GameMode } from '../types';

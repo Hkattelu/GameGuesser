@@ -99,7 +99,10 @@ function AIGuessesGame() {
           const completed = isGameCompleted('ai-guesses', history, gameState.questionCount, maxQuestions);
           setAIGuessesCompletedToday(completed);
           if (completed) {
-            endGame('Congratulations on playing today! Come back tomorrow!', completed);
+            // If this is the case, the player won.
+            const victoryStatus = gameState.questionCount >= maxQuestions;
+            endGame('Congratulations on playing today! Come back tomorrow!', victoryStatus);
+            return;
           }
         } else {
           setChatHistory([]);
@@ -127,11 +130,14 @@ function AIGuessesGame() {
     if (error) return 'error';
     if (loading) return 'thinking';
     if (victory) return 'victory'
-    if (!started) {
-      if (victory) return 'sad';
-      return 'default';
+    if (confidence <= 2) {
+      return 'sad';
+    } else if (confidence <= 4) {
+      return 'nervous';
+    } else if (confidence <= 6) {
+      return 'smile';
     }
-    return 'default';
+    return 'smug';
   };
 
   const startGameAI = async () => {
@@ -213,16 +219,14 @@ function AIGuessesGame() {
         { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
 
-      if (aiResponse.type === "question") {
-        if (newQuestionCount > maxQuestions) {
-          endGame("I couldn't guess your game in 20 questions! You win!", true);
-          return;
-        }
+      if (newQuestionCount > maxQuestions) {
+        endGame("I couldn't guess your game in 20 questions! You win!", true);
+        return;
+      } else if (aiResponse.type === "question") {
         setGameMessage("Your turn to answer!");
       } else if (aiResponse.type === "guess" && aiResponse.content === true) {
         endGame('Hooray, I win! That was fun! Let\'s play again!', false);
-      } else {
-        setGameMessage("Please try again.");
+        return;
       }
     } catch (error: unknown) {
       const err = error as Error;
@@ -247,7 +251,7 @@ function AIGuessesGame() {
     setStarted(false);
     setLoading(false);
     setVictory(victoryStatus);
-    setGameMessage(victoryStatus ? 'Congratulations, you win!' : 'Victory!');
+    setGameMessage(finalMessage);
     setAIGuessesCompletedToday(true);
     setTimeout(() => setShowResults(true), 1000);
   };

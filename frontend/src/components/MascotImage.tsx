@@ -16,25 +16,7 @@ export interface MascotImageProps {
  * @returns {string}
  */
 const moodToUrl = (mood: MascotMood) => {
-  const base = '/bot_boy/';
-  switch (mood) {
-    case 'default':
-      return `${base}smile.png`;
-    case 'sad':
-      return `${base}sad.png`;
-    case 'thinking':
-      return `${base}thinking.png`;
-    case 'nervous':
-        return `${base}nervous.png`;
-    case 'smug':
-        return `${base}smug.png`;
-    case 'victory':
-        return `${base}victory.png`;
-    case 'error':
-        return `${base}error.png`;
-    default:
-      return '';
-  }
+  return `/bot_boy/${mood}.png`;
 };
 
 const confidenceToUrl = (confidence: number) => {

@@ -105,12 +105,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
 
   // Keep the most recent message in view when the list changes.
   useEffect(() => {
-    if (typeof screen.orientation !== 'undefined') {
-      // Mobile browsers do nothing
-      return;
-    }
-    // For desktop, scroll to the bottom.
-    historyEndRef.current?.scrollIntoView();
+    historyEndRef.current?.scrollIntoView({block: 'end'});
   }, [chatHistory]);
 
   if (loading) {
@@ -132,7 +127,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
     >
       {formatMessages(chatHistory, gameMode).map((turn, index) => {
         return (
-          <>
+          <div key={index}>
             <div className="left-message"> 
               <div className="underline">{gameMode === 'player-guesses' ? 'You' : 'Quiz Bot'}</div>
               {gameMode === 'player-guesses' ? formatJsonContent(turn.user) :  formatJsonContent(turn.model)}
@@ -141,7 +136,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
               <div className="underline">{gameMode === 'player-guesses' ? 'Quiz Bot' : 'You'}</div>
               {gameMode === 'player-guesses' ? (turn.model ? formatJsonContent(turn.model) : (<div className="dots-loader"></div>)) : (turn.user ? formatJsonContent(turn.user) : (<div className="dots-loader"></div>))}
             </div>
-          </>
+          </div>
         );
       })}
       {/* Dummy element so we can scrollIntoView() smoothly. */}
