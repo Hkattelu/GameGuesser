@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from 'firebase/auth';
 import { auth } from './firebase';
 import { useAuth } from './AuthContext';
@@ -9,6 +9,7 @@ function AuthPage() {
   const mouseWatchArea = useRef(null);
   const leftEye = useRef(null);
   const rightEye = useRef(null);
+  const [audioPlaying, setAudioPlaying] = useState(false);
 
   const handleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -28,6 +29,15 @@ function AuthPage() {
   };
 
   useEffect(() => {
+    const audio = document.getElementsByTagName('audio')[0];
+    if (!audio.paused) setAudioPlaying(true);
+    audio.addEventListener('play', () => {
+      setAudioPlaying(true);
+    });
+    audio.addEventListener('pause', () => {
+      setAudioPlaying(false);
+    });
+
     const moveEye = (eye: HTMLElement, event: MouseEvent) => {
       if (mouseWatchArea.current) {
         const moveX = 30*(event.clientX - mouseWatchArea.current.offsetLeft)/mouseWatchArea.current.clientWidth - 20;
@@ -60,7 +70,7 @@ function AuthPage() {
         className="start-screen flex flex-col items-center justify-center px-4 text-center"
         ref={mouseWatchArea}
       >
-        <div className="quiz-bot-head">
+        <div className={`${audioPlaying ? 'skew-bounce' : 'pop-anim'} quiz-bot-head`}>
           <div className="eye ml-14" ref={leftEye}><div className="pupil"></div></div>
           <div className="eye mr-14" ref={rightEye}><div className="pupil"></div></div>
           <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />

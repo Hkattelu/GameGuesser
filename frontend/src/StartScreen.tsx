@@ -31,6 +31,7 @@ function StartScreen() {
   const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
+  const [audioPlaying, setAudioPlaying] = useState(false);
 
   const navigate = wrapNavigate(useNavigate());
 
@@ -87,6 +88,16 @@ function StartScreen() {
   }, [currentUser]);
 
   useEffect(() => {
+    const audio = document.getElementsByTagName('audio')[0];
+    if (!audio.paused) setAudioPlaying(true);
+
+    audio.addEventListener('play', () => {
+      setAudioPlaying(true);
+    });
+    audio.addEventListener('pause', () => {
+      setAudioPlaying(false);
+    });
+
     const moveEye = (eye: HTMLElement, event: MouseEvent) => {
       if (mouseWatchArea.current) {
         const moveX = 30*(event.clientX - mouseWatchArea.current.offsetLeft)/mouseWatchArea.current.clientWidth - 20;
@@ -130,10 +141,10 @@ function StartScreen() {
       </div>
       <SettingsButton />
       <div
-        className={`start-screen flex flex-col items-center justify-center px-4 text-center mb-4`}
+        className="start-screen flex flex-col items-center justify-center px-4 text-center mb-4"
         ref={mouseWatchArea}
       >
-      <div className="quiz-bot-head">
+      <div className={`${audioPlaying ? 'skew-bounce' : 'pop-anim'} quiz-bot-head`}>
         <div className="eye ml-14" ref={leftEye}><div className="pupil"></div></div>
         <div className="eye mr-14" ref={rightEye}><div className="pupil"></div></div>
         <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />

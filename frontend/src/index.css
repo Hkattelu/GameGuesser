@@ -234,13 +234,39 @@ html.dark #icons-container {
   }
 }
 
+@keyframes skew-bounce {
+  0% {
+    transform: skew(0deg, 0deg) scaleY(50%);
+  }
+  25% {
+    transform: skew(20deg, 0deg) scaleY(100%);
+  }
+  50% {
+    transform: skew(0deg, 0deg) scaleY(50%);
+  }
+  75% {
+    transform: skew(-20deg, 0deg) scaleY(100%);
+  }
+  100% {
+    transform: skew(0deg, 0deg) scaleY(50%);
+  }
+}
+
+.pop-anim {
+  animation: pop-up 0.5s forwards
+}
+
+.skew-bounce {
+  animation: skew-bounce 1.5s ease-in-out infinite;
+}
+
 .quiz-bot-head {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  animation: pop-up 0.5s forwards;
+  transform-origin: bottom;
 
   .eye {
     filter: blur(1px);
