@@ -129,7 +129,7 @@ function AIGuessesGame() {
   const getMascotMood = () => {
     if (error) return 'error';
     if (loading) return 'thinking';
-    if (victory) return 'victory'
+    if (victory) return 'sad';
     if (confidence <= 2) {
       return 'sad';
     } else if (confidence <= 4) {
@@ -220,7 +220,7 @@ function AIGuessesGame() {
       ]);
 
       if (newQuestionCount > maxQuestions) {
-        endGame("I couldn't guess your game in 20 questions! You win!", true);
+        endGame("I can't believe it! You win! I'll get it next time!", true);
         return;
       } else if (aiResponse.type === "question") {
         setGameMessage("Your turn to answer!");

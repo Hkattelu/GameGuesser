@@ -85,8 +85,8 @@ html[data-transition-direction="left"]::view-transition-new(root) {
 
 #root {
   display: flex;
+  flex-direction: column;
   height: 100%;
-  align-items: center;
 }
 
 @font-face {
