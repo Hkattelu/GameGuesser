@@ -131,10 +131,10 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
               <div className="underline">{gameMode === 'player-guesses' ? 'You' : AI_NAME}</div>
               {gameMode === 'player-guesses' ? formatJsonContent(turn.user) :  formatJsonContent(turn.model)}
             </div>
-            {index !== (list.length-1) && (<div className="right-message">
+            <div className="right-message">
               <div className="underline">{gameMode === 'player-guesses' ? AI_NAME : 'You'}</div>
               {gameMode === 'player-guesses' ? (turn.model ? formatJsonContent(turn.model) : (<div className="dots-loader"></div>)) : (turn.user ? formatJsonContent(turn.user) : (<div className="dots-loader"></div>))}
-            </div>)}
+            </div>
           </div>
         );
       })}
