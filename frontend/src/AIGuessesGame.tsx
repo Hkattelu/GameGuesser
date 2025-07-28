@@ -219,7 +219,7 @@ function AIGuessesGame() {
         { role: "model", parts: [{ text: JSON.stringify(aiResponse) }] },
       ]);
 
-      if (newQuestionCount > maxQuestions) {
+      if (newQuestionCount >= maxQuestions) {
         endGame("I can't believe it! You win! I'll get it next time!", true);
         return;
       } else if (aiResponse.type === "question") {
