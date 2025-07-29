@@ -63,7 +63,8 @@ function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             Arcade loader by <a target="_blank" href="https://css-loaders.com/arcade/" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Temani Afif</a><br />
             Music by <a target="_blank" href="https://ko-fi.com/s/95626dfcd3" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Stream Cafe</a><br />
             Cursor by <a target="_blank" href="https://www.rw-designer.com/cursor-set/black-12" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Cursor Creactor</a><br />
-            Arcade Classic Font by  <a target="_blank" href="https://www.1001fonts.com/arcadeclassic-font.html" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Pizzadude</a>
+            Arcade Classic Font by  <a target="_blank" href="https://www.1001fonts.com/arcadeclassic-font.html" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">Pizzadude</a><br />
+            Game details from <a target="_blank" href="https://rawg.io/" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline">RAWG</a>
           </p>
         </div>
       </div>
