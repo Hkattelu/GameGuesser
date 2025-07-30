@@ -7,6 +7,7 @@ import { getApiUrl } from './env_utils';
 import ErrorBanner from './components/ErrorBanner';
 import GameResultsDialog from './components/GameResultsDialog';
 import { isGameCompleted } from './utils/gameCompletion';
+import { transformBackendHistory, mapResponseError } from './utils/gameSessionUtils';
 import { MAX_QUESTIONS } from './constants';
 import MascotImage from './components/MascotImage';
 import ConfettiExplosion from "react-confetti-explosion";
@@ -74,10 +75,11 @@ function AIGuessesGame() {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (response.status === 401) {
-          // Handle logout if token is invalid
-          setErrorMessage('Your login credentials are stale. Refreshing the page...');
-          navigate('/'); // Redirect to home/auth page
+        // Handle auth failures uniformly.
+        const authError = mapResponseError(response.status);
+        if (authError) {
+          setErrorMessage(authError);
+          navigate('/');
           return;
         }
         if (!response.ok) throw new Error('Failed to load game state');
@@ -85,11 +87,7 @@ function AIGuessesGame() {
         const gameState = await response.json();
 
         if (gameState) {
-          const history = gameState.chatHistory.map((r: any) => ({
-            role: r.role,
-            parts: [{ text: r.content }],
-            gameType: r.game_type,
-          }));
+          const history = transformBackendHistory(gameState.chatHistory);
           setChatHistory(history);
           setSessionId(gameState.sessionId);
           setQuestionCount(gameState.questionCount);
