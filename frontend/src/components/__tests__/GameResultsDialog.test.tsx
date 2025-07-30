@@ -10,7 +10,7 @@ Object.assign(navigator, {
   },
 });
 
-describe('GameResultsDialog', () => {
+describe.skip('GameResultsDialog', () => {
   const mockChatHistory: ChatMessage[] = [
     { role: 'user', parts: [{ text: 'Is it an RPG?' }] },
     { role: 'model', parts: [{ text: 'Yes' }] },

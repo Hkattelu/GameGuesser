@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
-import { getApiUrl } from './env_utils';
+import { apiClient, apiClientWithUser } from './utils/apiClient';
 import { MAX_SUGGESTIONS, SUGGESTIONS, MAX_QUESTIONS } from './constants';
 import { ChatMessage, PlayerQuestionResponse, PlayerGuessResponse } from './types';
 import HintIcon from './components/HintIcon';
@@ -65,10 +65,8 @@ function PlayerGuessesGame() {
   const closeHintDialog = () => setIsHintDialogOpen(false);
 
   const renderRawgDetails = () => {
-    fetch(`${getApiUrl()}/game-details?sessionId=${sessionId}`, {
-      headers: {
-        Authorization: `Bearer ${firebaseToken}`,
-      },
+    apiClient(`/game-details?sessionId=${sessionId}`, {
+      token: firebaseToken,
     })
       .then(response => response.json())
       .then(data => {
@@ -112,12 +110,11 @@ function PlayerGuessesGame() {
     const fetchGameState = async () => {
       setLoading(true);
       try {
-        const token = await currentUser.getIdToken();
-        const response = await fetch(`${getApiUrl()}/game-state?gameMode=player-guesses&date=${new Date().toISOString().slice(0, 10)}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await apiClientWithUser(
+          `/game-state?gameMode=player-guesses&date=${new Date().toISOString().slice(0, 10)}`,
+          {},
+          currentUser,
+        );
         if (response.status === 401) {
           setErrorMessage('Your login credentials are stale. Refreshing the page...');
           setTimeout(() => navigate('/'), 500);
@@ -188,13 +185,10 @@ function PlayerGuessesGame() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${getApiUrl()}/player-guesses/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(firebaseToken ? { Authorization: `Bearer ${firebaseToken}` } : {}),
-        },
-      });
+      const response = await apiClient(
+        '/player-guesses/start',
+        { method: 'POST', token: firebaseToken },
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -234,14 +228,10 @@ function PlayerGuessesGame() {
     ]);
 
     try {
-      const response = await fetch(`${getApiUrl()}/player-guesses/question`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(firebaseToken ? { Authorization: `Bearer ${firebaseToken}` } : {}),
-        },
-        body: JSON.stringify({ sessionId: sessionId, userInput: playerGuessInput }),
-      });
+      const response = await apiClient(
+        '/player-guesses/question',
+        { method: 'POST', body: { sessionId, userInput: playerGuessInput }, token: firebaseToken },
+      );
 
       if (!response.ok) {
         const errorData = await response.json();

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import ResponseButtons from './components/ResponseButtons';
 import ConversationHistory from './components/ConversationHistory';
 import { ChatMessage, GameMode } from './types';
-import { getApiUrl } from './env_utils';
+import { apiClientWithUser } from './utils/apiClient';
 import ErrorBanner from './components/ErrorBanner';
 import GameResultsDialog from './components/GameResultsDialog';
 import { isGameCompleted } from './utils/gameCompletion';
@@ -68,12 +68,11 @@ function AIGuessesGame() {
     const fetchGameState = async () => {
       setLoading(true);
       try {
-        const token = await currentUser.getIdToken();
-        const response = await fetch(`${getApiUrl()}/game-state?gameMode=ai-guesses&date=${new Date().toISOString().slice(0, 10)}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await apiClientWithUser(
+          `/game-state?gameMode=ai-guesses&date=${new Date().toISOString().slice(0, 10)}`,
+          {},
+          currentUser,
+        );
         if (response.status === 401) {
           // Handle logout if token is invalid
           setErrorMessage('Your login credentials are stale. Refreshing the page...');
@@ -146,14 +145,11 @@ function AIGuessesGame() {
     setLoading(true);
 
     try {
-      const token = await currentUser?.getIdToken();
-      const response = await fetch(`${getApiUrl()}/ai-guesses/start`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const response = await apiClientWithUser(
+        '/ai-guesses/start',
+        { method: 'POST' },
+        currentUser,
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -195,15 +191,11 @@ function AIGuessesGame() {
     ]);
 
     try {
-      const token = await currentUser?.getIdToken();
-      const response = await fetch(`${getApiUrl()}/ai-guesses/answer`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ sessionId: sessionId, userAnswer: answer }),
-      });
+      const response = await apiClientWithUser(
+        '/ai-guesses/answer',
+        { method: 'POST', body: { sessionId, userAnswer: answer } },
+        currentUser,
+      );
 
       if (!response.ok) {
         const errorData = await response.json();

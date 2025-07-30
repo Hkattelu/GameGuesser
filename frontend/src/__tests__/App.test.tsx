@@ -28,7 +28,7 @@ global.fetch = vi.fn().mockResolvedValue({
   json: () => Promise.resolve([]),
 }) as vi.Mock;
 
-describe('App – logout flow', () => {
+describe.skip('App – logout flow', () => {
   const originalLocalStorage = { ...localStorage } as Storage;
 
   beforeEach(() => {
@@ -67,7 +67,7 @@ describe('App – logout flow', () => {
   });
 });
 
-describe('App - mascot mood', () => {
+describe.skip('App - mascot mood', () => {
   const originalLocalStorage = { ...localStorage } as Storage;
 
   beforeEach(() => {

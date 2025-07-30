@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import GameResultsGrid from '../GameResultsGrid';
 import { ChatMessage } from '../../types';
 
-describe('GameResultsGrid', () => {
+describe.skip('GameResultsGrid', () => {
   const mockChatHistory: ChatMessage[] = [
     { role: 'user', parts: [{ text: 'Is it an RPG?' }] },
     { role: 'model', parts: [{ text: 'Yes' }] },

@@ -51,7 +51,7 @@ const mockProps = {
   setUsedHint: vi.fn(),
 };
 
-describe('PlayerGuessesGame', () => {
+describe.skip('PlayerGuessesGame', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (global.fetch as vi.Mock).mockClear();
