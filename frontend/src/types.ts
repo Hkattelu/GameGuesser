@@ -9,6 +9,12 @@ export type Role = 'user' | 'model' | 'system';
 export interface ChatMessage {
   role: Role;
   parts: ChatPart[];
+  /**
+   * Optional field that indicates which game variant produced this message.
+   * Populated when the backend includes `game_type` in its response so the
+   * frontend can reason about mixed histories (e.g. on the Start screen).
+   */
+  gameType?: string;
 }
 
 export interface ChatTurn {
