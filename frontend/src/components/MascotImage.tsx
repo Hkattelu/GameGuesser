@@ -29,7 +29,9 @@ const confidenceToUrl = (confidence: number) => {
     return `${base}thinking.png`;
   } else if (confidence <= 8) {
     return `${base}smile.png`;
-  } else {
+  } else if (confidence <= 9) {
+    return `${base}confident.png`;
+  }else {
     return `${base}smug.png`;
   }
 }

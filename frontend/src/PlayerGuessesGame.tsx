@@ -258,14 +258,11 @@ function PlayerGuessesGame() {
 
       if (type === 'question' || type === 'answer') {
         let answerText = '';
-        let answerLiteral: string = '';
 
         if (typeof content === 'string') {
           answerText = content;
-          answerLiteral = content;
         } else if (content && typeof content === 'object') {
           const playerQuestionResponse = content as PlayerQuestionResponse;
-          answerLiteral = playerQuestionResponse.answer;
           answerText = playerQuestionResponse.answer + (playerQuestionResponse.clarification ? ` - ${playerQuestionResponse.clarification}` : '');
         }
 

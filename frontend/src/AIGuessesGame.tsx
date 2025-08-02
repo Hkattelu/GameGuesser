@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import ResponseButtons from './components/ResponseButtons';
 import ConversationHistory from './components/ConversationHistory';
-import { ChatMessage, GameMode } from './types';
+import { ChatMessage } from './types';
 import { getApiUrl } from './env_utils';
 import ErrorBanner from './components/ErrorBanner';
 import GameResultsDialog from './components/GameResultsDialog';
@@ -136,8 +136,10 @@ function AIGuessesGame() {
       return 'nervous';
     } else if (confidence <= 6) {
       return 'smile';
+    } else if (confidence <= 8) {
+      return 'smug';
     }
-    return 'smug';
+    return 'confident';
   };
 
   const startGameAI = async () => {

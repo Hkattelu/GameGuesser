@@ -1,4 +1,3 @@
-import React from 'react';
 import { useAuth } from './AuthContext';
 import StartScreen from './StartScreen';
 import AuthPage from './AuthPage';
@@ -8,7 +7,7 @@ const AuthWrapper: React.FC = () => {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
-    return <LoadingIndicator />;
+    return <LoadingIndicator gif={true} />;
   }
 
   if (currentUser) {
