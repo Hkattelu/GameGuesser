@@ -10,6 +10,7 @@ import HintDialog from './components/HintDialog';
 import ErrorBanner from './components/ErrorBanner';
 import MascotImage from './components/MascotImage';
 import { isGameCompleted } from './utils/gameCompletion';
+import { transformBackendHistory, mapResponseError } from './utils/gameSessionUtils';
 import { useAuth } from './AuthContext';
 import RulesIcon from './components/RulesIcon';
 import RulesDialog from './components/RulesDialog';
@@ -118,8 +119,9 @@ function PlayerGuessesGame() {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (response.status === 401) {
-          setErrorMessage('Your login credentials are stale. Refreshing the page...');
+        const authError = mapResponseError(response.status);
+        if (authError) {
+          setErrorMessage(authError);
           setTimeout(() => navigate('/'), 500);
           return;
         }
@@ -128,11 +130,7 @@ function PlayerGuessesGame() {
         const gameState = await response.json();
 
         if (gameState) {
-          const history = gameState.chatHistory.map((r: any) => ({
-            role: r.role,
-            parts: [{ text: r.content }],
-            gameType: r.game_type,
-          }));
+          const history = transformBackendHistory(gameState.chatHistory);
           setChatHistory(history);
           setSessionId(gameState.sessionId);
           setQuestionCount(gameState.questionCount);
