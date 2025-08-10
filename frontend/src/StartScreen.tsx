@@ -124,7 +124,7 @@ function StartScreen() {
   });
 
   if (loading) {
-    return <LoadingIndicator />;
+    return <LoadingIndicator gif={true} />;
   }
 
   const bothCompleted = aiGuessesCompletedToday && playerGuessesCompletedToday;

@@ -75,7 +75,7 @@ function AuthPage() {
           <div className="eye mr-14" ref={rightEye}><div className="pupil"></div></div>
           <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />
         </div>
-        <div className="max-w-md mx-auto bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-8 rounded-xl flex items-center flex-col shadow-lg border-gray-200 dark:border-gray-700">
+        <div className="max-w-md mx-auto z-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-8 rounded-xl flex items-center flex-col shadow-lg border-gray-200 dark:border-gray-700">
           <h2 className="text-3xl font-bold text-center mb-6">Welcome to Quiz Bot's Arcade!</h2>
           <button type="button"  onClick={handleSignIn} className="google-sign-in-button dark:border-2 dark:border-white">
             Sign in with Google
