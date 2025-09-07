@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://quizbot.games/sitemap.xml
+
