@@ -220,6 +220,20 @@ Play at: ${window.location.origin}`;
           >
             {copySuccess ? '✓ Copied!' : 'Share Results'}
           </button>
+          
+          <div className="mt-2 pt-3 border-t border-gray-200 dark:border-gray-700 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+              Had fun? Support the developer! ☕
+            </p>
+            <a
+              href="https://ko-fi.com/glowstringman"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cursor-pointer inline-block px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium rounded-md shadow-sm hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-300 transition-all transform hover:scale-105"
+            >
+              ❤️ Donate on Ko-fi
+            </a>
+          </div>
         </div>
       </div>
     </div>
