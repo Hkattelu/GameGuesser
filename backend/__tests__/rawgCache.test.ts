@@ -35,6 +35,10 @@ describe('RAWG Metadata Caching', () => {
     process.env.RAWG_API_KEY = 'test-key';
   });
 
+  it('uses stable Firestore document IDs for metadata', () => {
+    expect(metadataDocId('Zelda')).toBe('8d01416611a03b7c979d6fdee3b16006da68e29b5bd5cbc8785bc0e10205b7e8');
+  });
+
   it('should fetch from Firestore if not in memory', async () => {
     const title = 'Zelda';
     const id = metadataDocId(title);
@@ -63,9 +67,9 @@ describe('RAWG Metadata Caching', () => {
     const id = metadataDocId(title);
     
     // Not in Firestore
-    mockGet.mockResolvedValueOnce({
-      exists: false
-    });
+    mockGet
+      .mockResolvedValueOnce({ exists: false })
+      .mockResolvedValueOnce({ exists: false });
 
     // RAWG responses
     mockFetch

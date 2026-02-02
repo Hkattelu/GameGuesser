@@ -68,11 +68,29 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
 
   // 2. Check Firestore cache
   try {
-    const doc = await getFirestore().collection('metadata').doc(docId).get();
+    const collection = getFirestore().collection('metadata');
+
+    const doc = await collection.doc(docId).get();
     if (doc.exists) {
       const data = doc.data() as GameMetadata;
       metadataCache.set(cacheKey, data);
       return data;
+    }
+
+    if (!title.includes('/')) {
+      const legacyDoc = await collection.doc(title).get();
+      if (legacyDoc.exists) {
+        const data = legacyDoc.data() as GameMetadata;
+        metadataCache.set(cacheKey, data);
+
+        try {
+          await collection.doc(docId).set(data);
+        } catch (err) {
+          // Ignore cache write errors
+        }
+
+        return data;
+      }
     }
   } catch (err) {
     // Ignore cache read errors
