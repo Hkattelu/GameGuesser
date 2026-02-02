@@ -39,9 +39,9 @@ Reduce per-session token usage and external API dependency.
 ## Phase 4: Ad Integration Infrastructure
 Prepare the frontend for monetization.
 
-- [ ] **Task: Create a reusable `AdSlot` component**
-    - [ ] **Sub-task: Write Tests** for `frontend/src/components/AdSlot.tsx`.
-    - [ ] **Sub-task: Implement Implementation** with pixel-art borders to match the retro aesthetic.
+- [x] **Task: Create a reusable `AdSlot` component** a141c65
+    - [x] **Sub-task: Write Tests** for `frontend/src/components/AdSlot.tsx`.
+    - [x] **Sub-task: Implement Implementation** with pixel-art borders to match the retro aesthetic.
 - [ ] **Task: Integrate AdSlots into the game loop**
     - [ ] Place `AdSlot` components in `frontend/src/StartScreen.tsx` and `frontend/src/AIGuessesGame.tsx`.
     - [ ] Ensure layout remains responsive on mobile.
