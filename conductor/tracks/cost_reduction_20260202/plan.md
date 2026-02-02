@@ -5,7 +5,7 @@ This plan outlines the steps to reduce operational costs by optimizing storage, 
 ## Phase 1: Baseline Analysis and Research
 Establish a baseline for current costs and research optimization strategies.
 
-- [ ] **Task: Analyze current Firestore and AI API usage patterns**
+- [x] **Task: Analyze current Firestore and AI API usage patterns** 0347f49
     - [ ] Audit `backend/game.ts` and `backend/ai.ts` to map Firestore write triggers and AI call frequency.
     - [ ] Document baseline "cost per game session" (estimates).
 - [ ] **Task: Research Ad Integration providers and technical requirements**
