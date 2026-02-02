@@ -13,7 +13,7 @@ Establish a baseline for current costs and research optimization strategies.
     - [ ] Define the technical interface for the `AdComponent`.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 1: Baseline Analysis' (Protocol in workflow.md)**
 
-## Phase 2: Conversation Storage Optimization
+## Phase 2: Conversation Storage Optimization [checkpoint: fbb3605]
 Reduce Firestore costs through better data management.
 
 - [x] **Task: Implement data compaction for game sessions** 5d19f73
