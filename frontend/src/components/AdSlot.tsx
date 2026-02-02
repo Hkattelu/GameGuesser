@@ -1,5 +1,11 @@
 import React, { useEffect } from 'react';
 
+declare global {
+  interface Window {
+    adsbygoogle?: unknown[];
+  }
+}
+
 interface AdSlotProps {
   /** 'banner' | 'rectangle' | 'vertical' */
   format: 'banner' | 'rectangle' | 'vertical';
@@ -11,13 +17,8 @@ interface AdSlotProps {
 
 const AdSlot: React.FC<AdSlotProps> = ({ format, placementId, className = '' }) => {
   useEffect(() => {
-    try {
-      // @ts-ignore
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.error('AdSense error:', e);
-    }
-  }, []);
+    (window.adsbygoogle ??= []).push({});
+  }, [format, placementId]);
 
   const getStyle = () => {
     switch (format) {

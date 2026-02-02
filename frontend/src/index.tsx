@@ -16,6 +16,54 @@ import AudioButton from './components/AudioButton';
 
 setupGlobalUnauthorizedInterceptor();
 
+function updateSeoUrls(): void {
+  const origin = window.location.origin;
+
+  const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (canonical) {
+    canonical.setAttribute('href', `${origin}/`);
+  } else {
+    const link = document.createElement('link');
+    link.rel = 'canonical';
+    link.href = `${origin}/`;
+    document.head.appendChild(link);
+  }
+
+  const ogUrl = document.querySelector<HTMLMetaElement>('meta[property="og:url"]');
+  if (ogUrl) {
+    ogUrl.setAttribute('content', `${origin}/`);
+  } else {
+    const meta = document.createElement('meta');
+    meta.setAttribute('property', 'og:url');
+    meta.setAttribute('content', `${origin}/`);
+    document.head.appendChild(meta);
+  }
+}
+
+function shouldLoadAdSense(): boolean {
+  if (!import.meta.env.PROD) return false;
+
+  const host = window.location.hostname;
+  return host === 'quizbot.games' || host === 'www.quizbot.games';
+}
+
+function ensureAdSenseScriptLoaded(): void {
+  if (!shouldLoadAdSense()) return;
+
+  const existing = document.querySelector('script[src*="adsbygoogle.js"]');
+  if (existing) return;
+
+  const script = document.createElement('script');
+  script.async = true;
+  script.src =
+    'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5108380761431058';
+  script.crossOrigin = 'anonymous';
+  document.head.appendChild(script);
+}
+
+updateSeoUrls();
+ensureAdSenseScriptLoaded();
+
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   <React.StrictMode>
