@@ -31,9 +31,9 @@ Reduce per-session token usage and external API dependency.
 - [x] **Task: Refine Genkit prompts for token efficiency** 466237a
     - [x] **Sub-task: Write Tests** in `backend/__tests__/prompts.test.ts` to verify Quiz Bot personality remains intact with shorter prompts.
     - [x] **Sub-task: Implement Implementation** in `backend/prompts.ts` to condense system instructions.
-- [ ] **Task: Implement caching for RAWG game metadata**
-    - [ ] **Sub-task: Write Tests** for a new caching utility in `backend/rawg.ts`.
-    - [ ] **Sub-task: Implement Implementation** using a simple in-memory or Firestore-based cache for RAWG details.
+- [x] **Task: Implement caching for RAWG game metadata** eb2f283
+    - [x] **Sub-task: Write Tests** for a new caching utility in `backend/rawg.ts`.
+    - [x] **Sub-task: Implement Implementation** using a simple in-memory or Firestore-based cache for RAWG details.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 3: API Optimization' (Protocol in workflow.md)**
 
 ## Phase 4: Ad Integration Infrastructure
