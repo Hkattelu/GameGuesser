@@ -16,9 +16,9 @@ Establish a baseline for current costs and research optimization strategies.
 ## Phase 2: Conversation Storage Optimization
 Reduce Firestore costs through better data management.
 
-- [ ] **Task: Implement data compaction for game sessions**
-    - [ ] **Sub-task: Write Tests** for `backend/dailyGameStore.ts` to ensure session data is stored minimally.
-    - [ ] **Sub-task: Implement Implementation** to reduce redundant fields in the Firestore document schema.
+- [x] **Task: Implement data compaction for game sessions** 5d19f73
+    - [x] **Sub-task: Write Tests** for `backend/dailyGameStore.ts` to ensure session data is stored minimally.
+    - [x] **Sub-task: Implement Implementation** to reduce redundant fields in the Firestore document schema.
 - [ ] **Task: Configure Firestore TTL for temporary sessions**
     - [ ] Add a `expiresAt` field to game session documents.
     - [ ] **Sub-task: Write Tests** to verify expiration field calculation.
