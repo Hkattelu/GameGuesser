@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router';
 
 import { AuthProvider } from './AuthContext';
 import App from './App';
@@ -40,6 +40,16 @@ function updateSeoUrls(): void {
   }
 }
 
+function SeoUpdater(): null {
+  const location = useLocation();
+
+  useEffect(() => {
+    updateSeoUrls();
+  }, [location.pathname]);
+
+  return null;
+}
+
 function shouldLoadAdSense(): boolean {
   if (!import.meta.env.PROD) return false;
 
@@ -68,6 +78,7 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
   <React.StrictMode>
     <BrowserRouter>
+      <SeoUpdater />
       <AuthProvider>
         <AudioButton />
         <Routes>

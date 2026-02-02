@@ -292,11 +292,20 @@ async function loadSessionFromDB(
   const snap = await getSessionsCollection().doc(sessionId).get();
   if (!snap.exists) return undefined;
   const doc = snap.data() as unknown;
-  if (!isRecord(doc)) return undefined;
-  if (!isSessionKind(doc['kind'])) return undefined;
+  if (!isRecord(doc) || !isSessionKind(doc['kind'])) {
+    if (!IS_TEST) {
+      console.warn('[game] Invalid Firestore session document shape:', { sessionId });
+    }
+    return undefined;
+  }
 
   const session = fromDbFormat(doc['data'], doc['kind']);
-  if (!session) return undefined;
+  if (!session) {
+    if (!IS_TEST) {
+      console.warn('[game] Failed to rehydrate Firestore session:', { sessionId });
+    }
+    return undefined;
+  }
 
   if (session) {
     gameSessions.set(sessionId, session);
