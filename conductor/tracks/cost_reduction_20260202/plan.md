@@ -19,10 +19,10 @@ Reduce Firestore costs through better data management.
 - [x] **Task: Implement data compaction for game sessions** 5d19f73
     - [x] **Sub-task: Write Tests** for `backend/dailyGameStore.ts` to ensure session data is stored minimally.
     - [x] **Sub-task: Implement Implementation** to reduce redundant fields in the Firestore document schema.
-- [ ] **Task: Configure Firestore TTL for temporary sessions**
-    - [ ] Add a `expiresAt` field to game session documents.
-    - [ ] **Sub-task: Write Tests** to verify expiration field calculation.
-    - [ ] **Sub-task: Implement Implementation** for TTL field updates in `backend/game.ts`.
+- [x] **Task: Configure Firestore TTL for temporary sessions** 4c9330e
+    - [x] Add a `expiresAt` field to game session documents.
+    - [x] **Sub-task: Write Tests** to verify expiration field calculation.
+    - [x] **Sub-task: Implement Implementation** for TTL field updates in `backend/game.ts`.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 2: Storage Optimization' (Protocol in workflow.md)**
 
 ## Phase 3: AI API and RAWG Call Optimization
