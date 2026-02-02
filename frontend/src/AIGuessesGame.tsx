@@ -258,20 +258,20 @@ function AIGuessesGame() {
   };
 
   return (
-    <div id="ai-guesses-game" className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-8 max-w-[1400px] mx-auto w-full">
+    <div id="ai-guesses-game" className="min-h-screen flex flex-col items-center justify-center relative py-12 w-full">
       
       {/* Mobile Top Ad */}
-      <div className="lg:hidden w-full flex justify-center mb-4">
+      <div className="lg:hidden w-full flex justify-center mb-8">
         <AdSlot format="banner" placementId="8901234567" />
       </div>
 
-      {/* Desktop Left Ad */}
-      <div className="hidden lg:block sticky top-8">
+      {/* Desktop Left Ad - Fixed under back button */}
+      <div className="hidden lg:block fixed top-24 left-4 z-10">
         <AdSlot format="vertical" placementId="2345678901" />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 w-full">
+      {/* Main Content - Now truly centered */}
+      <div className="flex-1 w-full max-w-4xl flex flex-col items-center justify-center">
         <RulesIcon gameMode="ai-guesses" onClick={openRulesDialog} />
         <RulesDialog
           isOpen={isRulesDialogOpen}
@@ -304,10 +304,14 @@ function AIGuessesGame() {
           />
         )}
 
-        <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} isGameCompleted={aiGuessesCompletedToday} />
+        <div className="w-full max-w-2xl">
+          <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} isGameCompleted={aiGuessesCompletedToday} />
+        </div>
 
         {started && !loading && !aiGuessesCompletedToday  && (
-          <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
+          <div className="flex flex-col items-center w-full gap-4">
+            <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
+          </div>
         )}
 
         {!started && !aiGuessesCompletedToday && (
