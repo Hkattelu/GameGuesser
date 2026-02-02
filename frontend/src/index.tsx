@@ -17,25 +17,25 @@ import AudioButton from './components/AudioButton';
 setupGlobalUnauthorizedInterceptor();
 
 function updateSeoUrls(): void {
-  const origin = window.location.origin;
+  const url = window.location.origin + window.location.pathname;
 
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   if (canonical) {
-    canonical.setAttribute('href', `${origin}/`);
+    canonical.setAttribute('href', url);
   } else {
     const link = document.createElement('link');
     link.rel = 'canonical';
-    link.href = `${origin}/`;
+    link.href = url;
     document.head.appendChild(link);
   }
 
   const ogUrl = document.querySelector<HTMLMetaElement>('meta[property="og:url"]');
   if (ogUrl) {
-    ogUrl.setAttribute('content', `${origin}/`);
+    ogUrl.setAttribute('content', url);
   } else {
     const meta = document.createElement('meta');
     meta.setAttribute('property', 'og:url');
-    meta.setAttribute('content', `${origin}/`);
+    meta.setAttribute('content', url);
     document.head.appendChild(meta);
   }
 }

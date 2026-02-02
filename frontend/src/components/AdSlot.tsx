@@ -18,7 +18,7 @@ interface AdSlotProps {
 const AdSlot: React.FC<AdSlotProps> = ({ format, placementId, className = '' }) => {
   useEffect(() => {
     (window.adsbygoogle ??= []).push({});
-  }, [format, placementId]);
+  }, []);
 
   const getStyle = () => {
     switch (format) {
