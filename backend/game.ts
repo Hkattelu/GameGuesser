@@ -111,10 +111,20 @@ function getFirestore(): Firestore {
 type SessionKind = 'player' | 'ai';
 
 function buildPlayerInitialMessage(secretGame: string): ChatMessage {
+  // This message is part of the persisted session compaction contract.
+  // If it changes, any stored sessions that omitted this message will be
+  // rehydrated with the updated text.
   return {
     role: 'user',
     content: `The secret game is ${secretGame}. The user will now ask questions.`,
   };
+}
+
+function isChatMessage(value: unknown): value is ChatMessage {
+  if (!value || typeof value !== 'object') return false;
+  if (!('role' in value) || !('content' in value)) return false;
+  const role = (value as any).role;
+  return role === 'user' || role === 'model';
 }
 
 /**
@@ -156,7 +166,9 @@ function fromDbFormat(docData: any, kind: SessionKind): PlayerGuessSession | AIG
   if (kind === 'player') {
     const secretGame = docData.s;
     const expectedContent = buildPlayerInitialMessage(secretGame).content;
-    const storedHistory: ChatMessage[] = Array.isArray(docData.h) ? docData.h : [];
+    const storedHistory: ChatMessage[] = Array.isArray(docData.h)
+      ? docData.h.filter(isChatMessage)
+      : [];
     const first = storedHistory[0];
     const hasInitialMessage =
       first?.role === 'user' &&
