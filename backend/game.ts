@@ -96,7 +96,14 @@ let _firestore: Firestore | null = null;
 
 function getFirestore(): Firestore {
   if (!_firestore) {
-    _firestore = dbModule.getFirestoreInstance();
+    const maybeGetFirestoreInstance = (dbModule as unknown as {
+      getFirestoreInstance?: unknown;
+    }).getFirestoreInstance;
+
+    _firestore =
+      typeof maybeGetFirestoreInstance === 'function'
+        ? (maybeGetFirestoreInstance as () => Firestore)()
+        : new Firestore();
   }
   return _firestore;
 }
