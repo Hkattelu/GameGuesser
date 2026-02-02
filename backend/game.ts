@@ -110,6 +110,13 @@ function getFirestore(): Firestore {
 
 type SessionKind = 'player' | 'ai';
 
+function buildPlayerInitialMessage(secretGame: string): ChatMessage {
+  return {
+    role: 'user',
+    content: `The secret game is ${secretGame}. The user will now ask questions.`,
+  };
+}
+
 /**
 * Compacts a session object for Firestore storage to reduce costs.
 * - Shortens keys
@@ -118,11 +125,11 @@ type SessionKind = 'player' | 'ai';
 function toDbFormat(session: PlayerGuessSession | AIGuessSession): any {
   if ('secretGame' in session) {
     const [first, ...rest] = session.chatHistory;
-    const expectedPrefix = `The secret game is ${session.secretGame}.`;
+    const expectedContent = buildPlayerInitialMessage(session.secretGame).content;
     const shouldOmitFirst =
       first?.role === 'user' &&
       typeof first.content === 'string' &&
-      first.content.startsWith(expectedPrefix);
+      first.content === expectedContent;
 
     // PlayerGuessSession
     return {
@@ -148,23 +155,20 @@ function toDbFormat(session: PlayerGuessSession | AIGuessSession): any {
 function fromDbFormat(docData: any, kind: SessionKind): PlayerGuessSession | AIGuessSession {
   if (kind === 'player') {
     const secretGame = docData.s;
-    const expectedPrefix = `The secret game is ${secretGame}.`;
+    const expectedContent = buildPlayerInitialMessage(secretGame).content;
     const storedHistory: ChatMessage[] = Array.isArray(docData.h) ? docData.h : [];
     const first = storedHistory[0];
     const hasInitialMessage =
       first?.role === 'user' &&
       typeof first.content === 'string' &&
-      first.content.startsWith(expectedPrefix);
+      first.content === expectedContent;
 
     return {
       secretGame,
       chatHistory: hasInitialMessage
         ? storedHistory
         : [
-            {
-              role: 'user',
-              content: `The secret game is ${secretGame}. The user will now ask questions.`,
-            },
+            buildPlayerInitialMessage(secretGame),
             ...storedHistory,
           ],
       questionCount: docData.q || 0,
@@ -274,12 +278,7 @@ async function startPlayerGuessesGame() {
   const sessionId = randomUUID();
   gameSessions.set(sessionId, {
     secretGame,
-    chatHistory: [
-      {
-        role: 'user',
-        content: `The secret game is ${secretGame}. The user will now ask questions.`,
-      },
-    ],
+    chatHistory: [buildPlayerInitialMessage(secretGame)],
     questionCount: 0,
     usedHint: false,
   });
