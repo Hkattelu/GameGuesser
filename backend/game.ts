@@ -110,24 +110,6 @@ function getFirestore(): Firestore {
 
 type SessionKind = 'player' | 'ai';
 
-interface SessionDocument {
-  /** Narrow string literal for easier filtering/debugging. */
-  kind: SessionKind;
-  /** The actual session payload used by the runtime. */
-  data: PlayerGuessSession | AIGuessSession;
-  /** Timestamp for housekeeping/debugging. */
-  updated_at: any; // Timestamp | Date (mock)
-}
-
-/**
-* Convenience accessor for the `gameSessions` collection. We resolve the
-* Firestore instance lazily to guarantee that unit-test mocks for
-* `@google-cloud/firestore` are in place *before* we touch the driver.
-*/
-function getSessionsCollection() {
-  return getFirestore().collection('gameSessions');
-}
-
 /**
 * Compacts a session object for Firestore storage to reduce costs.
 * - Shortens keys
@@ -180,6 +162,26 @@ function fromDbFormat(docData: any, kind: SessionKind): PlayerGuessSession | AIG
   }
 }
 
+interface SessionDocument {
+  /** Narrow string literal for easier filtering/debugging. */
+  kind: SessionKind;
+  /** The actual session payload used by the runtime. */
+  data: any; // Compacted data
+  /** Timestamp for housekeeping/debugging. */
+  updated_at: Timestamp;
+  /** TTL field for Firestore to automatically delete old sessions. */
+  expiresAt: Timestamp;
+}
+
+/**
+* Convenience accessor for the `gameSessions` collection. We resolve the
+* Firestore instance lazily to guarantee that unit-test mocks for
+* `@google-cloud/firestore` are in place *before* we touch the driver.
+*/
+function getSessionsCollection() {
+  return getFirestore().collection('gameSessions');
+}
+
 /**
 * Persists the given session object to Firestore. `merge: true` semantics are
 * achieved by overwriting the full document because the payload is already a
@@ -191,10 +193,17 @@ async function persistSession(
   session: PlayerGuessSession | AIGuessSession,
 ): Promise<void> {
   const kind: SessionKind = 'secretGame' in session ? 'player' : 'ai';
+  
+  // Set TTL to 24 hours from now
+  const now = Date.now();
+  const expiresAtMs = now + (24 * 60 * 60 * 1000);
+  const expiresAt = Timestamp.fromMillis(expiresAtMs);
+
   const doc: SessionDocument = {
     kind,
     data: toDbFormat(session),
     updated_at: Timestamp.now(),
+    expiresAt,
   };
   await getSessionsCollection().doc(sessionId).set(doc);
 }

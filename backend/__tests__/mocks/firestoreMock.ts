@@ -33,6 +33,10 @@ export class MockTimestamp {
     return new MockTimestamp(new Date());
   }
 
+  static fromMillis(ms: number): MockTimestamp {
+    return new MockTimestamp(new Date(ms));
+  }
+
   toDate(): Date {
     return this._date;
   }
