@@ -117,11 +117,18 @@ type SessionKind = 'player' | 'ai';
 */
 function toDbFormat(session: PlayerGuessSession | AIGuessSession): any {
   if ('secretGame' in session) {
+    const [first, ...rest] = session.chatHistory;
+    const expectedPrefix = `The secret game is ${session.secretGame}.`;
+    const shouldOmitFirst =
+      first?.role === 'user' &&
+      typeof first.content === 'string' &&
+      first.content.startsWith(expectedPrefix);
+
     // PlayerGuessSession
     return {
       s: session.secretGame,
       // Omit the first message which is the "The secret game is..." prompt
-      h: session.chatHistory.slice(1),
+      h: shouldOmitFirst ? rest : session.chatHistory,
       q: session.questionCount,
       uh: session.usedHint,
     };
@@ -141,15 +148,25 @@ function toDbFormat(session: PlayerGuessSession | AIGuessSession): any {
 function fromDbFormat(docData: any, kind: SessionKind): PlayerGuessSession | AIGuessSession {
   if (kind === 'player') {
     const secretGame = docData.s;
+    const expectedPrefix = `The secret game is ${secretGame}.`;
+    const storedHistory: ChatMessage[] = Array.isArray(docData.h) ? docData.h : [];
+    const first = storedHistory[0];
+    const hasInitialMessage =
+      first?.role === 'user' &&
+      typeof first.content === 'string' &&
+      first.content.startsWith(expectedPrefix);
+
     return {
       secretGame,
-      chatHistory: [
-        {
-          role: 'user',
-          content: `The secret game is ${secretGame}. The user will now ask questions.`,
-        },
-        ...(docData.h || []),
-      ],
+      chatHistory: hasInitialMessage
+        ? storedHistory
+        : [
+            {
+              role: 'user',
+              content: `The secret game is ${secretGame}. The user will now ask questions.`,
+            },
+            ...storedHistory,
+          ],
       questionCount: docData.q || 0,
       usedHint: !!docData.uh,
     } as PlayerGuessSession;
