@@ -1,19 +1,15 @@
-import { jest } from '@jest/globals';
+import { jest, beforeEach, describe, it, expect } from '@jest/globals';
 
-// Define Mock Firestore
-const mockSet = jest.fn().mockResolvedValue(undefined);
-const mockDoc = jest.fn().mockReturnValue({ set: mockSet });
-const mockCollection = jest.fn().mockReturnValue({ doc: mockDoc });
-const mockFirestore = {
-  collection: mockCollection,
-};
+import { MockFirestore } from './mocks/firestoreMock.js';
+
+const firestore = new MockFirestore();
 
 // Define Mock AI
 const mockGenerateStructured = jest.fn();
 
 // We mock db.ts before importing game.ts to control Firestore instance
 (jest as any).unstable_mockModule('../db.js', () => ({
-  getFirestoreInstance: () => mockFirestore,
+  getFirestoreInstance: () => firestore,
 }));
 
 // Mock AI module
@@ -23,11 +19,18 @@ const mockGenerateStructured = jest.fn();
 }));
 
 // We need to import things AFTER mocking
-const { startPlayerGuessesGame, handlePlayerQuestion } = await import('../game.js');
+const {
+  startPlayerGuessesGame,
+  handlePlayerQuestion,
+  clearSessions,
+  getOrLoadSession,
+} = await import('../game.js');
 
 describe('Data Compaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    firestore.clear();
+    clearSessions();
   });
 
   it('should store compacted session data in Firestore', async () => {
@@ -38,15 +41,12 @@ describe('Data Compaction', () => {
     });
 
     const { sessionId } = await startPlayerGuessesGame();
-    
-    // Clear mocks from the start call
-    mockSet.mockClear();
 
     await handlePlayerQuestion(sessionId, 'Is it an RPG?');
 
-    // Check what was saved to Firestore
-    expect(mockSet).toHaveBeenCalled();
-    const savedDoc = mockSet.mock.calls[0][0] as any;
+    const snap = await firestore.collection('gameSessions').doc(sessionId).get();
+    expect(snap.exists).toBe(true);
+    const savedDoc = snap.data() as any;
     
     // GOAL (Compacted):
     // 1. chatHistory should be shortened to 'h'
@@ -64,7 +64,7 @@ describe('Data Compaction', () => {
 
   it('should rehydrate session data correctly from compacted format', async () => {
     const sessionId = 'test-session-id';
-    const compactedData = {
+    const compactedData: any = {
       kind: 'player',
       data: {
         s: 'Zelda',
@@ -72,18 +72,12 @@ describe('Data Compaction', () => {
         q: 1,
         uh: true
       },
-      updated_at: {}
+      updated_at: {},
+      expiresAt: { toDate: () => new Date() },
     };
 
-    // Mock DB response
-    const mockGet = jest.fn().mockResolvedValue({
-      exists: true,
-      data: () => compactedData
-    });
-    mockDoc.mockReturnValue({ get: mockGet, set: mockSet });
+    await firestore.collection('gameSessions').doc(sessionId).set(compactedData);
 
-    const { getSession, getOrLoadSession } = await import('../game.js');
-    
     const session = await getOrLoadSession(sessionId);
 
     expect(session).toBeDefined();

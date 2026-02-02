@@ -12,6 +12,7 @@
 import fetch from 'node-fetch';
 import { createHash } from 'node:crypto';
 import * as dbModule from './db.js';
+import type { Firestore } from '@google-cloud/firestore';
 
 interface Named {
   name: string;
@@ -39,6 +40,8 @@ export interface GameMetadata {
 
 const metadataCache = new Map<string, GameMetadata>();
 
+let firestore: Firestore | undefined;
+
 function normalizeTitle(title: string): string {
   return title.trim().toLowerCase();
 }
@@ -47,8 +50,11 @@ function metadataDocId(title: string): string {
   return createHash('sha256').update(normalizeTitle(title)).digest('hex');
 }
 
-function getFirestore() {
-  return (dbModule as any).getFirestoreInstance();
+function getFirestore(): Firestore {
+  if (!firestore) {
+    firestore = dbModule.getFirestoreInstance();
+  }
+  return firestore;
 }
 
 /**

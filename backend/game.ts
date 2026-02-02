@@ -96,19 +96,43 @@ let _firestore: Firestore | null = null;
 
 function getFirestore(): Firestore {
   if (!_firestore) {
-    _firestore =
-      // Prefer the singleton helper when available (production code path).
-      'getFirestoreInstance' in dbModule && typeof (dbModule as any).getFirestoreInstance === 'function'
-        ? (dbModule as any).getFirestoreInstance()
-        // Fallback: create a brand-new Firestore instance (test mocks typically
-        // stub the Firestore class itself, so this is safe and keeps unit tests
-        // isolated without requiring every test to export the helper).
-        : new Firestore();
+    _firestore = dbModule.getFirestoreInstance();
   }
-  return _firestore!;
+  return _firestore;
 }
 
 type SessionKind = 'player' | 'ai';
+
+type CompactedPlayerSessionData = {
+  s: string;
+  h: ChatMessage[];
+  q: number;
+  uh?: boolean;
+};
+
+type CompactedAiSessionData = {
+  h: ChatMessage[];
+  q: number;
+  mq: number;
+};
+
+type CompactedSessionData = CompactedPlayerSessionData | CompactedAiSessionData;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isSessionKind(value: unknown): value is SessionKind {
+  return value === 'player' || value === 'ai';
+}
+
+function readNumber(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function readBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
 
 function buildPlayerInitialMessage(secretGame: string): ChatMessage {
   // This message is part of the persisted session compaction contract.
@@ -122,13 +146,14 @@ function buildPlayerInitialMessage(secretGame: string): ChatMessage {
 }
 
 function isChatMessage(value: unknown): value is ChatMessage {
-  if (!value || typeof value !== 'object') return false;
-  if (!('role' in value) || !('content' in value)) return false;
+  if (!isRecord(value)) return false;
+  const role = value['role'];
+  const content = value['content'];
 
-  const role = (value as any).role;
-  const content = (value as any).content;
   if (role === 'user') return typeof content === 'string';
-  if (role === 'model') return !!content && typeof content === 'object';
+  if (role === 'model') {
+    return typeof content === 'string' || (!!content && typeof content === 'object');
+  }
   return false;
 }
 
@@ -137,7 +162,7 @@ function isChatMessage(value: unknown): value is ChatMessage {
 * - Shortens keys
 * - Omits the redundant initial system message in PlayerGuessSessions
 */
-function toDbFormat(session: PlayerGuessSession | AIGuessSession): any {
+function toDbFormat(session: PlayerGuessSession | AIGuessSession): CompactedSessionData {
   if ('secretGame' in session) {
     const [first, ...rest] = session.chatHistory;
     const expectedContent = buildPlayerInitialMessage(session.secretGame).content;
@@ -167,12 +192,19 @@ function toDbFormat(session: PlayerGuessSession | AIGuessSession): any {
 /**
 * Rehydrates a session object from its compacted Firestore format.
 */
-function fromDbFormat(docData: any, kind: SessionKind): PlayerGuessSession | AIGuessSession {
+function fromDbFormat(
+  docData: unknown,
+  kind: SessionKind,
+): PlayerGuessSession | AIGuessSession | undefined {
+  if (!isRecord(docData)) return undefined;
+
   if (kind === 'player') {
-    const secretGame = docData.s;
+    const secretGame = docData['s'];
+    if (typeof secretGame !== 'string') return undefined;
+
     const expectedContent = buildPlayerInitialMessage(secretGame).content;
-    const storedHistory: ChatMessage[] = Array.isArray(docData.h)
-      ? docData.h.filter(isChatMessage)
+    const storedHistory: ChatMessage[] = Array.isArray(docData['h'])
+      ? docData['h'].filter(isChatMessage)
       : [];
     const first = storedHistory[0];
     const hasInitialMessage =
@@ -188,18 +220,18 @@ function fromDbFormat(docData: any, kind: SessionKind): PlayerGuessSession | AIG
             buildPlayerInitialMessage(secretGame),
             ...storedHistory,
           ],
-      questionCount: docData.q || 0,
-      usedHint: !!docData.uh,
-    } as PlayerGuessSession;
+      questionCount: readNumber(docData['q'], 0),
+      usedHint: readBoolean(docData['uh'], false),
+    };
   } else {
-    const storedHistory: ChatMessage[] = Array.isArray(docData.h)
-      ? docData.h.filter(isChatMessage)
+    const storedHistory: ChatMessage[] = Array.isArray(docData['h'])
+      ? docData['h'].filter(isChatMessage)
       : [];
     return {
       chatHistory: storedHistory,
-      questionCount: docData.q || 0,
-      maxQuestions: docData.mq || 20,
-    } as AIGuessSession;
+      questionCount: readNumber(docData['q'], 0),
+      maxQuestions: readNumber(docData['mq'], 20),
+    };
   }
 }
 
@@ -207,7 +239,7 @@ interface SessionDocument {
   /** Narrow string literal for easier filtering/debugging. */
   kind: SessionKind;
   /** The actual session payload used by the runtime. */
-  data: any; // Compacted data
+  data: CompactedSessionData;
   /** Timestamp for housekeeping/debugging. */
   updated_at: Timestamp;
   /** TTL field for Firestore to automatically delete old sessions. */
@@ -235,7 +267,7 @@ async function persistSession(
 ): Promise<void> {
   const kind: SessionKind = 'secretGame' in session ? 'player' : 'ai';
   
-  // Set TTL to 24 hours from now
+  // TTL extends on each session update (24h after last activity).
   const now = Date.now();
   const expiresAtMs = now + (24 * 60 * 60 * 1000);
   const expiresAt = Timestamp.fromMillis(expiresAtMs);
@@ -259,8 +291,13 @@ async function loadSessionFromDB(
 ): Promise<PlayerGuessSession | AIGuessSession | undefined> {
   const snap = await getSessionsCollection().doc(sessionId).get();
   if (!snap.exists) return undefined;
-  const doc = snap.data() as SessionDocument;
-  const session = fromDbFormat(doc?.data, doc?.kind);
+  const doc = snap.data() as unknown;
+  if (!isRecord(doc)) return undefined;
+  if (!isSessionKind(doc['kind'])) return undefined;
+
+  const session = fromDbFormat(doc['data'], doc['kind']);
+  if (!session) return undefined;
+
   if (session) {
     gameSessions.set(sessionId, session);
     enforceCacheSizeLimit();
@@ -507,7 +544,7 @@ async function getPlayerGuessHint(sessionId: string, hintType: HintType): Promis
   // Mark that the player has used at least one hint in this session. This will
   // be baked into the next `guessResult` object so that the UI can reflect
   // hint usage.
-  (session as PlayerGuessSession).usedHint = true;
+  session.usedHint = true;
 
   let candidates: Array<HintResponse> = [];
   if (metadata.developer) candidates.push({hintType: 'developer', hintText: metadata.developer});
