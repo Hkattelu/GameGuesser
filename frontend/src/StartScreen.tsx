@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 
 import SettingsButton from './components/SettingsButton';
 import LoadingIndicator from './components/LoadingIndicator';
+import AdSlot from './components/AdSlot';
 import { AI_NAME } from './constants';
 import { wrapNavigate } from './utils/transition-utils';
 import './styles/startScreen.css';
@@ -162,6 +163,7 @@ function StartScreen() {
           ))}
         </h1>
         <p className="text-lg mb-8">Welcome, {currentUser?.displayName || currentUser?.email || 'Guest'}! Choose a game to play!</p>
+        <AdSlot format="banner" placementId="7890123456" />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">

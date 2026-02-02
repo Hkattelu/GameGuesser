@@ -14,6 +14,7 @@ import ConfettiExplosion from "react-confetti-explosion";
 import RulesIcon from './components/RulesIcon';
 import RulesDialog from './components/RulesDialog';
 import GameHistoryCalendar from './components/GameHistoryCalendar';
+import AdSlot from './components/AdSlot';
 
 import { useAuth } from './AuthContext';
 
@@ -293,7 +294,10 @@ function AIGuessesGame() {
       <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} isGameCompleted={aiGuessesCompletedToday} />
 
       {started && !loading && !aiGuessesCompletedToday  && (
-        <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
+        <>
+          <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
+          <AdSlot format="banner" placementId="8901234567" />
+        </>
       )}
 
       {!started && !aiGuessesCompletedToday && (
