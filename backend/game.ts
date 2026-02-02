@@ -113,7 +113,8 @@ type SessionKind = 'player' | 'ai';
 function buildPlayerInitialMessage(secretGame: string): ChatMessage {
   // This message is part of the persisted session compaction contract.
   // If it changes, any stored sessions that omitted this message will be
-  // rehydrated with the updated text.
+  // rehydrated with the updated text, and compaction will only omit messages
+  // matching the updated value.
   return {
     role: 'user',
     content: `The secret game is ${secretGame}. The user will now ask questions.`,
@@ -123,8 +124,12 @@ function buildPlayerInitialMessage(secretGame: string): ChatMessage {
 function isChatMessage(value: unknown): value is ChatMessage {
   if (!value || typeof value !== 'object') return false;
   if (!('role' in value) || !('content' in value)) return false;
+
   const role = (value as any).role;
-  return role === 'user' || role === 'model';
+  const content = (value as any).content;
+  if (role === 'user') return typeof content === 'string';
+  if (role === 'model') return !!content && typeof content === 'object';
+  return false;
 }
 
 /**
@@ -187,8 +192,11 @@ function fromDbFormat(docData: any, kind: SessionKind): PlayerGuessSession | AIG
       usedHint: !!docData.uh,
     } as PlayerGuessSession;
   } else {
+    const storedHistory: ChatMessage[] = Array.isArray(docData.h)
+      ? docData.h.filter(isChatMessage)
+      : [];
     return {
-      chatHistory: docData.h || [],
+      chatHistory: storedHistory,
       questionCount: docData.q || 0,
       maxQuestions: docData.mq || 20,
     } as AIGuessSession;
