@@ -28,9 +28,9 @@ Reduce Firestore costs through better data management.
 ## Phase 3: AI API and RAWG Call Optimization
 Reduce per-session token usage and external API dependency.
 
-- [ ] **Task: Refine Genkit prompts for token efficiency**
-    - [ ] **Sub-task: Write Tests** in `backend/__tests__/prompts.test.ts` to verify Quiz Bot personality remains intact with shorter prompts.
-    - [ ] **Sub-task: Implement Implementation** in `backend/prompts.ts` to condense system instructions.
+- [x] **Task: Refine Genkit prompts for token efficiency** 466237a
+    - [x] **Sub-task: Write Tests** in `backend/__tests__/prompts.test.ts` to verify Quiz Bot personality remains intact with shorter prompts.
+    - [x] **Sub-task: Implement Implementation** in `backend/prompts.ts` to condense system instructions.
 - [ ] **Task: Implement caching for RAWG game metadata**
     - [ ] **Sub-task: Write Tests** for a new caching utility in `backend/rawg.ts`.
     - [ ] **Sub-task: Implement Implementation** using a simple in-memory or Firestore-based cache for RAWG details.
