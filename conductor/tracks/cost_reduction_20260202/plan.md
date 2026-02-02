@@ -25,7 +25,7 @@ Reduce Firestore costs through better data management.
     - [x] **Sub-task: Implement Implementation** for TTL field updates in `backend/game.ts`.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 2: Storage Optimization' (Protocol in workflow.md)**
 
-## Phase 3: AI API and RAWG Call Optimization
+## Phase 3: AI API and RAWG Call Optimization [checkpoint: 36c498f]
 Reduce per-session token usage and external API dependency.
 
 - [x] **Task: Refine Genkit prompts for token efficiency** 466237a
