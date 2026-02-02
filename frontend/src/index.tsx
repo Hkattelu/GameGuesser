@@ -17,7 +17,8 @@ import AudioButton from './components/AudioButton';
 setupGlobalUnauthorizedInterceptor();
 
 function updateSeoUrls(): void {
-  const url = window.location.origin + window.location.pathname;
+  const { origin, pathname, search } = window.location;
+  const url = origin + pathname + search;
 
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   if (canonical) {
@@ -45,7 +46,7 @@ function SeoUpdater(): null {
 
   useEffect(() => {
     updateSeoUrls();
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   return null;
 }
