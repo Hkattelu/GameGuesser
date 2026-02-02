@@ -8,7 +8,7 @@ Establish a baseline for current costs and research optimization strategies.
 - [x] **Task: Analyze current Firestore and AI API usage patterns** 0347f49
     - [ ] Audit `backend/game.ts` and `backend/ai.ts` to map Firestore write triggers and AI call frequency.
     - [ ] Document baseline "cost per game session" (estimates).
-- [ ] **Task: Research Ad Integration providers and technical requirements**
+- [x] **Task: Research Ad Integration providers and technical requirements** 67dba82
     - [ ] Identify ad placement locations in `frontend/src/App.tsx` and game screens.
     - [ ] Define the technical interface for the `AdComponent`.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 1: Baseline Analysis' (Protocol in workflow.md)**
