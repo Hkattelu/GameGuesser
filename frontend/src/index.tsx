@@ -18,7 +18,7 @@ setupGlobalUnauthorizedInterceptor();
 
 function updateSeoUrls(): void {
   const { origin, pathname, search } = window.location;
-  const url = origin + pathname + search;
+  const url = new URL(pathname + search, origin).toString();
 
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   if (canonical) {
