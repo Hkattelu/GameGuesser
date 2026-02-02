@@ -36,7 +36,7 @@ Reduce per-session token usage and external API dependency.
     - [x] **Sub-task: Implement Implementation** using a simple in-memory or Firestore-based cache for RAWG details.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 3: API Optimization' (Protocol in workflow.md)**
 
-## Phase 4: Ad Integration Infrastructure
+## Phase 4: Ad Integration Infrastructure [checkpoint: 5b85f04]
 Prepare the frontend for monetization.
 
 - [x] **Task: Create a reusable `AdSlot` component** a141c65
