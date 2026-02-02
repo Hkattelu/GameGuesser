@@ -42,9 +42,9 @@ Prepare the frontend for monetization.
 - [x] **Task: Create a reusable `AdSlot` component** a141c65
     - [x] **Sub-task: Write Tests** for `frontend/src/components/AdSlot.tsx`.
     - [x] **Sub-task: Implement Implementation** with pixel-art borders to match the retro aesthetic.
-- [ ] **Task: Integrate AdSlots into the game loop**
-    - [ ] Place `AdSlot` components in `frontend/src/StartScreen.tsx` and `frontend/src/AIGuessesGame.tsx`.
-    - [ ] Ensure layout remains responsive on mobile.
+- [x] **Task: Integrate AdSlots into the game loop** 09b33dd
+    - [x] Place `AdSlot` components in `frontend/src/StartScreen.tsx` and `frontend/src/AIGuessesGame.tsx`.
+    - [x] Ensure layout remains responsive on mobile.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 4: Ad Integration' (Protocol in workflow.md)**
 
 ## Phase 5: Final Verification and Checkpoint
