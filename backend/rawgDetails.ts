@@ -10,19 +10,20 @@
 */
 
 import fetch from 'node-fetch';
+import * as dbModule from './db.js';
 
 interface Named {
   name: string;
 }
 
 interface SearchResponse {
-  results: GameMetadata[];
+  results: Array<{ id: number }>;
 }
 
 interface GameMetadataResponse {
   developers: Named[];
   publishers: Named[];
-  platforms: {platform: string}[];
+  platforms: { platform: Named }[];
   released: string;  // YYYY-MM-DD
 }
 
@@ -32,6 +33,13 @@ export interface GameMetadata {
   platform?: string;
   publisher?: string;
   releaseYear?: number;
+  special?: string;
+}
+
+const metadataCache = new Map<string, GameMetadata>();
+
+function getFirestore() {
+  return (dbModule as any).getFirestoreInstance();
 }
 
 /**
@@ -42,6 +50,22 @@ export interface GameMetadata {
 * of throwing so callers can decide how to handle missing data.
 */
 export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
+  // 1. Check in-memory cache
+  const cached = metadataCache.get(title);
+  if (cached) return cached;
+
+  // 2. Check Firestore cache
+  try {
+    const doc = await getFirestore().collection('metadata').doc(title).get();
+    if (doc.exists) {
+      const data = doc.data() as GameMetadata;
+      metadataCache.set(title, data);
+      return data;
+    }
+  } catch (err) {
+    // Ignore cache read errors
+  }
+
   const apiKey = process.env.RAWG_API_KEY;
   if (!apiKey) {
     return {};
@@ -73,16 +97,26 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
 
     const developer: string | undefined = detailJson?.developers?.[0]?.name;
     const publisher: string | undefined = detailJson?.publishers?.[0]?.name;
-    const platform: string | undefined = detailJson?.platforms?.[0]?.platform;
+    const platform: string | undefined = detailJson?.platforms?.[0]?.platform?.name;
     const released: string | undefined = detailJson?.released;
     const releaseYear = released ? Number(released.split('-')[0]) : undefined;
 
-    return {
+    const result: GameMetadata = {
       developer,
       platform,
       publisher,
       releaseYear: Number.isNaN(releaseYear) ? undefined : releaseYear,
     };
+
+    // 3. Save to caches
+    metadataCache.set(title, result);
+    try {
+      await getFirestore().collection('metadata').doc(title).set(result);
+    } catch (err) {
+      // Ignore cache write errors
+    }
+
+    return result;
   } catch (err) {
     // Network issues or parsing errors – log a warning so we have visibility
     // in staging/production without crashing the request handler.
@@ -92,5 +126,18 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
 
     // Return empty so callers can gracefully handle missing data.
     return {};
+  }
+}
+
+/**
+* Explicitly saves metadata to both in-memory and Firestore caches.
+* Useful for attaching AI-generated hints to the cached record.
+*/
+export async function saveMetadata(title: string, metadata: GameMetadata): Promise<void> {
+  metadataCache.set(title, metadata);
+  try {
+    await getFirestore().collection('metadata').doc(title).set(metadata);
+  } catch (err) {
+    // Ignore cache write errors
   }
 }

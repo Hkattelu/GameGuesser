@@ -12,7 +12,7 @@ import {
   AIJsonResponseSchema,
 } from './types.js';
 import { getDailyGame } from './dailyGameStore.js';
-import { fetchGameMetadata } from './rawgDetails.js';
+import { fetchGameMetadata, saveMetadata } from './rawgDetails.js';
 import type { GameMetadata } from './rawgDetails.js';
 import { SPECIAL_HINT_PROMPT } from './prompts.js';
 import { specialHintSchema } from './types.js';
@@ -438,13 +438,11 @@ function clearSessions() {
   gameSessions.clear();
 }
 
-const metadataCache = new Map<string, PlayerGuessHint>();
-
 /**
 * Returns a single hint for the secret game belonging to the provided session.
 *
-* Developer, publisher, and release year are fetched from the RAWG API.
-* For the special hint, the AI model will generate a short string.
+* Developer, publisher, and release year are fetched from the RAWG API (and cached).
+* For the special hint, the AI model will generate a short string (and it is also cached).
 */
 async function getPlayerGuessHint(sessionId: string, hintType: HintType): Promise<HintResponse> {
   const session = await getOrLoadSession(sessionId);
@@ -452,24 +450,22 @@ async function getPlayerGuessHint(sessionId: string, hintType: HintType): Promis
     throw new Error('Session not found.');
   }
 
-  let metadata = metadataCache.get(session.secretGame);
-  if (!metadata) {
-    metadata = await fetchGameMetadata(session.secretGame);
+  const metadata = await fetchGameMetadata(session.secretGame);
 
-    // Fetch a hint from the model
-    if (hintType === 'special' && !metadata.special) {
-      try {
-        const response: { special: string } = await generateStructured(
-          specialHintSchema,
-          SPECIAL_HINT_PROMPT(session.secretGame)
-        );
-        metadata.special = response.special;
-      } catch (e) {
-        // If the model call fails, fallback to no special hint
-        metadata.special = undefined;
-      }
+  // Fetch a hint from the model if requested and not already cached
+  if (hintType === 'special' && !metadata.special) {
+    try {
+      const response: { special: string } = await generateStructured(
+        specialHintSchema,
+        SPECIAL_HINT_PROMPT(session.secretGame)
+      );
+      metadata.special = response.special;
+      // Persist the AI-generated hint to the metadata cache
+      await saveMetadata(session.secretGame, metadata);
+    } catch (e) {
+      // If the model call fails, fallback to no special hint
+      metadata.special = undefined;
     }
-    metadataCache.set(session.secretGame, metadata);
   }
 
   // Mark that the player has used at least one hint in this session. This will
