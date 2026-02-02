@@ -26,12 +26,12 @@ describe('Prompt templates', () => {
     // Should describe both possible JSON shapes.
     expect(prompt).toMatch(/"type": "answer"/);
     expect(prompt).toMatch(/"type": "guessResult"/);
-    expect(prompt).toMatch(/"confidence": <number>/);
+    expect(prompt).toMatch(/"confidence": <1-10>/);
   });
 
   it('AI_GUESS_INITIAL_PROMPT references the question budget', () => {
     const prompt = AI_GUESS_INITIAL_PROMPT(20);
-    expect(prompt).toMatch(/20 Questions/);
-    expect(prompt).toMatch(/You have 20 questions in total/);
+    expect(prompt).toMatch(/20 Questions/i);
+    expect(prompt).toMatch(/Total questions: 20/);
   });
 });
