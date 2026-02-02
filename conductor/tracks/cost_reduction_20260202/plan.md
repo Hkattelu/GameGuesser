@@ -47,7 +47,7 @@ Prepare the frontend for monetization.
     - [x] Ensure layout remains responsive on mobile.
 - [ ] **Task: Conductor - User Manual Verification 'Phase 4: Ad Integration' (Protocol in workflow.md)**
 
-## Phase 5: Final Verification and Checkpoint
+## Phase 5: Final Verification and Checkpoint [checkpoint: 72fe4ee]
 Verify total savings and finalize the track.
 
 - [x] **Task: Benchmark optimized session against baseline** 8a504af
