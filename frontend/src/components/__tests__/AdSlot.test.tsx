@@ -1,0 +1,26 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render } from '@testing-library/react';
+import AdSlot from '../AdSlot';
+
+describe('AdSlot Component', () => {
+  beforeEach(() => {
+    // Mock global adsbygoogle
+    (window as any).adsbygoogle = {
+      push: vi.fn(),
+    };
+  });
+
+  it('renders the AdSense markup', () => {
+    const { container } = render(<AdSlot format="banner" placementId="1234567890" />);
+    
+    const ins = container.querySelector('ins.adsbygoogle');
+    expect(ins).toBeInTheDocument();
+    expect(ins).toHaveAttribute('data-ad-slot', '1234567890');
+    expect(ins).toHaveAttribute('data-ad-client', 'ca-pub-5108380761431058');
+  });
+
+  it('calls push on mount', () => {
+    render(<AdSlot format="banner" placementId="1234567890" />);
+    expect((window as any).adsbygoogle.push).toHaveBeenCalled();
+  });
+});
