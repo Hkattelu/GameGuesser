@@ -258,96 +258,107 @@ function AIGuessesGame() {
   };
 
   return (
-    <div id="ai-guesses-game">
-      <RulesIcon gameMode="ai-guesses" onClick={openRulesDialog} />
-      <RulesDialog
-        isOpen={isRulesDialogOpen}
-        onClose={closeRulesDialog}
-        gameMode="ai-guesses"
-      />
-      <div className="flex justify-center items-center ml-4 mr-4">
-        <MascotImage mood={getMascotMood()} confidence={confidence} error={error} loading={loading} />
-        <p id="game-message" className="text-lg text-gray-600 dark:text-gray-300 mb-4">{gameMessage}</p>
+    <div id="ai-guesses-game" className="flex flex-col lg:flex-row items-center lg:items-start lg:gap-8 max-w-[1400px] mx-auto w-full">
+      
+      {/* Mobile Top Ad */}
+      <div className="lg:hidden w-full flex justify-center mb-4">
+        <AdSlot format="banner" placementId="8901234567" />
       </div>
-      {victory && (
-        <ConfettiExplosion
-          force={0.6}
-          duration={2000}
-          particleCount={100}
-          floorheight={1600}
-          floorwidth={1600}
+
+      {/* Desktop Left Ad */}
+      <div className="hidden lg:block sticky top-8">
+        <AdSlot format="vertical" placementId="2345678901" />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 w-full">
+        <RulesIcon gameMode="ai-guesses" onClick={openRulesDialog} />
+        <RulesDialog
+          isOpen={isRulesDialogOpen}
+          onClose={closeRulesDialog}
+          gameMode="ai-guesses"
         />
-      )}
-      {started && (
-        <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
-          Questions left: {maxQuestions - questionCount}/{maxQuestions}
+        <div className="flex justify-center items-center ml-4 mr-4">
+          <MascotImage mood={getMascotMood()} confidence={confidence} error={error} loading={loading} />
+          <p id="game-message" className="text-lg text-gray-600 dark:text-gray-300 mb-4">{gameMessage}</p>
         </div>
-      )}
+        {victory && (
+          <ConfettiExplosion
+            force={0.6}
+            duration={2000}
+            particleCount={100}
+            floorheight={1600}
+            floorwidth={1600}
+          />
+        )}
+        {started && (
+          <div id="player-question-count" className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
+            Questions left: {maxQuestions - questionCount}/{maxQuestions}
+          </div>
+        )}
 
-      {errorMessage && (
-        <ErrorBanner
-          message={errorMessage}
-          onClose={() => setErrorMessage(null)}
-        />
-      )}
+        {errorMessage && (
+          <ErrorBanner
+            message={errorMessage}
+            onClose={() => setErrorMessage(null)}
+          />
+        )}
 
-      <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} isGameCompleted={aiGuessesCompletedToday} />
+        <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} isGameCompleted={aiGuessesCompletedToday} />
 
-      {started && !loading && !aiGuessesCompletedToday  && (
-        <>
+        {started && !loading && !aiGuessesCompletedToday  && (
           <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
-          <AdSlot format="banner" placementId="8901234567" />
-        </>
-      )}
+        )}
 
-      {!started && !aiGuessesCompletedToday && (
-        <button
-          id="btn-start-game"
-          className="cursor-pointer mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
-          onClick={startGameAI}
-        >
-          Start Game
-        </button>
-      )}
-      {!started && aiGuessesCompletedToday && (
-        <>
-          <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
-          <button 
-            onClick={openHistoryDialog}
-            className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105 mr-5"
-          >
-            📊 History
-          </button>
+        {!started && !aiGuessesCompletedToday && (
           <button
-            onClick={() => setShowResults(true)}
-            className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+            id="btn-start-game"
+            className="cursor-pointer mt-8 px-8 py-4 bg-blue-600 text-white font-bold text-xl rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+            onClick={startGameAI}
           >
-            View Results
+            Start Game
           </button>
-        </>
-      )}
+        )}
+        {!started && aiGuessesCompletedToday && (
+          <>
+            <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
+            <button 
+              onClick={openHistoryDialog}
+              className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105 mr-5"
+            >
+              📊 History
+            </button>
+            <button
+              onClick={() => setShowResults(true)}
+              className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105"
+            >
+              View Results
+            </button>
+          </>
+        )}
 
-      {showResults && (
-        <GameResultsDialog
-          isOpen={showResults}
-          onClose={() => setShowResults(false)}
-          chatHistory={chatHistory}
-          gameMode="ai-guesses"
-          victory={victory}
-          maxQuestions={maxQuestions}
-          score={undefined}
-          usedHint={undefined}
-        />
-      )}
+        {showResults && (
+          <GameResultsDialog
+            isOpen={showResults}
+            onClose={() => setShowResults(false)}
+            chatHistory={chatHistory}
+            gameMode="ai-guesses"
+            victory={victory}
+            maxQuestions={maxQuestions}
+            score={undefined}
+            usedHint={undefined}
+          />
+        )}
 
-      {showHistory && (
-        <GameHistoryCalendar
-          token={firebaseToken}
-          gameMode="ai-guesses"
-          isOpen={showHistory}
-          onClose={() => setShowHistory(false)}
-        />
-      )}
+        {showHistory && (
+          <GameHistoryCalendar
+            token={firebaseToken}
+            gameMode="ai-guesses"
+            isOpen={showHistory}
+            onClose={() => setShowHistory(false)}
+          />
+        )}
+      </div>
     </div>
   );
 }
