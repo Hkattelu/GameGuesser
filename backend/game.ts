@@ -129,6 +129,58 @@ function getSessionsCollection() {
 }
 
 /**
+* Compacts a session object for Firestore storage to reduce costs.
+* - Shortens keys
+* - Omits the redundant initial system message in PlayerGuessSessions
+*/
+function toDbFormat(session: PlayerGuessSession | AIGuessSession): any {
+  if ('secretGame' in session) {
+    // PlayerGuessSession
+    return {
+      s: session.secretGame,
+      // Omit the first message which is the "The secret game is..." prompt
+      h: session.chatHistory.slice(1),
+      q: session.questionCount,
+      uh: session.usedHint,
+    };
+  } else {
+    // AIGuessSession
+    return {
+      h: session.chatHistory,
+      q: session.questionCount,
+      mq: session.maxQuestions,
+    };
+  }
+}
+
+/**
+* Rehydrates a session object from its compacted Firestore format.
+*/
+function fromDbFormat(docData: any, kind: SessionKind): PlayerGuessSession | AIGuessSession {
+  if (kind === 'player') {
+    const secretGame = docData.s;
+    return {
+      secretGame,
+      chatHistory: [
+        {
+          role: 'user',
+          content: `The secret game is ${secretGame}. The user will now ask questions.`,
+        },
+        ...(docData.h || []),
+      ],
+      questionCount: docData.q || 0,
+      usedHint: !!docData.uh,
+    } as PlayerGuessSession;
+  } else {
+    return {
+      chatHistory: docData.h || [],
+      questionCount: docData.q || 0,
+      maxQuestions: docData.mq || 20,
+    } as AIGuessSession;
+  }
+}
+
+/**
 * Persists the given session object to Firestore. `merge: true` semantics are
 * achieved by overwriting the full document because the payload is already a
 * complete snapshot of the session state – partial updates would add undue
@@ -138,12 +190,10 @@ async function persistSession(
   sessionId: string,
   session: PlayerGuessSession | AIGuessSession,
 ): Promise<void> {
-  if (IS_TEST) return; // Skip Firestore writes during unit testing.
-
   const kind: SessionKind = 'secretGame' in session ? 'player' : 'ai';
   const doc: SessionDocument = {
     kind,
-    data: session,
+    data: toDbFormat(session),
     updated_at: Timestamp.now(),
   };
   await getSessionsCollection().doc(sessionId).set(doc);
@@ -157,12 +207,10 @@ async function persistSession(
 async function loadSessionFromDB(
   sessionId: string,
 ): Promise<PlayerGuessSession | AIGuessSession | undefined> {
-  if (IS_TEST) return undefined; // Tests rely solely on the in-memory cache.
-
   const snap = await getSessionsCollection().doc(sessionId).get();
   if (!snap.exists) return undefined;
   const doc = snap.data() as SessionDocument;
-  const session = doc?.data as PlayerGuessSession | AIGuessSession;
+  const session = fromDbFormat(doc?.data, doc?.kind);
   if (session) {
     gameSessions.set(sessionId, session);
     enforceCacheSizeLimit();
@@ -451,4 +499,5 @@ export {
   getSession,
   clearSessions,
   getPlayerGuessHint,
+  getOrLoadSession,
 };

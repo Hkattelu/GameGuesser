@@ -240,6 +240,9 @@ export class MockFirestore {
   }
 }
 
+// -------------------------- Aliases for redirect --------------------------
+export { MockFirestore as Firestore, MockTimestamp as Timestamp };
+
 // ---------------------------------------------------------------------------
 // Jest module factory registration
 // ---------------------------------------------------------------------------
