@@ -262,12 +262,12 @@ function AIGuessesGame() {
       
       {/* Mobile Top Ad */}
       <div className="lg:hidden w-full flex justify-center mb-8">
-        <AdSlot format="banner" placementId="8901234567" />
+        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
       </div>
 
       {/* Desktop Left Ad - Fixed under back button */}
       <div className="hidden lg:block fixed top-24 left-4 z-10">
-        <AdSlot format="vertical" placementId="2345678901" />
+        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
       </div>
 
       {/* Main Content - Now truly centered */}

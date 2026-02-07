@@ -16,12 +16,12 @@ describe('MascotImage', () => {
     expect(screen.getByAltText('Game Boy mascot')).toHaveAttribute('src', '/bot_boy/smile.png');
 
     rerender(<MascotImage confidence={9} />);
-    expect(screen.getByAltText('Game Boy mascot')).toHaveAttribute('src', '/bot_boy/smug.png');
+    expect(screen.getByAltText('Game Boy mascot')).toHaveAttribute('src', '/bot_boy/confident.png');
   });
 
   it('renders the correct image based on mood', () => {
     const { rerender } = render(<MascotImage mood="default" />);
-    expect(screen.getByAltText('Game Boy mascot')).toHaveAttribute('src', '/bot_boy/smile.png');
+    expect(screen.getByAltText('Game Boy mascot')).toHaveAttribute('src', '/bot_boy/default.png');
 
     rerender(<MascotImage mood="sad" />);
     expect(screen.getByAltText('Game Boy mascot')).toHaveAttribute('src', '/bot_boy/sad.png');

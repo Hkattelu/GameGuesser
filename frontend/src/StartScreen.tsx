@@ -144,12 +144,12 @@ function StartScreen() {
       
       {/* Desktop Left Ad - Positioned fixed under logout */}
       <div className="hidden lg:block fixed top-20 left-4 z-10">
-        <AdSlot format="vertical" placementId="1234509876" />
+        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
       </div>
 
       {/* Mobile Top Ad */}
       <div className="lg:hidden w-full flex justify-center mb-8">
-        <AdSlot format="banner" placementId="7890123456" />
+        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
       </div>
 
       {/* Main Content Area - Now truly centered */}

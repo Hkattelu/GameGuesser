@@ -10,6 +10,7 @@ import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 
 import './index.css';
+import SEO from './SEO';
 
 import { setupGlobalUnauthorizedInterceptor } from './utils/fetchInterceptor';
 import AudioButton from './components/AudioButton';
@@ -22,6 +23,7 @@ root.render(
     <BrowserRouter>
       <AuthProvider>
         <AudioButton />
+        <SEO />
         <Routes>
           <Route path="/" element={<AuthWrapper />} />
 
