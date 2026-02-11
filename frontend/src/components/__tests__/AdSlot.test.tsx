@@ -5,6 +5,7 @@ import AdSlot from '../AdSlot';
 describe('AdSlot Component', () => {
   beforeEach(() => {
     // Mock global adsbygoogle
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).adsbygoogle = {
       push: vi.fn(),
     };
@@ -22,6 +23,7 @@ describe('AdSlot Component', () => {
 
   it('calls push on mount', () => {
     render(<AdSlot format="banner" placementId="1234567890" />);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((window as any).adsbygoogle.push).toHaveBeenCalled();
   });
 });

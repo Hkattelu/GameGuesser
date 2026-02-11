@@ -31,7 +31,7 @@ function StartScreen() {
   const [aiGuessesCompletedToday, setAIGuessesCompletedToday] = useState<boolean>(false);
   const [playerGuessesCompletedToday, setPlayerGuessesCompletedToday] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
+  const [_transitionDirection, _setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
 
   const navigate = wrapNavigate(useNavigate());
@@ -131,7 +131,7 @@ function StartScreen() {
   const bothCompleted = aiGuessesCompletedToday && playerGuessesCompletedToday;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative py-12" div className="min-h-screen flex flex-col items-center justify-center relative py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center relative py-12">
       <div className="absolute top-4 left-4 flex gap-2 z-10 z-10">
         <button
           onClick={handleLogout}
@@ -206,38 +206,8 @@ function StartScreen() {
           </div>
         </div>
         {bothCompleted && <div className="mt-8 text-lg text-gray-500 dark:text-gray-300 font-semibold">You have played both games today. Come back tomorrow!</div>}
-        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">
-          <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm w-full sm:w-1/2">
-            <button
-              type="button"
-              onClick={() => handleSelectGame('/ai-guesses')}
-              className=" animate-bounce-in w-full game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform"
-            >
-              <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">{AI_NAME} guesses</h2>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                Think of any video game and let {AI_NAME} try to guess it by asking you questions.
-              </p>
-              {aiGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
-            </button>
-          </div>
-          <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm w-full sm:w-1/2">
-            <button
-              type="button"
-              onClick={() => handleSelectGame('/player-guesses')}
-              className=" animate-bounce-in game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full"
-            >
-              <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">You guess</h2>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
-                {AI_NAME} is thinking of a game — can you figure it out within twenty questions?
-              </p>
-              {playerGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
-            </button>
-          </div>
-        </div>
-        {bothCompleted && <div className="mt-8 text-lg text-gray-500 dark:text-gray-300 font-semibold">You have played both games today. Come back tomorrow!</div>}
       </div>
     </div>
-    </div >
   );
 }
 

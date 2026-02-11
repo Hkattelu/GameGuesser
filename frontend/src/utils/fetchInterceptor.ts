@@ -15,17 +15,17 @@
 * API request is made (e.g. in `index.tsx`).
 */
 
-/* eslint-disable no-param-reassign */
-
 // Symbol used to guard against installing the interceptor multiple times
 const FETCH_PATCHED_FLAG = '__gg_fetch_patched__';
 
 export function setupGlobalUnauthorizedInterceptor() {
   // Skip if already installed (can happen during HMR or Jest re-imports)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if ((window as any)[FETCH_PATCHED_FLAG]) return;
 
   const originalFetch = window.fetch.bind(window);
 
+   
   window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     const response = await originalFetch(...args);
 
@@ -47,5 +47,6 @@ export function setupGlobalUnauthorizedInterceptor() {
   };
 
   // Mark as installed so we don't patch twice.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any)[FETCH_PATCHED_FLAG] = true;
 }

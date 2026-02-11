@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AuthProvider } from '../AuthContext';
 import { MemoryRouter } from 'react-router-dom';
 
-const renderWithProviders = (ui: React.ReactElement) => {
+const _renderWithProviders = (ui: React.ReactElement) => {
   return render(
     <AuthProvider>
       <MemoryRouter>{ui}</MemoryRouter>
@@ -15,6 +15,7 @@ import { GameMode } from '../types';
 
 // Mock child components
 vi.mock('../components/ResponseButtons', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: (props: any) => (
         <div data-testid="response-buttons">
             <button onClick={() => props.onAnswer('Yes')}>Yes</button>

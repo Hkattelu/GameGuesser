@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 import SettingsButton from './components/SettingsButton';
 
 function AuthPage() {
-  const { currentUser } = useAuth();
+  const { currentUser: _currentUser } = useAuth();
   const mouseWatchArea = useRef(null);
   const leftEye = useRef(null);
   const rightEye = useRef(null);

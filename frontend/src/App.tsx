@@ -5,7 +5,7 @@ import SettingsButton from './components/SettingsButton';
 import { auth } from './firebase'; // Import auth for signOut
 
 function App() {
-  const { currentUser } = useAuth();
+  const { currentUser: _currentUser } = useAuth();
   const navigate = wrapNavigate(useNavigate());
   const location = useLocation();
   const direction =  location.pathname.includes('player-guesses') ? 'left' : 'right';

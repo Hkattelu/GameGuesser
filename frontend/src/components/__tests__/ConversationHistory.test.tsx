@@ -5,6 +5,7 @@ import { ChatMessage } from '../../types';
 
 // Prevent React Testing Library from throwing when `scrollIntoView` is called
 // during tests.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window.HTMLElement.prototype as any).scrollIntoView = vi.fn();
 
 describe('ConversationHistory', () => {

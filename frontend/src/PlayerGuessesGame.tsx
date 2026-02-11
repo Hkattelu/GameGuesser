@@ -4,7 +4,7 @@ import SuggestionChips from './components/SuggestionChips';
 import ConversationHistory from './components/ConversationHistory';
 import { getApiUrl } from './env_utils';
 import { MAX_SUGGESTIONS, SUGGESTIONS, MAX_QUESTIONS } from './constants';
-import { ChatMessage, PlayerQuestionResponse, PlayerGuessResponse } from './types';
+import { ChatMessage, PlayerQuestionResponse, PlayerGuessResponse, RAWGGameDetails } from './types';
 import HintIcon from './components/HintIcon';
 import HintDialog from './components/HintDialog';
 import ErrorBanner from './components/ErrorBanner';
@@ -22,7 +22,7 @@ import ConfettiExplosion from 'react-confetti-explosion';
 function shuffle(arr: string[]) {
   const sortedArr = structuredClone(arr);
   for (let i = sortedArr.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(Math.random() * (i + 1));
     [sortedArr[i], sortedArr[j]] = [sortedArr[j], sortedArr[i]];
   }
   return sortedArr;
@@ -54,7 +54,7 @@ function PlayerGuessesGame() {
   const [score, setScore] = useState<number | undefined>(undefined);
   const [usedHint, setUsedHint] = useState<boolean | undefined>(undefined);
   const [firebaseToken, setFirebaseToken] = useState<string | null>(null);
-  const [rawgGameDetails, setRawgGameDetails] = useState<any>(null);
+  const [rawgGameDetails, setRawgGameDetails] = useState<RAWGGameDetails | null>(null);
   const [maxQuestions] = useState<number>(MAX_QUESTIONS);
   const [isRulesDialogOpen, setIsRulesDialogOpen] = useState(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
@@ -447,7 +447,7 @@ function PlayerGuessesGame() {
             <div className="mt-2">
               <p className="text-sm font-semibold">Available on:</p>
               <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-300">
-                {rawgGameDetails.platforms.filter((platform: any) => platform.platform.name).map((platform: any) => (
+                {rawgGameDetails.platforms?.filter((platform) => platform.platform.name).map((platform) => (
                   <li key={platform.platform.id}>{platform.platform.name}</li>
                 ))}
               </ul>

@@ -10,8 +10,8 @@ vi.mock('../../env_utils', () => ({
 }));
 
 describe('HintDialog', () => {
-  const mockSetQuestionCount = vi.fn();
-  const mockSetChatHistory = vi.fn();
+  const _mockSetQuestionCount = vi.fn();
+  const _mockSetChatHistory = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();

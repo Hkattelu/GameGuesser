@@ -60,6 +60,7 @@ function formatMessages(messages: ChatMessage[], gameMode: GameMode): ChatTurn[]
  * @param maybeJsonString The string which may or may not contain JSON content.
  * @return The formatted string.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function formatJsonContent(maybeJsonString: any): string {
   let jsonContent = {};
 
@@ -77,7 +78,9 @@ function formatJsonContent(maybeJsonString: any): string {
     if (typeof jsonContent.content === 'string') {
       return jsonContent.content;
     } else if (jsonContent.content && typeof jsonContent.content === 'object') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const answer = (jsonContent.content as any).answer;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clarification = (jsonContent.content as any).clarification as string | undefined;
       return `${answer}${clarification ? ` - ${clarification}` : ''}`;
     }
@@ -85,6 +88,7 @@ function formatJsonContent(maybeJsonString: any): string {
     jsonContent.type === 'guessResult' &&
     typeof jsonContent.content?.response === 'string'
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { response, score, usedHint } = jsonContent.content as any;
     let suffix = '';
     if (typeof score === 'number') {
@@ -124,7 +128,7 @@ function ConversationHistory({ chatHistory, gameMode, loading }: ConversationHis
       id={gameMode === 'ai-guesses' ? 'conversation-history' : 'conversation-history-player'}
       className={'mb-6 conversation-screen w-full'}
     >
-      {formatMessages(chatHistory, gameMode).map((turn, index, list) => {
+      {formatMessages(chatHistory, gameMode).map((turn, index) => {
         return (
           <div key={index}>
             <div className="left-message"> 

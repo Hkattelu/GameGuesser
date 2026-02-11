@@ -28,6 +28,23 @@ export interface PlayerQuestionResponse {
   clarification? : string;
 }
 
+export interface Platform {
+  id: number;
+  name: string;
+}
+
+export interface RAWGGamePlatform {
+  platform: Platform;
+}
+
+export interface RAWGGameDetails {
+  developer?: string;
+  publisher?: string;
+  platform?: string;
+  releaseYear?: number;
+  platforms?: RAWGGamePlatform[];
+}
+
 export interface PlayerGuessResponse {
   correct: boolean;
   response: string;

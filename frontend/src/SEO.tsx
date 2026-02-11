@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 
 const DEFAULT_TITLE = "Quiz Bot's Arcade";

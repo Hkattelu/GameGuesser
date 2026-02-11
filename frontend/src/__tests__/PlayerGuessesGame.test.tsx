@@ -6,6 +6,7 @@ import { GameMode } from '../types';
 
 // Mock child components
 vi.mock('../components/SuggestionChips', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: (props: any) => (
         <div data-testid="suggestion-chips">
             <button onClick={() => props.onSelectSuggestion('Is it a strategy game?')}>Suggest</button>
@@ -16,9 +17,11 @@ vi.mock('../components/ConversationHistory', () => ({
     default: () => <div data-testid="conversation-history" />,
 }));
 vi.mock('../components/HintIcon', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: (props: any) => <button aria-label="Get a hint" onClick={props.onClick} />,
 }));
 vi.mock('../components/HintDialog', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     default: (props: any) => props.isOpen ? <div data-testid="hint-dialog">Hint Dialog</div> : null,
 }));
 
@@ -277,7 +280,7 @@ describe('PlayerGuessesGame', () => {
         resolveFetch = res;
       });
 
-      // @ts-ignore resolveFetch will be assigned synchronously above
+      // @ts-expect-error resolveFetch will be assigned synchronously above
       (global.fetch as vi.Mock).mockReturnValueOnce(fetchPromise);
 
       render(<PlayerGuessesGame {...mockProps} />);

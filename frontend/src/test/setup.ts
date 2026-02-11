@@ -18,4 +18,5 @@ Object.defineProperty(navigator, 'clipboard', {
 });
 
 // Mock scrollIntoView
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window.HTMLElement.prototype as any).scrollIntoView = vi.fn();

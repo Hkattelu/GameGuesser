@@ -29,7 +29,9 @@ declare module '@testing-library/react' {
 }
 
 declare module 'vite' {
-  export interface Plugin {}
+  export interface Plugin {
+    [key: string]: unknown;
+  }
   export function defineConfig(config: unknown): unknown;
 }
 

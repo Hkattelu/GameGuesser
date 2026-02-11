@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '../test/test-utils';
+import { render, screen, waitFor } from '../test/test-utils';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router';
 
