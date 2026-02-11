@@ -43,3 +43,4 @@ frontend-trigger.yaml
 
 # Transpiled test artifacts
 /dist_ts_test/
+node_modules
