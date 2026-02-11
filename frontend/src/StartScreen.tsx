@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 
 import SettingsButton from './components/SettingsButton';
 import LoadingIndicator from './components/LoadingIndicator';
+import AdSlot from './components/AdSlot';
 import { AI_NAME } from './constants';
 import { wrapNavigate } from './utils/transition-utils';
 import './styles/startScreen.css';
@@ -130,8 +131,8 @@ function StartScreen() {
   const bothCompleted = aiGuessesCompletedToday && playerGuessesCompletedToday;
 
   return (
-    <>
-      <div className="absolute top-4 left-4 flex gap-2">
+    <div className="min-h-screen flex flex-col items-center justify-center relative py-12">
+      <div className="absolute top-4 left-4 flex gap-2 z-10">
         <button
           onClick={handleLogout}
           className="cursor-pointer px-4 py-2 bg-white dark:bg-gray-600 dark:text-white rounded-md shadow-md hover:bg-gray-700 transition-colors"
@@ -140,61 +141,73 @@ function StartScreen() {
         </button>
       </div>
       <SettingsButton />
-      <div
-        className="start-screen flex flex-col items-center justify-center px-4 text-center mb-4"
-        ref={mouseWatchArea}
-      >
-      <div className={`${audioPlaying ? 'skew-bounce' : 'pop-anim'} quiz-bot-head`}>
-        <div className="eye ml-14" ref={leftEye}><div className="pupil"></div></div>
-        <div className="eye mr-14" ref={rightEye}><div className="pupil"></div></div>
-        <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />
-      </div>
-      <div className="p-6 bg-white border-2 border-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">
-        <h1 className="pixel-game text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
-          {`${AI_NAME} 's`.split('').map((char, index) => (
-            <span key={index} className="char-fall-in" style={{ animationDelay: `${index * 0.05}s` }}>
-              {char}
-            </span>
-          ))} {'Arcade'.split('').map((char, index) => (
-            <span key={index} className="char-fall-in" style={{ animationDelay: `${(AI_NAME.length + index) * 0.05}s` }}>
-              {char}
-            </span>
-          ))}
-        </h1>
-        <p className="text-lg mb-8">Welcome, {currentUser?.displayName || currentUser?.email || 'Guest'}! Choose a game to play!</p>
+      
+      {/* Desktop Left Ad - Positioned fixed under logout */}
+      <div className="hidden lg:block fixed top-20 left-4 z-10">
+        <AdSlot format="vertical" placementId="1234509876" />
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">
-        <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm">
-          <button
-            type="button"
-            onClick={() => handleSelectGame('/ai-guesses')}
-            className=" animate-bounce-in w-100 game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full sm:w-1/2"
-            >
-            <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">{AI_NAME} guesses</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">
-              Think of any video game and let {AI_NAME} try to guess it by asking you questions.
-            </p>
-            {aiGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
-          </button>
-        </div>
-        <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm">
-          <button
-            type="button"
-            onClick={() => handleSelectGame('/player-guesses')}
-            className=" animate-bounce-in game-option-card hover-anim cursor-pointer bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full sm:w-1/2"
-            >
-            <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">You guess</h2>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">
-              {AI_NAME} is thinking of a game — can you figure it out within twenty questions?
-            </p>
-            {playerGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
-          </button>
-        </div>
+      {/* Mobile Top Ad */}
+      <div className="lg:hidden w-full flex justify-center mb-8">
+        <AdSlot format="banner" placementId="7890123456" />
       </div>
-      {bothCompleted && <div className="mt-8 text-lg text-gray-500 dark:text-gray-300 font-semibold">You have played both games today. Come back tomorrow!</div>}
+
+      {/* Main Content Area - Now truly centered */}
+      <div
+        className="start-screen flex flex-col items-center justify-center px-4 text-center w-full max-w-4xl"
+        ref={mouseWatchArea}
+      >
+        <div className={`${audioPlaying ? 'skew-bounce' : 'pop-anim'} quiz-bot-head`}>
+          <div className="eye ml-14" ref={leftEye}><div className="pupil"></div></div>
+          <div className="eye mr-14" ref={rightEye}><div className="pupil"></div></div>
+          <img src="/bot_boy/quiz-bot-head.png" alt="Quiz bot head" />
+        </div>
+        <div className="p-6 bg-white border-2 border-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl drop-shadow mb-6 pt-12">
+          <h1 className="pixel-game text-5xl sm:text-6xl font-extrabold drop-shadow mb-4">
+            {`${AI_NAME} 's`.split('').map((char, index) => (
+              <span key={index} className="char-fall-in" style={{ animationDelay: `${index * 0.05}s` }}>
+                {char}
+              </span>
+            ))} {'Arcade'.split('').map((char, index) => (
+              <span key={index} className="char-fall-in" style={{ animationDelay: `${(AI_NAME.length + index) * 0.05}s` }}>
+                {char}
+              </span>
+            ))}
+          </h1>
+          <p className="text-lg mb-8">Welcome, {currentUser?.displayName || currentUser?.email || 'Guest'}! Choose a game to play!</p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">
+          <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm w-full sm:w-1/2">
+            <button
+              type="button"
+              onClick={() => handleSelectGame('/ai-guesses')}
+              className=" animate-bounce-in w-full game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform"
+              >
+              <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">{AI_NAME} guesses</h2>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                Think of any video game and let {AI_NAME} try to guess it by asking you questions.
+              </p>
+              {aiGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
+            </button>
+          </div>
+          <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm w-full sm:w-1/2">
+            <button
+              type="button"
+              onClick={() => handleSelectGame('/player-guesses')}
+              className=" animate-bounce-in game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full"
+              >
+              <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">You guess</h2>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                {AI_NAME} is thinking of a game — can you figure it out within twenty questions?
+              </p>
+              {playerGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
+            </button>
+          </div>
+        </div>
+        {bothCompleted && <div className="mt-8 text-lg text-gray-500 dark:text-gray-300 font-semibold">You have played both games today. Come back tomorrow!</div>}
       </div>
-      </>
+    </div>
   );
 }
 

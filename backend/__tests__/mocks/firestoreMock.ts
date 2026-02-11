@@ -33,6 +33,10 @@ export class MockTimestamp {
     return new MockTimestamp(new Date());
   }
 
+  static fromMillis(ms: number): MockTimestamp {
+    return new MockTimestamp(new Date(ms));
+  }
+
   toDate(): Date {
     return this._date;
   }
@@ -239,6 +243,9 @@ export class MockFirestore {
     for (const col of this._collections.values()) col.store.clear();
   }
 }
+
+// -------------------------- Aliases for redirect --------------------------
+export { MockFirestore as Firestore, MockTimestamp as Timestamp };
 
 // ---------------------------------------------------------------------------
 // Jest module factory registration
