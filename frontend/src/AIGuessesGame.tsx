@@ -259,15 +259,15 @@ function AIGuessesGame() {
 
   return (
     <div id="ai-guesses-game" className="min-h-screen flex flex-col items-center justify-center relative py-12 w-full">
-      
+
       {/* Mobile Top Ad */}
       <div className="lg:hidden w-full flex justify-center mb-8">
-        <AdSlot format="banner" placementId="8901234567" />
+        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
       </div>
 
       {/* Desktop Left Ad - Fixed under back button */}
       <div className="hidden lg:block fixed top-24 left-4 z-10">
-        <AdSlot format="vertical" placementId="2345678901" />
+        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
       </div>
 
       {/* Main Content - Now truly centered */}
@@ -305,10 +305,12 @@ function AIGuessesGame() {
         )}
 
         <div className="w-full max-w-2xl">
-          <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} isGameCompleted={aiGuessesCompletedToday} />
+          <div className="w-full max-w-2xl">
+            <ConversationHistory chatHistory={chatHistory} gameMode="ai-guesses" loading={loading} isGameCompleted={aiGuessesCompletedToday} />
+          </div>
         </div>
 
-        {started && !loading && !aiGuessesCompletedToday  && (
+        {started && !loading && !aiGuessesCompletedToday && (
           <div className="flex flex-col items-center w-full gap-4">
             <ResponseButtons onAnswer={handleAnswer} highlightedResponse={null} />
           </div>
@@ -326,7 +328,7 @@ function AIGuessesGame() {
         {!started && aiGuessesCompletedToday && (
           <>
             <div className="mt-8 text-lg text-gray-700 dark:text-gray-200 font-semibold">You have already played today. Come back tomorrow!</div>
-            <button 
+            <button
               onClick={openHistoryDialog}
               className="cursor-pointer mt-4 px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition duration-200 transform hover:scale-105 mr-5"
             >

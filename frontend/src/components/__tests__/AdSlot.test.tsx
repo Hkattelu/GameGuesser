@@ -10,13 +10,14 @@ describe('AdSlot Component', () => {
     };
   });
 
-  it('renders the AdSense markup', () => {
-    const { container } = render(<AdSlot format="banner" placementId="1234567890" />);
-    
+  it('renders the AdSense markup with fluid format', () => {
+    const { container } = render(<AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />);
+
     const ins = container.querySelector('ins.adsbygoogle');
     expect(ins).toBeInTheDocument();
-    expect(ins).toHaveAttribute('data-ad-slot', '1234567890');
-    expect(ins).toHaveAttribute('data-ad-client', 'ca-pub-5108380761431058');
+    expect(ins).toHaveAttribute('data-ad-slot', '7671409050');
+    expect(ins).toHaveAttribute('data-ad-format', 'fluid');
+    expect(ins).toHaveAttribute('data-ad-layout', 'in-article');
   });
 
   it('calls push on mount', () => {

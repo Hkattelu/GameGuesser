@@ -32,6 +32,7 @@ backend/pnpm-lock.yaml
 # Shared
 shared/tsconfig.tsbuildinfo
 shared/tsconfig.js
+node_modules/*
 
 # Coverage reports
 !frontend/coverage/clover.xml

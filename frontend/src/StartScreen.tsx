@@ -101,8 +101,8 @@ function StartScreen() {
 
     const moveEye = (eye: HTMLElement, event: MouseEvent) => {
       if (mouseWatchArea.current) {
-        const moveX = 30*(event.clientX - mouseWatchArea.current.offsetLeft)/mouseWatchArea.current.clientWidth - 20;
-        const moveY = 15*(event.clientY - mouseWatchArea.current.offsetTop)/mouseWatchArea.current.clientHeight - 5;
+        const moveX = 30 * (event.clientX - mouseWatchArea.current.offsetLeft) / mouseWatchArea.current.clientWidth - 20;
+        const moveY = 15 * (event.clientY - mouseWatchArea.current.offsetTop) / mouseWatchArea.current.clientHeight - 5;
         eye.style.transform = `translate(${moveX}px, ${moveY}px)`;
       }
     };
@@ -113,7 +113,7 @@ function StartScreen() {
     };
 
     if (mouseWatchArea.current) {
-     document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mousemove', handleMouseMove);
     }
 
     // Clean up the event listener when the component unmounts or the ref changes
@@ -131,8 +131,8 @@ function StartScreen() {
   const bothCompleted = aiGuessesCompletedToday && playerGuessesCompletedToday;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative py-12">
-      <div className="absolute top-4 left-4 flex gap-2 z-10">
+    <div className="min-h-screen flex flex-col items-center justify-center relative py-12" div className="min-h-screen flex flex-col items-center justify-center relative py-12">
+      <div className="absolute top-4 left-4 flex gap-2 z-10 z-10">
         <button
           onClick={handleLogout}
           className="cursor-pointer px-4 py-2 bg-white dark:bg-gray-600 dark:text-white rounded-md shadow-md hover:bg-gray-700 transition-colors"
@@ -141,15 +141,15 @@ function StartScreen() {
         </button>
       </div>
       <SettingsButton />
-      
+
       {/* Desktop Left Ad - Positioned fixed under logout */}
       <div className="hidden lg:block fixed top-20 left-4 z-10">
-        <AdSlot format="vertical" placementId="1234509876" />
+        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
       </div>
 
       {/* Mobile Top Ad */}
       <div className="lg:hidden w-full flex justify-center mb-8">
-        <AdSlot format="banner" placementId="7890123456" />
+        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
       </div>
 
       {/* Main Content Area - Now truly centered */}
@@ -183,7 +183,7 @@ function StartScreen() {
               type="button"
               onClick={() => handleSelectGame('/ai-guesses')}
               className=" animate-bounce-in w-full game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform"
-              >
+            >
               <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">{AI_NAME} guesses</h2>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
                 Think of any video game and let {AI_NAME} try to guess it by asking you questions.
@@ -196,7 +196,36 @@ function StartScreen() {
               type="button"
               onClick={() => handleSelectGame('/player-guesses')}
               className=" animate-bounce-in game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full"
-              >
+            >
+              <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">You guess</h2>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                {AI_NAME} is thinking of a game — can you figure it out within twenty questions?
+              </p>
+              {playerGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
+            </button>
+          </div>
+        </div>
+        {bothCompleted && <div className="mt-8 text-lg text-gray-500 dark:text-gray-300 font-semibold">You have played both games today. Come back tomorrow!</div>}
+        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center w-full max-w-3xl">
+          <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm w-full sm:w-1/2">
+            <button
+              type="button"
+              onClick={() => handleSelectGame('/ai-guesses')}
+              className=" animate-bounce-in w-full game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform"
+            >
+              <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">{AI_NAME} guesses</h2>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                Think of any video game and let {AI_NAME} try to guess it by asking you questions.
+              </p>
+              {aiGuessesCompletedToday && <div className="mt-2 text-red-500 font-semibold">Already played today</div>}
+            </button>
+          </div>
+          <div className="bg-white dark:bg-gray-800 drop-shadow border-1 border-white rounded-sm w-full sm:w-1/2">
+            <button
+              type="button"
+              onClick={() => handleSelectGame('/player-guesses')}
+              className=" animate-bounce-in game-option-card hover-anim cursor-pointer text-gray-900 dark:text-white p-6 sm:p-8 shadow-lg transition transform w-full"
+            >
               <h2 className="pixel-game text-3xl font-bold mb-2 text-gray-800 dark:text-white">You guess</h2>
               <p className="text-gray-600 dark:text-gray-300 text-sm">
                 {AI_NAME} is thinking of a game — can you figure it out within twenty questions?
@@ -208,6 +237,7 @@ function StartScreen() {
         {bothCompleted && <div className="mt-8 text-lg text-gray-500 dark:text-gray-300 font-semibold">You have played both games today. Come back tomorrow!</div>}
       </div>
     </div>
+    </div >
   );
 }
 

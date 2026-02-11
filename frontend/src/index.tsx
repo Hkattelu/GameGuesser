@@ -10,6 +10,7 @@ import AIGuessesGame from './AIGuessesGame';
 import PlayerGuessesGame from './PlayerGuessesGame';
 
 import './index.css';
+import SEO from './SEO';
 
 import { setupGlobalUnauthorizedInterceptor } from './utils/fetchInterceptor';
 import AudioButton from './components/AudioButton';
@@ -18,7 +19,7 @@ setupGlobalUnauthorizedInterceptor();
 
 function updateSeoUrls(): void {
   const { origin, pathname, search } = window.location;
-  const url = origin + pathname + search;
+  const url = new URL(pathname + search, origin).toString();
 
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   if (canonical) {
@@ -82,6 +83,7 @@ root.render(
       <SeoUpdater />
       <AuthProvider>
         <AudioButton />
+        <SEO />
         <Routes>
           <Route path="/" element={<AuthWrapper />} />
 

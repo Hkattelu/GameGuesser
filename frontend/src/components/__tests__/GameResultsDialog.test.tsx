@@ -98,13 +98,13 @@ describe('GameResultsDialog', () => {
   it('displays correct summary for AI guess victory', () => {
     render(<GameResultsDialog {...defaultProps} victory="guess" />);
     
-    expect(screen.getByText('Player Guesses - AI Guessed')).toBeInTheDocument();
+    expect(screen.getByText('Player Guesses - Lost')).toBeInTheDocument();
   });
 
   it('displays correct summary for AI guesses mode', () => {
     render(<GameResultsDialog {...defaultProps} gameMode="ai-guesses" />);
     
-    expect(screen.getByText('AI Guesses - Won')).toBeInTheDocument();
+    expect(screen.getByText('Quiz Bot Guesses - Won')).toBeInTheDocument();
   });
 
   it('shares results to clipboard when share button is clicked', async () => {
@@ -121,7 +121,7 @@ describe('GameResultsDialog', () => {
     });
 
     const callArgs = mockWriteText.mock.calls[0][0];
-    expect(callArgs).toContain('Bot Boy\'s Game Guessr');
+    expect(callArgs).toContain('Quiz Bot\'s Arcade');
     expect(callArgs).toContain('Player Guesses');
     expect(callArgs).toContain('Won');
     expect(callArgs).toContain('3/20 questions');

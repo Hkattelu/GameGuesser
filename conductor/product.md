@@ -11,6 +11,7 @@ The project aims to provide a platform for users to test their own video game kn
 - **Expressive Mascot:** Quiz Bot, a mascot that reacts with various expressions (confident, nervous, victory, etc.) based on the progress of the game.
 - **Multiple Game Modes:** Support for different gameplay styles, including the AI guessing the player's game and the player guessing a game chosen by the AI.
 - **Engagement Mechanics:** Daily challenges and leaderboards to encourage consistent play and community competition.
+- **Monetization:** Integrated ad banners and sidebars to support operational costs.
 
 ## AI Interaction Style
 - **Logical Precision:** The AI provides focused yes/no/maybe responses to maintain the integrity of the challenge.
