@@ -10,7 +10,9 @@
 */
 
 import fetch from 'node-fetch';
+import { createHash } from 'node:crypto';
 import * as dbModule from './db.js';
+import type { Firestore } from '@google-cloud/firestore';
 
 interface Named {
   name: string;
@@ -38,8 +40,21 @@ export interface GameMetadata {
 
 const metadataCache = new Map<string, GameMetadata>();
 
-function getFirestore() {
-  return (dbModule as any).getFirestoreInstance();
+let firestore: Firestore | undefined;
+
+function normalizeTitle(title: string): string {
+  return title.trim().toLowerCase();
+}
+
+function metadataDocId(title: string): string {
+  return createHash('sha256').update(normalizeTitle(title)).digest('hex');
+}
+
+function getFirestore(): Firestore {
+  if (!firestore) {
+    firestore = dbModule.getFirestoreInstance();
+  }
+  return firestore;
 }
 
 /**
@@ -50,17 +65,38 @@ function getFirestore() {
 * of throwing so callers can decide how to handle missing data.
 */
 export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
+  const cacheKey = normalizeTitle(title);
+  const docId = metadataDocId(title);
+
   // 1. Check in-memory cache
-  const cached = metadataCache.get(title);
+  const cached = metadataCache.get(cacheKey);
   if (cached) return cached;
 
   // 2. Check Firestore cache
   try {
-    const doc = await getFirestore().collection('metadata').doc(title).get();
+    const collection = getFirestore().collection('metadata');
+
+    const doc = await collection.doc(docId).get();
     if (doc.exists) {
       const data = doc.data() as GameMetadata;
-      metadataCache.set(title, data);
+      metadataCache.set(cacheKey, data);
       return data;
+    }
+
+    if (!title.includes('/')) {
+      const legacyDoc = await collection.doc(title).get();
+      if (legacyDoc.exists) {
+        const data = legacyDoc.data() as GameMetadata;
+        metadataCache.set(cacheKey, data);
+
+        try {
+          await collection.doc(docId).set(data);
+        } catch (err) {
+          // Ignore cache write errors
+        }
+
+        return data;
+      }
     }
   } catch (err) {
     // Ignore cache read errors
@@ -109,9 +145,9 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
     };
 
     // 3. Save to caches
-    metadataCache.set(title, result);
+    metadataCache.set(cacheKey, result);
     try {
-      await getFirestore().collection('metadata').doc(title).set(result);
+      await getFirestore().collection('metadata').doc(docId).set(result);
     } catch (err) {
       // Ignore cache write errors
     }
@@ -134,9 +170,12 @@ export async function fetchGameMetadata(title: string): Promise<GameMetadata> {
 * Useful for attaching AI-generated hints to the cached record.
 */
 export async function saveMetadata(title: string, metadata: GameMetadata): Promise<void> {
-  metadataCache.set(title, metadata);
+  const cacheKey = normalizeTitle(title);
+  const docId = metadataDocId(title);
+
+  metadataCache.set(cacheKey, metadata);
   try {
-    await getFirestore().collection('metadata').doc(title).set(metadata);
+    await getFirestore().collection('metadata').doc(docId).set(metadata);
   } catch (err) {
     // Ignore cache write errors
   }

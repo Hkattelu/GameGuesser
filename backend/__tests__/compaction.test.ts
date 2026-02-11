@@ -1,19 +1,22 @@
-import { jest } from '@jest/globals';
+import { jest, beforeEach, describe, it, expect } from '@jest/globals';
 
-// Define Mock Firestore
-const mockSet = jest.fn().mockResolvedValue(undefined);
-const mockDoc = jest.fn().mockReturnValue({ set: mockSet });
-const mockCollection = jest.fn().mockReturnValue({ doc: mockDoc });
-const mockFirestore = {
-  collection: mockCollection,
-};
+import { MockFirestore } from './mocks/firestoreMock.js';
+
+const firestore = new MockFirestore();
+
+function requireRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Expected an object record');
+  }
+  return value as Record<string, unknown>;
+}
 
 // Define Mock AI
 const mockGenerateStructured = jest.fn();
 
 // We mock db.ts before importing game.ts to control Firestore instance
 (jest as any).unstable_mockModule('../db.js', () => ({
-  getFirestoreInstance: () => mockFirestore,
+  getFirestoreInstance: () => firestore,
 }));
 
 // Mock AI module
@@ -23,11 +26,18 @@ const mockGenerateStructured = jest.fn();
 }));
 
 // We need to import things AFTER mocking
-const { startPlayerGuessesGame, handlePlayerQuestion } = await import('../game.js');
+const {
+  startPlayerGuessesGame,
+  handlePlayerQuestion,
+  clearSessions,
+  getOrLoadSession,
+} = await import('../game.js');
 
 describe('Data Compaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    firestore.clear();
+    clearSessions();
   });
 
   it('should store compacted session data in Firestore', async () => {
@@ -38,28 +48,28 @@ describe('Data Compaction', () => {
     });
 
     const { sessionId } = await startPlayerGuessesGame();
-    
-    // Clear mocks from the start call
-    mockSet.mockClear();
 
     await handlePlayerQuestion(sessionId, 'Is it an RPG?');
 
-    // Check what was saved to Firestore
-    expect(mockSet).toHaveBeenCalled();
-    const savedDoc = mockSet.mock.calls[0][0] as any;
+    const snap = await firestore.collection('gameSessions').doc(sessionId).get();
+    expect(snap.exists).toBe(true);
+    const savedDoc = requireRecord(snap.data() as unknown);
+    const savedData = requireRecord(savedDoc['data']);
     
     // GOAL (Compacted):
     // 1. chatHistory should be shortened to 'h'
-    expect(savedDoc.data.h).toBeDefined();
-    expect(savedDoc.data.chatHistory).toBeUndefined();
+    expect(savedData['h']).toBeDefined();
+    expect(savedData['chatHistory']).toBeUndefined();
     
     // 2. The first system message should be OMITTED
-    expect(savedDoc.data.h.length).toBe(1);
-    expect(savedDoc.data.h[0].role).toBe('model');
+    const history = savedData['h'];
+    expect(Array.isArray(history)).toBe(true);
+    expect(history.length).toBe(1);
+    expect(requireRecord(history[0])['role']).toBe('model');
     
     // 3. Other keys should be shortened
-    expect(savedDoc.data.s).toBeDefined(); // secretGame
-    expect(savedDoc.data.q).toBeDefined(); // questionCount
+    expect(savedData['s']).toBeDefined(); // secretGame
+    expect(savedData['q']).toBeDefined(); // questionCount
   });
 
   it('should rehydrate session data correctly from compacted format', async () => {
@@ -72,24 +82,21 @@ describe('Data Compaction', () => {
         q: 1,
         uh: true
       },
-      updated_at: {}
-    };
+      updated_at: {},
+      expiresAt: { toDate: () => new Date() },
+    } satisfies Record<string, unknown>;
 
-    // Mock DB response
-    const mockGet = jest.fn().mockResolvedValue({
-      exists: true,
-      data: () => compactedData
-    });
-    mockDoc.mockReturnValue({ get: mockGet, set: mockSet });
+    await firestore.collection('gameSessions').doc(sessionId).set(compactedData);
 
-    const { getSession, getOrLoadSession } = await import('../game.js');
-    
     const session = await getOrLoadSession(sessionId);
 
     expect(session).toBeDefined();
-    expect(session.questionCount).toBe(1);
-    expect((session as any).secretGame).toBe('Zelda');
-    expect((session as any).usedHint).toBe(true);
+    expect(session?.questionCount).toBe(1);
+    if (!session || !('secretGame' in session)) {
+      throw new Error('Expected a player session');
+    }
+    expect(session.secretGame).toBe('Zelda');
+    expect(session.usedHint).toBe(true);
     // History should have 2 messages: the prepended system one + the one from DB
     expect(session.chatHistory.length).toBe(2);
     expect(session.chatHistory[0].content).toContain('The secret game is Zelda');

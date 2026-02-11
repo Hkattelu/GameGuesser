@@ -1,4 +1,9 @@
 import { jest } from '@jest/globals';
+import { createHash } from 'node:crypto';
+
+function metadataDocId(title: string): string {
+  return createHash('sha256').update(title.trim().toLowerCase()).digest('hex');
+}
 
 // Define Mock Firestore
 const mockGet = jest.fn();
@@ -30,8 +35,13 @@ describe('RAWG Metadata Caching', () => {
     process.env.RAWG_API_KEY = 'test-key';
   });
 
+  it('uses stable Firestore document IDs for metadata', () => {
+    expect(metadataDocId('Zelda')).toBe('8d01416611a03b7c979d6fdee3b16006da68e29b5bd5cbc8785bc0e10205b7e8');
+  });
+
   it('should fetch from Firestore if not in memory', async () => {
     const title = 'Zelda';
+    const id = metadataDocId(title);
     const cachedData = {
       developer: 'Nintendo',
       publisher: 'Nintendo',
@@ -48,16 +58,18 @@ describe('RAWG Metadata Caching', () => {
 
     expect(result).toEqual(cachedData);
     expect(mockCollection).toHaveBeenCalledWith('metadata');
+    expect(mockDoc).toHaveBeenCalledWith(id);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('should fetch from RAWG and save to Firestore if not found anywhere', async () => {
     const title = 'NewGame';
+    const id = metadataDocId(title);
     
     // Not in Firestore
-    mockGet.mockResolvedValueOnce({
-      exists: false
-    });
+    mockGet
+      .mockResolvedValueOnce({ exists: false })
+      .mockResolvedValueOnce({ exists: false });
 
     // RAWG responses
     mockFetch
@@ -78,6 +90,7 @@ describe('RAWG Metadata Caching', () => {
     const result = await fetchGameMetadata(title);
 
     expect(result.developer).toBe('Dev');
+    expect(mockDoc).toHaveBeenCalledWith(id);
     expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
       developer: 'Dev'
     }));
@@ -86,12 +99,13 @@ describe('RAWG Metadata Caching', () => {
   it('should explicitly save metadata using saveMetadata', async () => {
     const { saveMetadata } = await import('../rawgDetails.js');
     const title = 'ManualSave';
+    const id = metadataDocId(title);
     const data = { developer: 'Manual', special: 'AI Hint' };
 
     await saveMetadata(title, data);
 
     expect(mockCollection).toHaveBeenCalledWith('metadata');
-    expect(mockDoc).toHaveBeenCalledWith(title);
+    expect(mockDoc).toHaveBeenCalledWith(id);
     expect(mockSet).toHaveBeenCalledWith(data);
   });
 });
