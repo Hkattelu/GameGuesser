@@ -15,6 +15,7 @@ import RulesIcon from './components/RulesIcon';
 import RulesDialog from './components/RulesDialog';
 import GameHistoryCalendar from './components/GameHistoryCalendar';
 import AdSlot from './components/AdSlot';
+import { useIsLargeScreen } from './hooks/useIsLargeScreen';
 
 import { useAuth } from './AuthContext';
 
@@ -40,6 +41,7 @@ function AIGuessesGame() {
   const [maxQuestions] = useState<number>(MAX_QUESTIONS);
   const [isRulesDialogOpen, setIsRulesDialogOpen] = useState(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
+  const isLargeScreen = useIsLargeScreen();
 
   const openRulesDialog = () => setIsRulesDialogOpen(true);
   const closeRulesDialog = () => setIsRulesDialogOpen(false);
@@ -261,15 +263,19 @@ function AIGuessesGame() {
   return (
     <div id="ai-guesses-game" className="min-h-screen flex flex-col items-center justify-center relative py-12 w-full">
 
-      {/* Mobile Top Ad */}
-      <div className="lg:hidden w-full flex justify-center mb-8">
-        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
-      </div>
+      {/* Mobile Top Ad - Only render on small screens */}
+      {!isLargeScreen && (
+        <div className="w-full flex justify-center mb-8">
+          <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
+        </div>
+      )}
 
-      {/* Desktop Left Ad - Fixed under back button */}
-      <div className="hidden lg:block fixed top-24 left-4 z-10">
-        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
-      </div>
+      {/* Desktop Left Ad - Only render on large screens */}
+      {isLargeScreen && (
+        <div className="fixed top-24 left-4 z-10">
+          <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
+        </div>
+      )}
 
       {/* Main Content - Now truly centered */}
       <div className="flex-1 w-full max-w-4xl flex flex-col items-center justify-center">

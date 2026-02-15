@@ -9,6 +9,7 @@ import { wrapNavigate } from './utils/transition-utils';
 import './styles/startScreen.css';
 import { getApiUrl } from './env_utils';
 import { isGameCompleted } from './utils/gameCompletion';
+import { useIsLargeScreen } from './hooks/useIsLargeScreen';
 
 import { useAuth } from './AuthContext';
 import { auth } from './firebase';
@@ -33,6 +34,7 @@ function StartScreen() {
   const [loading, setLoading] = useState<boolean>(true);
   const [_transitionDirection, _setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const isLargeScreen = useIsLargeScreen();
 
   const navigate = wrapNavigate(useNavigate());
 
@@ -142,15 +144,19 @@ function StartScreen() {
       </div>
       <SettingsButton />
 
-      {/* Desktop Left Ad - Positioned fixed under logout */}
-      <div className="hidden lg:block fixed top-20 left-4 z-10">
-        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
-      </div>
+      {/* Desktop Left Ad - Only render on large screens */}
+      {isLargeScreen && (
+        <div className="fixed top-20 left-4 z-10">
+          <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
+        </div>
+      )}
 
-      {/* Mobile Top Ad */}
-      <div className="lg:hidden w-full flex justify-center mb-8">
-        <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
-      </div>
+      {/* Mobile Top Ad - Only render on small screens */}
+      {!isLargeScreen && (
+        <div className="w-full flex justify-center mb-8">
+          <AdSlot format="fluid" placementId="7671409050" adLayout="in-article" />
+        </div>
+      )}
 
       {/* Main Content Area - Now truly centered */}
       <div
