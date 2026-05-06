@@ -49,7 +49,7 @@ function StartScreen() {
 
   const handleSelectGame = (path: '/ai-guesses' | '/player-guesses') => {
     const direction = path === '/ai-guesses' ? 'left' : 'right';
-    setTransitionDirection(direction);
+    _setTransitionDirection(direction);
     navigate(path, direction);
   };
 
